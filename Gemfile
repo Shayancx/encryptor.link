@@ -32,7 +32,7 @@ group :development do
 end
 
 # Pagination
-gem "pagy", "~> 6.0"
+gem "pagy", "~> 9.3"
 
 # Gems for CI workflow
 group :development, :test do
