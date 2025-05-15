@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>encryptor.link - Zero-Knowledge Encryption</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= stylesheet_link_tag "application.bootstrap", media: "all" %>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+</head>
+<body>
+  <div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+        <span class="fs-4">encryptor.link</span>
+      </a>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="themeToggle">
+        <label class="form-check-label" for="themeToggle">
+          <i class="theme-icon"></i>
+        </label>
+      </div>
+    </header>
+
+    <%= yield %>
+
+    <footer class="footer mt-auto py-3 border-top">
+      <div class="text-center text-muted">
+        <p class="mb-1">Zero-knowledge, client-side encrypted messages</p>
+        <p class="mb-0">All encryption and decryption happens in your browser. The server never sees your plaintext data.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Theme toggle functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const themeToggle = document.getElementById('themeToggle');
+      const htmlElement = document.documentElement;
+
+      // Check user preference
+      const userPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const savedTheme = localStorage.getItem('theme');
+
+      // Set initial theme
+      if (savedTheme) {
+        htmlElement.setAttribute('data-bs-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+      } else {
+        htmlElement.setAttribute('data-bs-theme', userPrefersDark ? 'dark' : 'light');
+        themeToggle.checked = userPrefersDark;
+      }
+
+      // Toggle theme when switch is clicked
+      themeToggle.addEventListener('change', () => {
+        const newTheme = themeToggle.checked ? 'dark' : 'light';
+        htmlElement.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+      });
+    });
+  </script>
+</body>
+</html>

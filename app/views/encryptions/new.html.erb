@@ -1,0 +1,412 @@
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow">
+      <div class="card-header">
+        <h3 class="my-2">Create Encrypted Message</h3>
+      </div>
+      <div class="card-body">
+        <form id="encryptForm">
+          <div class="mb-3">
+            <label for="messageText" class="form-label">Message</label>
+            <textarea class="form-control" id="messageText" rows="5" placeholder="Enter your message here..."></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Attach Files (optional, max 1000MB total)</label>
+            <div id="dropArea" class="file-upload-area">
+              <div id="dropAreaDefault">
+                <i class="bi bi-cloud-upload"></i>
+                <p>Drag & drop files here, or click to select</p>
+                <small class="text-muted">Files are encrypted in your browser before uploading</small>
+              </div>
+              <input type="file" id="fileInput" style="display:none;" multiple>
+            </div>
+
+            <!-- Files table with pagination -->
+            <div id="filesContainer" class="mt-3" style="display:none;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Selected Files</h5>
+                <span id="totalSize" class="text-muted">Total: 0 MB</span>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                  <thead>
+                    <tr>
+                      <th>File</th>
+                      <th>Size</th>
+                      <th>Type</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="filesTableBody">
+                    <!-- File rows will be added dynamically -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination controls -->
+              <div id="pagination" class="d-flex justify-content-center"></div>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="ttlSelect" class="form-label">Expires after</label>
+              <select class="form-select" id="ttlSelect">
+                <option value="3600">1 hour</option>
+                <option value="86400" selected>1 day</option>
+                <option value="604800">1 week</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="viewsSelect" class="form-label">Self-destructs after views</label>
+              <select class="form-select" id="viewsSelect">
+                <option value="1" selected>1 view</option>
+                <option value="2">2 views</option>
+                <option value="3">3 views</option>
+                <option value="5">5 views</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">Encrypt & Generate Link</button>
+          </div>
+        </form>
+
+        <div id="resultContainer" class="mt-4 d-none">
+          <div class="alert alert-success">
+            <p>Your encrypted link has been generated:</p>
+            <div class="input-group mb-3">
+              <input type="text" id="encryptedLink" class="form-control" readonly>
+              <button class="btn btn-outline-secondary" type="button" id="copyButton">Copy</button>
+            </div>
+            <p class="mb-0 text-muted small">This link contains the decryption key. Anyone with this link can view your message or download your files.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // Import encryption module
+  import { encryptMessage, encryptFiles } from "/encrypt.js";
+
+  // File handling variables
+  let selectedFiles = [];
+  const MAX_SIZE = 1000 * 1024 * 1024; // 1000MB in bytes
+  let currentPage = 1;
+  const itemsPerPage = 5;
+
+  // File icons - same as before
+  const fileIcons = {
+    // Document types
+    'pdf': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
+    'epub': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+    'doc': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
+    'docx': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
+
+    // Code files
+    'rb': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#D51F06" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    'py': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#3572A5" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    'js': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#F1E05A" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    'rs': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#DEA584" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+
+    // Image files
+    'jpg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    'jpeg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    'png': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    'gif': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+
+    // Audio/Video
+    'mp3': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+    'mp4': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>',
+
+    // Archives
+    'zip': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M22 6H2a1 1 0 0 1 0-2h20a1 1 0 0 1 0 2Z"/><path d="M12 10v6"/><path d="M12 10H8.5a1 1 0 0 0-.8.4l-1.5 2a1 1 0 0 0 0 1.2l1.5 2a1 1 0 0 0 .8.4H12"/><path d="M16.5 15.4V10"/><path d="M13.5 10h6v6h-6"/></svg>',
+    'tar': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M22 6H2a1 1 0 0 1 0-2h20a1 1 0 0 1 0 2Z"/><path d="M12 10v6"/><path d="M12 10H8.5a1 1 0 0 0-.8.4l-1.5 2a1 1 0 0 0 0 1.2l1.5 2a1 1 0 0 0 .8.4H12"/><path d="M16.5 15.4V10"/><path d="M13.5 10h6v6h-6"/></svg>',
+
+    // Default
+    'default': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+  };
+
+  // Set up file drag & drop
+  const dropArea = document.getElementById('dropArea');
+  const fileInput = document.getElementById('fileInput');
+  const dropAreaDefault = document.getElementById('dropAreaDefault');
+  const filesContainer = document.getElementById('filesContainer');
+  const filesTableBody = document.getElementById('filesTableBody');
+  const totalSizeElement = document.getElementById('totalSize');
+  const paginationElement = document.getElementById('pagination');
+
+  // Prevent default behaviors
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  // Highlight drop area when dragging file over it
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, highlight, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, unhighlight, false);
+  });
+
+  function highlight() {
+    dropArea.classList.add('dragover');
+  }
+
+  function unhighlight() {
+    dropArea.classList.remove('dragover');
+  }
+
+  // Handle dropped files
+  dropArea.addEventListener('drop', handleDrop, false);
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length) {
+      handleFiles(Array.from(files));
+    }
+  }
+
+  // Handle file input
+  dropArea.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length) {
+      handleFiles(Array.from(e.target.files));
+    }
+  });
+
+  // Process selected files
+  function handleFiles(files) {
+    // Calculate total size including existing files
+    const existingSize = selectedFiles.reduce((total, file) => total + file.size, 0);
+    const newSize = files.reduce((total, file) => total + file.size, 0);
+    const totalSize = existingSize + newSize;
+
+    if (totalSize > MAX_SIZE) {
+      alert(`Total file size exceeds the 1000MB limit. Please select fewer or smaller files.`);
+      return;
+    }
+
+    // Add new files to the array
+    selectedFiles = [...selectedFiles, ...files];
+
+    // Show files container
+    filesContainer.style.display = 'block';
+
+    // Update the file list and pagination
+    updateFilesList();
+  }
+
+  // Format file size
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' bytes';
+    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    else if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+  }
+
+  // Update files list with pagination
+  function updateFilesList() {
+    // Update total size
+    const totalSize = selectedFiles.reduce((total, file) => total + file.size, 0);
+    totalSizeElement.textContent = `Total: ${formatFileSize(totalSize)}`;
+
+    // Calculate pagination
+    const totalPages = Math.ceil(selectedFiles.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, selectedFiles.length);
+    const currentFiles = selectedFiles.slice(startIndex, endIndex);
+
+    // Clear the table body
+    filesTableBody.innerHTML = '';
+
+    // Add file rows
+    currentFiles.forEach((file, index) => {
+      const actualIndex = startIndex + index;
+      const extension = file.name.split('.').pop().toLowerCase();
+      const iconSvg = fileIcons[extension] || fileIcons['default'];
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <div class="d-flex align-items-center">
+            <div class="file-icon me-2" style="width: 24px; height: 24px;">${iconSvg}</div>
+            <div class="text-truncate" style="max-width: 200px;">${file.name}</div>
+          </div>
+        </td>
+        <td>${formatFileSize(file.size)}</td>
+        <td>${file.type || 'Unknown'}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-outline-danger" data-index="${actualIndex}">
+            Remove
+          </button>
+        </td>
+      `;
+
+      // Add remove button event
+      const removeButton = row.querySelector('button');
+      removeButton.addEventListener('click', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        selectedFiles.splice(index, 1);
+        updateFilesList();
+
+        // Hide the container if no files
+        if (selectedFiles.length === 0) {
+          filesContainer.style.display = 'none';
+        }
+      });
+
+      filesTableBody.appendChild(row);
+    });
+
+    // Update pagination controls
+    updatePagination(totalPages);
+  }
+
+  // Update pagination controls
+  function updatePagination(totalPages) {
+    paginationElement.innerHTML = '';
+
+    if (totalPages <= 1) {
+      return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.className = 'pagination pagination-sm';
+
+    // Previous button
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    const prevLink = document.createElement('a');
+    prevLink.className = 'page-link';
+    prevLink.href = '#';
+    prevLink.textContent = '«';
+    prevLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage > 1) {
+        currentPage--;
+        updateFilesList();
+      }
+    });
+    prevLi.appendChild(prevLink);
+    ul.appendChild(prevLi);
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+
+      const link = document.createElement('a');
+      link.className = 'page-link';
+      link.href = '#';
+      link.textContent = i;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentPage = i;
+        updateFilesList();
+      });
+
+      li.appendChild(link);
+      ul.appendChild(li);
+    }
+
+    // Next button
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    const nextLink = document.createElement('a');
+    nextLink.className = 'page-link';
+    nextLink.href = '#';
+    nextLink.textContent = '»';
+    nextLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        currentPage++;
+        updateFilesList();
+      }
+    });
+    nextLi.appendChild(nextLink);
+    ul.appendChild(nextLi);
+
+    paginationElement.appendChild(ul);
+  }
+
+  // Handle form submission
+  document.getElementById('encryptForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const message = document.getElementById('messageText').value;
+    const ttl = parseInt(document.getElementById('ttlSelect').value);
+    const views = parseInt(document.getElementById('viewsSelect').value);
+
+    // Check if either message or files are provided
+    if (!message && selectedFiles.length === 0) {
+      alert('Please enter a message or select at least one file.');
+      return;
+    }
+
+    try {
+      // Show loading state
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+      let link;
+
+      if (selectedFiles.length > 0) {
+        // Encrypt files and message
+        link = await encryptFiles(
+          selectedFiles,
+          message,
+          ttl,
+          views
+        );
+      } else {
+        // Encrypt text message only
+        link = await encryptMessage(message, ttl, views);
+      }
+
+      // Display the result
+      document.getElementById('encryptedLink').value = link;
+      document.getElementById('resultContainer').classList.remove('d-none');
+
+      // Reset form state
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+      this.reset();
+      selectedFiles = [];
+      filesContainer.style.display = 'none';
+    } catch (error) {
+      alert('Error: ' + error.message);
+      console.error(error);
+    }
+  });
+
+  // Handle copy button
+  document.getElementById('copyButton').addEventListener('click', function() {
+    const linkInput = document.getElementById('encryptedLink');
+    linkInput.select();
+    document.execCommand('copy');
+
+    // Visual feedback
+    this.textContent = 'Copied!';
+    setTimeout(() => {
+      this.textContent = 'Copy';
+    }, 2000);
+  });
+</script>

@@ -1,0 +1,113 @@
+@import "bootstrap";
+
+// Base styles
+body {
+  font-family: sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// Dark/light theme variables
+:root {
+  --bs-body-color: #212529;
+  --bs-body-bg: #f8f9fa;
+  --message-bg: #f8f9fa;
+  --message-color: #212529;
+}
+
+[data-bs-theme="dark"] {
+  --bs-body-color: #dee2e6;
+  --bs-body-bg: #212529;
+  --message-bg: #2c3136;
+  --message-color: #dee2e6;
+}
+
+.container {
+  max-width: 960px;
+}
+
+.theme-icon::before {
+  content: "☀️";
+}
+
+[data-bs-theme="dark"] .theme-icon::before {
+  content: "🌙";
+}
+
+.card {
+  border-radius: 0.5rem;
+}
+
+.footer {
+  margin-top: auto;
+}
+
+#decryptedContent {
+  white-space: pre-wrap;
+  overflow-x: auto;
+  background-color: var(--message-bg) !important;
+  color: var(--message-color) !important;
+}
+
+// File upload styling
+.file-upload-area {
+  border: 2px dashed var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.file-upload-area:hover {
+  border-color: var(--bs-primary);
+}
+
+.file-upload-area.dragover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  border-color: var(--bs-primary);
+}
+
+// Animation for copy button
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+button.copied {
+  animation: pulse 0.3s ease-in-out;
+}
+
+// Pagination styling
+.pagination {
+  margin-bottom: 0;
+}
+
+.page-link {
+  color: var(--bs-body-color);
+  background-color: var(--message-bg);
+  border-color: var(--bs-border-color);
+}
+
+.page-item.active .page-link {
+  color: #fff;
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.page-item.disabled .page-link {
+  color: var(--bs-secondary-color);
+  background-color: var(--message-bg);
+  border-color: var(--bs-border-color);
+}
+
+// Table styles for dark mode
+[data-bs-theme="dark"] .table {
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--bs-border-color);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.075);
+}
