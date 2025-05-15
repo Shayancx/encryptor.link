@@ -64,7 +64,7 @@ class DecryptionsController < ApplicationController
   end
 
   # Add a callback to perform deletion after the request completes
-  after_action :cleanup_payload, only: [:data]
+  after_action :cleanup_payload, only: [ :data ]
 
   private
 

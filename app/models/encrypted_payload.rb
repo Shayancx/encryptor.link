@@ -9,7 +9,7 @@ class EncryptedPayload < ApplicationRecord
   def ttl_within_limit
     max_expiry = created_at + 7.days
     if expires_at > max_expiry
-      errors.add(:expires_at, 'cannot exceed 7 days')
+      errors.add(:expires_at, "cannot exceed 7 days")
     end
   end
 end

@@ -32,11 +32,11 @@ group :development do
 end
 
 # Pagination
-gem 'pagy', '~> 6.0'
+gem "pagy", "~> 6.0"
 
 # Gems for CI workflow
 group :development, :test do
-  gem 'brakeman', require: false  # Security scanner
-  gem 'rubocop-rails-omakase', require: false  # Rails style guide
-  gem 'rubocop', require: false  # Ruby style checker
+  gem "brakeman", require: false  # Security scanner
+  gem "rubocop-rails-omakase", require: false  # Rails style guide
+  gem "rubocop", require: false  # Ruby style checker
 end
