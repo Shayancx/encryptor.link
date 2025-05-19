@@ -50,6 +50,20 @@
             </div>
           </div>
 
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="passwordToggle">
+              <label class="form-check-label" for="passwordToggle">
+                Password protect this message
+              </label>
+            </div>
+            <div id="passwordContainer" class="mt-2" style="display:none;">
+              <label for="passwordInput" class="form-label">Password</label>
+              <input type="password" class="form-control" id="passwordInput" placeholder="Enter password...">
+              <small class="text-muted">Anyone with the link will need this password to access the content</small>
+            </div>
+          </div>
+
           <div class="row mb-3">
             <div class="col-md-6">
               <label for="ttlSelect" class="form-label">Expires after</label>
@@ -82,7 +96,7 @@
               <input type="text" id="encryptedLink" class="form-control" readonly>
               <button class="btn btn-outline-secondary" type="button" id="copyButton">Copy</button>
             </div>
-            <p class="mb-0 text-muted small">This link contains the decryption key. Anyone with this link can view your message or download your files.</p>
+            <p class="mb-0 text-muted small" id="resultMessage">This link contains the decryption key. Anyone with this link can view your message or download your files.</p>
           </div>
         </div>
       </div>
@@ -140,6 +154,17 @@
   const filesTableBody = document.getElementById('filesTableBody');
   const totalSizeElement = document.getElementById('totalSize');
   const paginationElement = document.getElementById('pagination');
+  const passwordToggle = document.getElementById('passwordToggle');
+  const passwordContainer = document.getElementById('passwordContainer');
+  const passwordInput = document.getElementById('passwordInput');
+
+  // Setup password toggle
+  passwordToggle.addEventListener('change', function() {
+    passwordContainer.style.display = this.checked ? 'block' : 'none';
+    if (!this.checked) {
+      passwordInput.value = '';
+    }
+  });
 
   // Prevent default behaviors
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -352,10 +377,18 @@
     const message = document.getElementById('messageText').value;
     const ttl = parseInt(document.getElementById('ttlSelect').value);
     const views = parseInt(document.getElementById('viewsSelect').value);
+    const usePassword = passwordToggle.checked;
+    const password = usePassword ? passwordInput.value : '';
 
     // Check if either message or files are provided
     if (!message && selectedFiles.length === 0) {
       alert('Please enter a message or select at least one file.');
+      return;
+    }
+
+    // If password protection is enabled, validate the password
+    if (usePassword && (!password || password.length < 1)) {
+      alert('Please enter a password.');
       return;
     }
 
@@ -374,16 +407,25 @@
           selectedFiles,
           message,
           ttl,
-          views
+          views,
+          password
         );
       } else {
         // Encrypt text message only
-        link = await encryptMessage(message, ttl, views);
+        link = await encryptMessage(message, ttl, views, password);
       }
 
       // Display the result
       document.getElementById('encryptedLink').value = link;
       document.getElementById('resultContainer').classList.remove('d-none');
+      
+      // Update result message based on password protection
+      const resultMessage = document.getElementById('resultMessage');
+      if (usePassword) {
+        resultMessage.textContent = 'This link requires a password to access. Share both the link and password separately for maximum security.';
+      } else {
+        resultMessage.textContent = 'This link contains the decryption key. Anyone with this link can view your message or download your files.';
+      }
 
       // Reset form state
       submitBtn.disabled = false;
@@ -391,6 +433,7 @@
       this.reset();
       selectedFiles = [];
       filesContainer.style.display = 'none';
+      passwordContainer.style.display = 'none';
     } catch (error) {
       alert('Error: ' + error.message);
       console.error(error);

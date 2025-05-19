@@ -5,6 +5,9 @@ class EncryptedPayload < ApplicationRecord
   validates :remaining_views, numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }
   validate :ttl_within_limit, if: -> { persisted? }
 
+  # Password related validations
+  validates :password_salt, presence: true, if: -> { password_protected? }
+
   private
   def ttl_within_limit
     max_expiry = created_at + 7.days

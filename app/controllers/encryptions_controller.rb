@@ -6,13 +6,18 @@ class EncryptionsController < ApplicationController
   end
 
   def create
-    # Create the main payload record
+    # Create the main payload record with explicit boolean conversion for password_protected
     payload = EncryptedPayload.new(
-      ciphertext: params[:ciphertext].present? ? Base64.strict_decode64(params[:ciphertext]) : nil,
+      ciphertext: params[:ciphertext].present? ? Base64.strict_decode64(params[:ciphertext]) : "",
       nonce: Base64.strict_decode64(params[:nonce]),
       expires_at: Time.current + params[:ttl].to_i.seconds,
-      remaining_views: params[:views].to_i
+      remaining_views: params[:views].to_i,
+      password_protected: ActiveModel::Type::Boolean.new.cast(params[:password_protected]),
+      password_salt: params[:password_salt].present? ? Base64.strict_decode64(params[:password_salt]) : nil
     )
+
+    # Log for debugging
+    Rails.logger.info "Creating payload with password_protected=#{payload.password_protected?}"
 
     # Wrap in a transaction to ensure all files are saved or none
     ActiveRecord::Base.transaction do
@@ -32,7 +37,7 @@ class EncryptionsController < ApplicationController
       end
     end
 
-    render json: { id: payload.id }
+    render json: { id: payload.id, password_protected: payload.password_protected }
   rescue => e
     Rails.logger.error("Error creating encrypted payload: #{e.message}")
     render json: { error: e.message }, status: :unprocessable_entity

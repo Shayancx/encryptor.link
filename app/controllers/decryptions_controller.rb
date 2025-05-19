@@ -5,6 +5,11 @@ class DecryptionsController < ApplicationController
     # Check if we need to show an error message
     @show_error = session[:payload_expired]
     session[:payload_expired] = nil
+    
+    # Get payload_id from path
+    payload_id = params[:id]
+    @payload_info = get_payload_info(payload_id)
+    
     render :show
   end
 
@@ -45,8 +50,14 @@ class DecryptionsController < ApplicationController
     response_data = {
       ciphertext: Base64.strict_encode64(payload.ciphertext || ""),
       nonce: Base64.strict_encode64(payload.nonce),
+      password_protected: payload.password_protected,
       files: []
     }
+
+    # Add password salt if it's password protected
+    if payload.password_protected && payload.password_salt.present?
+      response_data[:password_salt] = Base64.strict_encode64(payload.password_salt)
+    end
 
     # Add files data
     payload.encrypted_files.each do |file|
@@ -63,10 +74,21 @@ class DecryptionsController < ApplicationController
     render json: response_data
   end
 
+  private
+
+  def get_payload_info(payload_id)
+    payload = EncryptedPayload.find_by(id: payload_id)
+    return { exists: false } unless payload
+
+    {
+      exists: true,
+      password_protected: payload.password_protected,
+      expired: payload.expires_at < Time.current
+    }
+  end
+
   # Add a callback to perform deletion after the request completes
   after_action :cleanup_payload, only: [ :data ]
-
-  private
 
   def cleanup_payload
     # If this payload was marked for deletion, delete it now

@@ -14,6 +14,36 @@
             </div>
           </div>
         <% else %>
+          <!-- Debug information (only visible in development) -->
+          <div id="debugInfo" class="alert alert-info mb-3">
+            <h5>Debug Information</h5>
+            <div id="debugContent">
+              <p>URL Fragment: <span id="debugUrlFragment">None</span></p>
+              <p>Payload ID: <span id="debugPayloadId">None</span></p>
+              <p>Is Password Protected: <span id="debugIsPasswordProtected">Unknown</span></p>
+              <p>Has Salt: <span id="debugHasSalt">Unknown</span></p>
+              <p>Has Key: <span id="debugHasKey">Unknown</span></p>
+            </div>
+          </div>
+
+          <!-- Password input for password-protected content -->
+          <div id="passwordContainer" class="d-none">
+            <div class="alert alert-info mb-3">
+              <strong>Password Protected Content</strong>
+              <p>This content requires a password to access.</p>
+            </div>
+            <div class="mb-3">
+              <label for="passwordInput" class="form-label">Enter Password:</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="passwordInput" placeholder="Enter the password...">
+                <button class="btn btn-primary" type="button" id="submitPasswordBtn">Decrypt</button>
+              </div>
+              <div id="passwordError" class="invalid-feedback" style="display:none;">
+                Incorrect password. Please try again.
+              </div>
+            </div>
+          </div>
+
           <!-- Loading state -->
           <div id="loadingContainer">
             <div class="text-center p-4">
@@ -88,13 +118,16 @@
   let decryptedFiles = [];
   let currentPage = 1;
   const itemsPerPage = 5;
+  let isPasswordProtected = false;
+  let passwordSalt = '';
+  let encryptionKey = '';
+  let ivBase64 = '';
+  let ciphertextBase64 = '';
+  let payloadData = null;
 
-  // File icons - same as before
+  // File icons
   const fileIcons = {
-    // Document types
     'pdf': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
-    'epub': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-    // ... other file icons as before
     'default': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
   };
 
@@ -106,20 +139,37 @@
     else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
   }
 
+  // Update debug info
+  function updateDebugInfo(data) {
+    for (const [key, value] of Object.entries(data)) {
+      const element = document.getElementById('debug' + key);
+      if (element) {
+        element.textContent = value;
+      }
+    }
+  }
+
   // Get message ID and key from URL fragment
   async function loadAndDecrypt() {
     try {
       const fragment = window.location.hash.substring(1);
+      updateDebugInfo({ 'UrlFragment': fragment || 'None' });
+      
       if (!fragment) {
-        throw new Error('No decryption key found in URL');
+        throw new Error('No decryption information found in URL');
       }
 
-      const [id, keyBase64] = fragment.split('.');
-      if (!id || !keyBase64) {
-        throw new Error('Invalid URL format');
-      }
+      // Split fragment by dot to get payload ID and possibly the encryption key
+      const parts = fragment.split('.');
+      const id = parts[0]; // This should always exist
+      updateDebugInfo({ 'PayloadId': id });
+      
+      // Key may not exist for password-protected content
+      const keyBase64 = parts.length > 1 ? parts[1] : null;
+      updateDebugInfo({ 'HasKey': keyBase64 ? 'Yes' : 'No' });
 
       // Fetch the encrypted data - use cache busting to prevent duplicate requests
+      console.log("Fetching encrypted data...");
       const cacheBuster = Date.now();
       const response = await fetch(`/${id}/data?t=${cacheBuster}`, {
         headers: {
@@ -136,45 +186,139 @@
         throw new Error('Could not fetch the encrypted data');
       }
 
-      const data = await response.json();
-
-      // Store nonce in a meta tag for file decryption
-      const meta = document.createElement('meta');
-      meta.name = 'nonce';
-      meta.content = data.nonce;
-      document.head.appendChild(meta);
-
-      // Decrypt message if present
-      let decryptedText = '';
-      if (data.ciphertext && data.ciphertext.length > 0) {
-        decryptedText = await decryptMessage(data.ciphertext, data.nonce, keyBase64);
-        document.getElementById('decryptedContent').textContent = decryptedText;
-        document.getElementById('messageContent').classList.remove('d-none');
-        document.getElementById('copyMessageBtn').classList.remove('d-none');
+      payloadData = await response.json();
+      console.log("Received payload data:", payloadData);
+      
+      ciphertextBase64 = payloadData.ciphertext;
+      ivBase64 = payloadData.nonce;
+      
+      // Explicitly convert to true boolean for password_protected check
+      isPasswordProtected = payloadData.password_protected === true;
+      updateDebugInfo({ 'IsPasswordProtected': isPasswordProtected ? 'Yes' : 'No' });
+      
+      if (isPasswordProtected) {
+        passwordSalt = payloadData.password_salt || '';
+        updateDebugInfo({ 'HasSalt': passwordSalt ? 'Yes' : 'No' });
+        
+        console.log("This is a password-protected message.");
+        
+        // Hide loading, show password form
+        document.getElementById('loadingContainer').classList.add('d-none');
+        document.getElementById('passwordContainer').classList.remove('d-none');
+        
+        // Handle password submit button
+        document.getElementById('submitPasswordBtn').addEventListener('click', handlePasswordSubmit);
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            handlePasswordSubmit();
+          }
+        });
+      } else {
+        console.log("This is not a password-protected message, using key from URL.");
+        // For non-password protected content, we need the key from the URL
+        if (!keyBase64) {
+          throw new Error('No decryption key found in URL');
+        }
+        
+        encryptionKey = keyBase64;
+        await decryptContent();
       }
-
-      // Handle files if present
-      if (data.files && data.files.length > 0) {
-        // Store files for pagination
-        decryptedFiles = data.files;
-
-        // Show files container
-        document.getElementById('filesContainer').classList.remove('d-none');
-
-        // Update the file list and pagination
-        updateFilesList();
-      }
-
-      // Hide loading, show message container
-      document.getElementById('loadingContainer').classList.add('d-none');
-      document.getElementById('messageContainer').classList.remove('d-none');
-
     } catch (error) {
-      console.error(error);
+      console.error("Error in loadAndDecrypt:", error);
       document.getElementById('loadingContainer').classList.add('d-none');
       document.getElementById('errorContainer').classList.remove('d-none');
       document.getElementById('errorMessage').textContent = error.message;
     }
+  }
+  
+  // Handle password submission
+  async function handlePasswordSubmit() {
+    try {
+      const password = document.getElementById('passwordInput').value;
+      if (!password) {
+        document.getElementById('passwordError').style.display = 'block';
+        document.getElementById('passwordError').textContent = 'Please enter a password.';
+        return;
+      }
+      
+      // Show loading state
+      const submitBtn = document.getElementById('submitPasswordBtn');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      
+      console.log("Attempting decryption with password");
+      
+      // Try to decrypt with the password
+      try {
+        await decryptContent(password);
+        // If successful, hide password container
+        document.getElementById('passwordContainer').classList.add('d-none');
+      } catch (error) {
+        console.error("Password decryption failed:", error);
+        // If decryption fails, show error
+        document.getElementById('passwordError').style.display = 'block';
+        document.getElementById('passwordError').textContent = 'Incorrect password. Please try again.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    } catch (error) {
+      console.error('Password processing error:', error);
+    }
+  }
+
+  // Decrypt the content
+  async function decryptContent(password = '') {
+    console.log("Starting content decryption...", { 
+      hasPassword: !!password,
+      hasPasswordSalt: !!passwordSalt,
+      hasEncryptionKey: !!encryptionKey
+    });
+    
+    // Store nonce in a meta tag for file decryption
+    const meta = document.createElement('meta');
+    meta.name = 'nonce';
+    meta.content = ivBase64;
+    document.head.appendChild(meta);
+
+    // Decrypt message if present
+    let decryptedText = '';
+    if (ciphertextBase64 && ciphertextBase64.length > 0) {
+      console.log("Decrypting message...");
+      decryptedText = await decryptMessage(
+        ciphertextBase64, 
+        ivBase64, 
+        encryptionKey,
+        password,
+        passwordSalt
+      );
+      console.log("Message decrypted successfully");
+      document.getElementById('decryptedContent').textContent = decryptedText;
+      document.getElementById('messageContent').classList.remove('d-none');
+      document.getElementById('copyMessageBtn').classList.remove('d-none');
+    }
+
+    // Handle files if present
+    if (payloadData.files && payloadData.files.length > 0) {
+      console.log(`Processing ${payloadData.files.length} files`);
+      // Store files for pagination
+      decryptedFiles = payloadData.files.map(file => ({
+        ...file,
+        password: password,
+        passwordSalt: passwordSalt,
+        key: encryptionKey
+      }));
+
+      // Show files container
+      document.getElementById('filesContainer').classList.remove('d-none');
+
+      // Update the file list and pagination
+      updateFilesList();
+    }
+
+    // Hide loading, show message container
+    document.getElementById('loadingContainer').classList.add('d-none');
+    document.getElementById('messageContainer').classList.remove('d-none');
   }
 
   // Update files list with pagination
@@ -227,16 +371,18 @@
         this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
         try {
-          // Get the key from URL fragment
-          const fragment = window.location.hash.substring(1);
-          const [, keyBase64] = fragment.split('.');
-
           // Get the nonce from meta tag
           const ivBase64 = document.querySelector('meta[name="nonce"]')?.getAttribute('content') || '';
 
           // Decrypt the file
           const fileDataBase64 = file.data;
-          const decryptedData = await decryptFile(fileDataBase64, ivBase64, keyBase64);
+          const decryptedData = await decryptFile(
+            fileDataBase64, 
+            ivBase64, 
+            file.key, 
+            file.password, 
+            file.passwordSalt
+          );
 
           // Create download link
           const blob = new Blob([decryptedData], { type: file.type || 'application/octet-stream' });
@@ -345,8 +491,10 @@
     });
   });
 
-  // Start decryption when page loads - with a small delay to ensure everything is ready
+  // Start decryption when page loads
+  console.log("Initializing decryption process...");
   document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM loaded, starting decryption...");
     setTimeout(loadAndDecrypt, 100);
   });
 </script>
