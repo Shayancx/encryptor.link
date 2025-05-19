@@ -1,103 +1,170 @@
-<div class="row justify-content-center">
-  <div class="col-md-8">
-    <div class="card shadow">
-      <div class="card-header">
-        <h3 class="my-2">Create Encrypted Message</h3>
+<div class="gh-card">
+  <div class="gh-card-header">
+    <h3>Create Encrypted Message</h3>
+  </div>
+  <div class="gh-card-body">
+    <form id="encryptForm">
+      <div class="mb-3">
+        <label for="richEditor" class="form-label">Message</label>
+
+        <div class="rich-text-layout">
+          <div class="rich-text-container" id="richTextContainer">
+            <div class="rich-editor-container" id="richEditorContainer">
+              <div class="rich-editor-toolbar">
+                <button type="button" class="rich-editor-button" data-command="bold" title="Bold">B</button>
+                <button type="button" class="rich-editor-button" data-command="italic" title="Italic">I</button>
+                <button type="button" class="rich-editor-button" data-command="strikeThrough" title="Strikethrough">S</button>
+                <button type="button" class="rich-editor-button" data-command="insertHTML" data-value="<code>code</code>" title="Code">&lt;/&gt;</button>
+
+                <div class="rich-editor-divider"></div>
+
+                <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h1" title="Heading 1">H1</button>
+                <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h2" title="Heading 2">H2</button>
+                <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h3" title="Heading 3">H3</button>
+
+                <div class="rich-editor-divider"></div>
+
+                <button type="button" class="rich-editor-button" data-command="insertUnorderedList" title="Bullet List">•</button>
+                <button type="button" class="rich-editor-button" data-command="insertOrderedList" title="Numbered List">1.</button>
+                <button type="button" class="rich-editor-button" data-command="createLink" title="Insert Link">🔗</button>
+
+                <button type="button" class="rich-editor-expand" id="expandEditor" title="Toggle expanded view">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                  </svg>
+                </button>
+              </div>
+              <div id="richEditor" class="rich-editor-content" contenteditable="true" placeholder="Enter your message here..."></div>
+              <input type="hidden" id="hidden_message" name="message">
+            </div>
+          </div>
+
+          <div class="rich-text-settings" id="richTextSettings">
+            <!-- Password Protection Option -->
+            <div class="gh-setting-panel mb-3">
+              <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" id="passwordToggle">
+                <label class="form-check-label fw-bold" for="passwordToggle">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  Password protect this message
+                </label>
+              </div>
+              <div id="passwordContainer" class="mt-2" style="display:none;">
+                <input type="password" class="form-control" id="passwordInput" placeholder="Enter password...">
+                <small class="text-muted d-block mt-1">Anyone with the link will need this password to access the content</small>
+              </div>
+            </div>
+
+            <!-- Expiration and Self-destruct Settings -->
+            <div class="row">
+              <div class="col-6 mb-3">
+                <div class="gh-setting-panel">
+                  <div class="gh-setting-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Expires after
+                  </div>
+                  <select class="form-select mt-2" id="ttlSelect">
+                    <option value="3600">1 hour</option>
+                    <option value="86400" selected>1 day</option>
+                    <option value="604800">1 week</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="col-6 mb-3">
+                <div class="gh-setting-panel">
+                  <div class="gh-setting-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                      <path d="M8.5 7h7l3.5 3.5-7 7-7-7L8.5 7z"></path>
+                    </svg>
+                    Views before
+                  </div>
+                  <select class="form-select mt-2" id="viewsSelect">
+                    <option value="1" selected>1 view</option>
+                    <option value="2">2 views</option>
+                    <option value="3">3 views</option>
+                    <option value="5">5 views</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <form id="encryptForm">
-          <div class="mb-3">
-            <label for="messageText" class="form-label">Message</label>
-            <textarea class="form-control" id="messageText" rows="5" placeholder="Enter your message here..."></textarea>
+
+      <div class="mb-3">
+        <label class="form-label">Attach Files (optional, max 1000MB total)</label>
+        <div id="dropArea" class="file-upload-area">
+          <div id="dropAreaDefault">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p class="mb-1">Drag & drop files here, or click to select</p>
+            <small class="text-muted">Files are encrypted in your browser before uploading</small>
           </div>
+          <input type="file" id="fileInput" style="display:none;" multiple>
+        </div>
+      </div>
 
-          <div class="mb-3">
-            <label class="form-label">Attach Files (optional, max 1000MB total)</label>
-            <div id="dropArea" class="file-upload-area">
-              <div id="dropAreaDefault">
-                <i class="bi bi-cloud-upload"></i>
-                <p>Drag & drop files here, or click to select</p>
-                <small class="text-muted">Files are encrypted in your browser before uploading</small>
-              </div>
-              <input type="file" id="fileInput" style="display:none;" multiple>
-            </div>
+      <!-- Files table with pagination -->
+      <div id="filesContainer" class="mt-3" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="gh-setting-title">Selected Files</div>
+          <span id="totalSize" class="text-muted">Total: 0 MB</span>
+        </div>
 
-            <!-- Files table with pagination -->
-            <div id="filesContainer" class="mt-3" style="display:none;">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="mb-0">Selected Files</h5>
-                <span id="totalSize" class="text-muted">Total: 0 MB</span>
-              </div>
-
-              <div class="table-responsive">
-                <table class="table table-sm table-hover">
-                  <thead>
-                    <tr>
-                      <th>File</th>
-                      <th>Size</th>
-                      <th>Type</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="filesTableBody">
-                    <!-- File rows will be added dynamically -->
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Pagination controls -->
-              <div id="pagination" class="d-flex justify-content-center"></div>
-            </div>
+        <div class="gh-file-list">
+          <div id="filesListBody">
+            <!-- File items will be added dynamically -->
           </div>
+        </div>
 
-          <div class="mb-3">
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="passwordToggle">
-              <label class="form-check-label" for="passwordToggle">
-                Password protect this message
-              </label>
-            </div>
-            <div id="passwordContainer" class="mt-2" style="display:none;">
-              <label for="passwordInput" class="form-label">Password</label>
-              <input type="password" class="form-control" id="passwordInput" placeholder="Enter password...">
-              <small class="text-muted">Anyone with the link will need this password to access the content</small>
-            </div>
-          </div>
+        <!-- Pagination controls -->
+        <div id="pagination" class="gh-pagination mt-2"></div>
+      </div>
 
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="ttlSelect" class="form-label">Expires after</label>
-              <select class="form-select" id="ttlSelect">
-                <option value="3600">1 hour</option>
-                <option value="86400" selected>1 day</option>
-                <option value="604800">1 week</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label for="viewsSelect" class="form-label">Self-destructs after views</label>
-              <select class="form-select" id="viewsSelect">
-                <option value="1" selected>1 view</option>
-                <option value="2">2 views</option>
-                <option value="3">3 views</option>
-                <option value="5">5 views</option>
-              </select>
-            </div>
-          </div>
+      <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Encrypt & Generate Link
+        </button>
+      </div>
+    </form>
 
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary">Encrypt & Generate Link</button>
+    <div id="resultContainer" class="mt-4 d-none">
+      <div class="gh-flash gh-flash-success">
+        <div class="gh-flash-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="gh-flash-content">
+          <div class="gh-flash-title">Your encrypted link has been generated</div>
+          <div class="input-group mb-2 mt-2">
+            <input type="text" id="encryptedLink" class="form-control" readonly>
+            <button class="btn btn-outline-primary" type="button" id="copyButton">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </button>
           </div>
-        </form>
-
-        <div id="resultContainer" class="mt-4 d-none">
-          <div class="alert alert-success">
-            <p>Your encrypted link has been generated:</p>
-            <div class="input-group mb-3">
-              <input type="text" id="encryptedLink" class="form-control" readonly>
-              <button class="btn btn-outline-secondary" type="button" id="copyButton">Copy</button>
-            </div>
-            <p class="mb-0 text-muted small" id="resultMessage">This link contains the decryption key. Anyone with this link can view your message or download your files.</p>
-          </div>
+          <p class="mb-0 text-muted small" id="resultMessage">This link contains the decryption key. Anyone with this link can view your message or download your files.</p>
         </div>
       </div>
     </div>
@@ -108,42 +175,127 @@
   // Import encryption module
   import { encryptMessage, encryptFiles } from "/encrypt.js";
 
+  // Rich Text Editor functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const editor = document.getElementById('richEditor');
+    const hiddenInput = document.getElementById('hidden_message');
+    const expandButton = document.getElementById('expandEditor');
+    const editorContainer = document.getElementById('richEditorContainer');
+    const richTextContainer = document.getElementById('richTextContainer');
+    const richTextSettings = document.getElementById('richTextSettings');
+
+    // Function to toggle expanded view
+    expandButton.addEventListener('click', function() {
+      editorContainer.classList.toggle('expanded');
+      richTextSettings.classList.toggle('hidden');
+
+      // Update expand button icon
+      if (editorContainer.classList.contains('expanded')) {
+        this.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>
+          </svg>
+        `;
+        this.title = "Collapse editor";
+      } else {
+        this.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+          </svg>
+        `;
+        this.title = "Expand editor";
+      }
+    });
+
+    if (editor && hiddenInput) {
+      // Initialize click handlers for toolbar buttons
+      const buttons = document.querySelectorAll('.rich-editor-button');
+
+      buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+
+          const command = this.getAttribute('data-command');
+          const value = this.getAttribute('data-value') || null;
+
+          // Handle special cases
+          if (command === 'createLink') {
+            const url = prompt('Enter the link URL:');
+            if (url) {
+              document.execCommand(command, false, url);
+            }
+          } else if (command === 'formatBlock') {
+            document.execCommand(command, false, value);
+          } else if (command === 'insertHTML') {
+            document.execCommand(command, false, value);
+          } else {
+            // Standard commands
+            document.execCommand(command, false, null);
+          }
+
+          // Update active states
+          updateButtonStates();
+
+          // Update hidden input with the content
+          updateHiddenInput();
+
+          // Focus back on editor
+          editor.focus();
+        });
+      });
+
+      // Update button active states based on current selection
+      function updateButtonStates() {
+        buttons.forEach(button => {
+          const command = button.getAttribute('data-command');
+
+          if (command === 'formatBlock') {
+            const value = button.getAttribute('data-value');
+            const formatBlock = document.queryCommandValue('formatBlock');
+            button.classList.toggle('active', formatBlock.toLowerCase() === value);
+          } else {
+            button.classList.toggle('active', document.queryCommandState(command));
+          }
+        });
+      }
+
+      // Update hidden input when editor content changes
+      editor.addEventListener('input', updateHiddenInput);
+      editor.addEventListener('keyup', updateButtonStates);
+      editor.addEventListener('mouseup', updateButtonStates);
+
+      // Function to update hidden input
+      function updateHiddenInput() {
+        hiddenInput.value = editor.innerHTML;
+      }
+
+      // Initialize editor with focus
+      setTimeout(() => {
+        editor.focus();
+      }, 100);
+    }
+  });
+
   // File handling variables
   let selectedFiles = [];
   const MAX_SIZE = 1000 * 1024 * 1024; // 1000MB in bytes
   let currentPage = 1;
   const itemsPerPage = 5;
 
-  // File icons - same as before
+  // File icons - GitHub-style icons
   const fileIcons = {
     // Document types
-    'pdf': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
-    'epub': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-    'doc': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
-    'docx': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
-
-    // Code files
-    'rb': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#D51F06" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-    'py': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#3572A5" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-    'js': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#F1E05A" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-    'rs': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#DEA584" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    'pdf': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5Z"/><polyline points="14 4 9 4 9 0"/></svg>',
+    'doc': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5Z"/><polyline points="14 4 9 4 9 0"/></svg>',
+    'docx': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5Z"/><polyline points="14 4 9 4 9 0"/></svg>',
 
     // Image files
-    'jpg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
-    'jpeg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
-    'png': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
-    'gif': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    'jpg': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><rect width="14" height="14" x="1" y="1" rx="2"/><circle cx="5" cy="5" r="1"/><path d="m15 11-5-5L2 15"/></svg>',
+    'jpeg': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><rect width="14" height="14" x="1" y="1" rx="2"/><circle cx="5" cy="5" r="1"/><path d="m15 11-5-5L2 15"/></svg>',
+    'png': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><rect width="14" height="14" x="1" y="1" rx="2"/><circle cx="5" cy="5" r="1"/><path d="m15 11-5-5L2 15"/></svg>',
 
-    // Audio/Video
-    'mp3': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-    'mp4': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>',
-
-    // Archives
-    'zip': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M22 6H2a1 1 0 0 1 0-2h20a1 1 0 0 1 0 2Z"/><path d="M12 10v6"/><path d="M12 10H8.5a1 1 0 0 0-.8.4l-1.5 2a1 1 0 0 0 0 1.2l1.5 2a1 1 0 0 0 .8.4H12"/><path d="M16.5 15.4V10"/><path d="M13.5 10h6v6h-6"/></svg>',
-    'tar': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M22 6H2a1 1 0 0 1 0-2h20a1 1 0 0 1 0 2Z"/><path d="M12 10v6"/><path d="M12 10H8.5a1 1 0 0 0-.8.4l-1.5 2a1 1 0 0 0 0 1.2l1.5 2a1 1 0 0 0 .8.4H12"/><path d="M16.5 15.4V10"/><path d="M13.5 10h6v6h-6"/></svg>',
-
-    // Default
-    'default': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+    // Default for other files
+    'default': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5Z"/></svg>'
   };
 
   // Set up file drag & drop
@@ -151,7 +303,7 @@
   const fileInput = document.getElementById('fileInput');
   const dropAreaDefault = document.getElementById('dropAreaDefault');
   const filesContainer = document.getElementById('filesContainer');
-  const filesTableBody = document.getElementById('filesTableBody');
+  const filesListBody = document.getElementById('filesListBody');
   const totalSizeElement = document.getElementById('totalSize');
   const paginationElement = document.getElementById('pagination');
   const passwordToggle = document.getElementById('passwordToggle');
@@ -245,7 +397,7 @@
     else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
   }
 
-  // Update files list with pagination
+  // Update files list with GitHub-style file list
   function updateFilesList() {
     // Update total size
     const totalSize = selectedFiles.reduce((total, file) => total + file.size, 0);
@@ -257,36 +409,40 @@
     const endIndex = Math.min(startIndex + itemsPerPage, selectedFiles.length);
     const currentFiles = selectedFiles.slice(startIndex, endIndex);
 
-    // Clear the table body
-    filesTableBody.innerHTML = '';
+    // Clear the list
+    filesListBody.innerHTML = '';
 
-    // Add file rows
+    // Add file items
     currentFiles.forEach((file, index) => {
       const actualIndex = startIndex + index;
       const extension = file.name.split('.').pop().toLowerCase();
       const iconSvg = fileIcons[extension] || fileIcons['default'];
 
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>
-          <div class="d-flex align-items-center">
-            <div class="file-icon me-2" style="width: 24px; height: 24px;">${iconSvg}</div>
-            <div class="text-truncate" style="max-width: 200px;">${file.name}</div>
+      const fileItem = document.createElement('div');
+      fileItem.className = 'gh-file-item';
+      fileItem.innerHTML = `
+        <div class="gh-file-details">
+          <div class="gh-file-icon">${iconSvg}</div>
+          <div class="gh-file-name">${file.name}</div>
+          <div class="gh-file-meta">
+            <span class="gh-file-size">${formatFileSize(file.size)}</span>
+            <span class="gh-file-type">${file.type || 'Unknown'}</span>
           </div>
-        </td>
-        <td>${formatFileSize(file.size)}</td>
-        <td>${file.type || 'Unknown'}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-outline-danger" data-index="${actualIndex}">
-            Remove
+        </div>
+        <div class="gh-file-actions">
+          <button type="button" class="btn btn-sm btn-outline-danger btn-icon" data-index="${actualIndex}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            </svg>
           </button>
-        </td>
+        </div>
       `;
 
       // Add remove button event
-      const removeButton = row.querySelector('button');
+      const removeButton = fileItem.querySelector('button');
       removeButton.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
+        const index = parseInt(e.currentTarget.dataset.index);
         selectedFiles.splice(index, 1);
         updateFilesList();
 
@@ -296,7 +452,7 @@
         }
       });
 
-      filesTableBody.appendChild(row);
+      filesListBody.appendChild(fileItem);
     });
 
     // Update pagination controls
@@ -311,77 +467,75 @@
       return;
     }
 
-    const ul = document.createElement('ul');
-    ul.className = 'pagination pagination-sm';
-
     // Previous button
-    const prevLi = document.createElement('li');
-    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-    const prevLink = document.createElement('a');
-    prevLink.className = 'page-link';
-    prevLink.href = '#';
-    prevLink.textContent = '«';
-    prevLink.addEventListener('click', (e) => {
+    const prevButton = document.createElement('a');
+    prevButton.href = '#';
+    prevButton.className = `gh-page-link ${currentPage === 1 ? 'disabled' : ''}`;
+    prevButton.innerHTML = '&laquo;';
+    prevButton.addEventListener('click', (e) => {
       e.preventDefault();
       if (currentPage > 1) {
         currentPage--;
         updateFilesList();
       }
     });
-    prevLi.appendChild(prevLink);
-    ul.appendChild(prevLi);
+
+    const prevItem = document.createElement('div');
+    prevItem.className = 'gh-page-item';
+    prevItem.appendChild(prevButton);
+    paginationElement.appendChild(prevItem);
 
     // Page numbers
     for (let i = 1; i <= totalPages; i++) {
-      const li = document.createElement('li');
-      li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-
-      const link = document.createElement('a');
-      link.className = 'page-link';
-      link.href = '#';
-      link.textContent = i;
-      link.addEventListener('click', (e) => {
+      const pageLink = document.createElement('a');
+      pageLink.href = '#';
+      pageLink.className = `gh-page-link ${i === currentPage ? 'active' : ''}`;
+      pageLink.textContent = i;
+      pageLink.addEventListener('click', (e) => {
         e.preventDefault();
         currentPage = i;
         updateFilesList();
       });
 
-      li.appendChild(link);
-      ul.appendChild(li);
+      const pageItem = document.createElement('div');
+      pageItem.className = 'gh-page-item';
+      pageItem.appendChild(pageLink);
+      paginationElement.appendChild(pageItem);
     }
 
     // Next button
-    const nextLi = document.createElement('li');
-    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-    const nextLink = document.createElement('a');
-    nextLink.className = 'page-link';
-    nextLink.href = '#';
-    nextLink.textContent = '»';
-    nextLink.addEventListener('click', (e) => {
+    const nextButton = document.createElement('a');
+    nextButton.href = '#';
+    nextButton.className = `gh-page-link ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextButton.innerHTML = '&raquo;';
+    nextButton.addEventListener('click', (e) => {
       e.preventDefault();
       if (currentPage < totalPages) {
         currentPage++;
         updateFilesList();
       }
     });
-    nextLi.appendChild(nextLink);
-    ul.appendChild(nextLi);
 
-    paginationElement.appendChild(ul);
+    const nextItem = document.createElement('div');
+    nextItem.className = 'gh-page-item';
+    nextItem.appendChild(nextButton);
+    paginationElement.appendChild(nextItem);
   }
 
   // Handle form submission
   document.getElementById('encryptForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const message = document.getElementById('messageText').value;
+    // Get message from the rich text editor
+    const message = document.getElementById('hidden_message').value;
+
     const ttl = parseInt(document.getElementById('ttlSelect').value);
     const views = parseInt(document.getElementById('viewsSelect').value);
     const usePassword = passwordToggle.checked;
     const password = usePassword ? passwordInput.value : '';
 
     // Check if either message or files are provided
-    if (!message && selectedFiles.length === 0) {
+    if ((!message || message.trim() === '') && selectedFiles.length === 0) {
       alert('Please enter a message or select at least one file.');
       return;
     }
@@ -395,7 +549,7 @@
     try {
       // Show loading state
       const submitBtn = this.querySelector('button[type="submit"]');
-      const originalText = submitBtn.textContent;
+      const originalText = submitBtn.innerHTML;
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
 
@@ -418,7 +572,7 @@
       // Display the result
       document.getElementById('encryptedLink').value = link;
       document.getElementById('resultContainer').classList.remove('d-none');
-      
+
       // Update result message based on password protection
       const resultMessage = document.getElementById('resultMessage');
       if (usePassword) {
@@ -429,11 +583,35 @@
 
       // Reset form state
       submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
+      submitBtn.innerHTML = originalText;
       this.reset();
+
+      // Reset editor expansion
+      const editorContainer = document.getElementById('richEditorContainer');
+      const richTextSettings = document.getElementById('richTextSettings');
+      const expandButton = document.getElementById('expandEditor');
+
+      if (editorContainer.classList.contains('expanded')) {
+        editorContainer.classList.remove('expanded');
+        richTextSettings.classList.remove('hidden');
+        expandButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+          </svg>
+        `;
+        expandButton.title = "Expand editor";
+      }
+
+      // Clear the rich text editor
+      document.getElementById('richEditor').innerHTML = '';
+      document.getElementById('hidden_message').value = '';
+
       selectedFiles = [];
       filesContainer.style.display = 'none';
       passwordContainer.style.display = 'none';
+
+      // Scroll to the result
+      document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
       alert('Error: ' + error.message);
       console.error(error);
@@ -447,9 +625,15 @@
     document.execCommand('copy');
 
     // Visual feedback
-    this.textContent = 'Copied!';
+    const originalText = this.innerHTML;
+    this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M20 6 9 17l-5-5"/></svg> Copied!';
+    this.classList.add('btn-success');
+    this.classList.remove('btn-outline-primary');
+
     setTimeout(() => {
-      this.textContent = 'Copy';
+      this.innerHTML = originalText;
+      this.classList.remove('btn-success');
+      this.classList.add('btn-outline-primary');
     }, 2000);
   });
 </script>

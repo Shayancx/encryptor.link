@@ -278,6 +278,8 @@ GEM
     thor (1.3.2)
     tilt (2.6.0)
     timeout (0.4.3)
+    trix (0.10.1)
+      rails
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (3.1.4)
@@ -307,6 +309,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  actiontext
   bootsnap
   bootstrap (~> 5.3)
   brakeman
@@ -324,6 +327,7 @@ DEPENDENCIES
   sassc-rails
   sprockets-rails
   stimulus-rails
+  trix
   web-console
 
 RUBY VERSION

@@ -1,6 +1,6 @@
 /**
  * Encrypts a message using AES-GCM and posts it to the server
- * @param {string} message - The plaintext message to encrypt
+ * @param {string} message - The plaintext message to encrypt (can include HTML markup)
  * @param {number} ttl - Time to live in seconds
  * @param {number} views - Number of times the message can be viewed
  * @param {string} password - Optional password for additional protection
@@ -8,20 +8,20 @@
  */
 export async function encryptMessage(message, ttl, views, password = '') {
   try {
-    
+
     const usePassword = !!(password && password.trim().length > 0);
 
     // For password-based encryption, we'll use PBKDF2
     let key, rawKey, salt, saltBase64;
-    
+
     if (usePassword) {
       // Generate a salt for PBKDF2
       salt = window.crypto.getRandomValues(new Uint8Array(16));
       saltBase64 = arrayBufferToBase64(salt);
-      
+
       // Derive key from password using PBKDF2
       const passwordKey = await deriveKeyFromPassword(password, salt);
-      
+
       // Use the derived key
       key = passwordKey;
       rawKey = await window.crypto.subtle.exportKey("raw", key);
@@ -37,7 +37,7 @@ export async function encryptMessage(message, ttl, views, password = '') {
       );
       rawKey = await window.crypto.subtle.exportKey("raw", key);
     }
-    
+
     const keyBase64 = arrayBufferToBase64(rawKey);
 
     // Generate a random IV
@@ -65,7 +65,7 @@ export async function encryptMessage(message, ttl, views, password = '') {
       passwordProtected: usePassword,
       hasSalt: !!saltBase64
     });
-    
+
     const response = await fetch('/encrypt', {
       method: 'POST',
       headers: {
@@ -87,7 +87,7 @@ export async function encryptMessage(message, ttl, views, password = '') {
     }
 
     const data = await response.json();
-    
+
 
     // Create URL with the ID and key in the fragment
     const baseUrl = window.location.origin;
@@ -120,7 +120,7 @@ async function deriveKeyFromPassword(password, salt) {
     false,
     ["deriveKey"]
   );
-  
+
   // Then derive an AES-GCM key using PBKDF2
   return window.crypto.subtle.deriveKey(
     {
@@ -142,7 +142,7 @@ async function deriveKeyFromPassword(password, salt) {
 /**
  * Encrypts multiple files and optional message using AES-GCM and posts it to the server
  * @param {File[]} files - The files to encrypt
- * @param {string} message - Optional message to include
+ * @param {string} message - Optional message to include (can include HTML markup)
  * @param {number} ttl - Time to live in seconds
  * @param {number} views - Number of times the files can be viewed
  * @param {string} password - Optional password for additional protection
@@ -158,15 +158,15 @@ export async function encryptFiles(files, message, ttl, views, password = '') {
 
     const usePassword = !!(password && password.trim().length > 0);
     let key, rawKey, salt, saltBase64;
-    
+
     if (usePassword) {
       // Generate a salt for PBKDF2
       salt = window.crypto.getRandomValues(new Uint8Array(16));
       saltBase64 = arrayBufferToBase64(salt);
-      
+
       // Derive key from password using PBKDF2
       const passwordKey = await deriveKeyFromPassword(password, salt);
-      
+
       // Use the derived key
       key = passwordKey;
       rawKey = await window.crypto.subtle.exportKey("raw", key);
@@ -182,7 +182,7 @@ export async function encryptFiles(files, message, ttl, views, password = '') {
       );
       rawKey = await window.crypto.subtle.exportKey("raw", key);
     }
-    
+
     const keyBase64 = arrayBufferToBase64(rawKey);
 
     // Generate a random IV
@@ -207,11 +207,11 @@ export async function encryptFiles(files, message, ttl, views, password = '') {
     // Calculate hash for each file for integrity verification
     const encryptedFiles = [];
     for (const file of files) {
-      
+
 
       // Read file as ArrayBuffer
       const fileArrayBuffer = await readFileAsArrayBuffer(file);
-      
+
       // Calculate file hash
       const fileHash = await calculateFileHash(fileArrayBuffer);
 
@@ -237,10 +237,10 @@ export async function encryptFiles(files, message, ttl, views, password = '') {
         hash: fileHash
       });
 
-      
+
     }
 
-    
+
 
     // Post encrypted data to server
     const response = await fetch('/encrypt', {
@@ -267,17 +267,17 @@ export async function encryptFiles(files, message, ttl, views, password = '') {
     }
 
     const data = await response.json();
-    
+
 
     // Create URL with the ID and key in the fragment
     const baseUrl = window.location.origin;
     if (usePassword) {
       // For password protected links, we don't include the key in the URL
-      
+
       return `${baseUrl}/${data.id}#${data.id}`;
     } else {
       // For non-password links, include key in URL fragment
-      
+
       return `${baseUrl}/${data.id}#${data.id}.${keyBase64}`;
     }
   } catch (error) {

@@ -5,11 +5,11 @@ class DecryptionsController < ApplicationController
     # Check if we need to show an error message
     @show_error = session[:payload_expired]
     session[:payload_expired] = nil
-    
+
     # Get payload_id from path
     payload_id = params[:id]
     @payload_info = get_payload_info(payload_id)
-    
+
     render :show
   end
 

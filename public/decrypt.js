@@ -20,12 +20,12 @@ export async function decryptMessage(ciphertextBase64, ivBase64, keyBase64, pass
     let key;
 
     if (password && saltBase64) {
-      
+
       // If we have a password and salt, derive the key from it
       const salt = base64ToArrayBuffer(saltBase64);
       key = await deriveKeyFromPassword(password, salt);
     } else {
-      
+
       // Otherwise use the provided key
       const rawKey = base64ToArrayBuffer(keyBase64);
       // Import the key
@@ -70,7 +70,7 @@ export async function decryptMessage(ciphertextBase64, ivBase64, keyBase64, pass
  * @returns {Promise<CryptoKey>} - The derived key
  */
 async function deriveKeyFromPassword(password, salt) {
-  
+
   // First, create a key from the password
   const passwordKey = await window.crypto.subtle.importKey(
     "raw",
@@ -109,7 +109,7 @@ async function deriveKeyFromPassword(password, salt) {
  */
 export async function decryptFile(fileDataBase64, ivBase64, keyBase64, password = '', saltBase64 = '') {
   try {
-    
+
 
     // Convert Base64 to ArrayBuffer
     const fileData = base64ToArrayBuffer(fileDataBase64);
@@ -137,10 +137,10 @@ export async function decryptFile(fileDataBase64, ivBase64, keyBase64, password 
       );
     }
 
-    
+
 
     // Decrypt the file
-    
+
     const decrypted = await window.crypto.subtle.decrypt(
       {
         name: "AES-GCM",
@@ -150,7 +150,7 @@ export async function decryptFile(fileDataBase64, ivBase64, keyBase64, password 
       fileData
     );
 
-    
+
     return decrypted;
   } catch (error) {
     console.error('File decryption error:', error);

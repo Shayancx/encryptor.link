@@ -1,102 +1,145 @@
-<div class="row justify-content-center">
-  <div class="col-md-8">
-    <div class="card shadow">
-      <div class="card-header">
-        <h3 class="my-2">Decrypting Message</h3>
+<div class="gh-card">
+  <div class="gh-card-header">
+    <h3>Decrypting Message</h3>
+  </div>
+  <div class="gh-card-body">
+    <% if @show_error %>
+      <!-- Pre-rendered error state for expired payloads -->
+      <div id="errorContainer">
+        <div class="gh-flash gh-flash-danger">
+          <div class="gh-flash-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="gh-flash-content">
+            <div class="gh-flash-title">Cannot access this message</div>
+            <p id="errorMessage" class="mb-0">This message has expired or has been viewed the maximum number of times.</p>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <% if @show_error %>
-          <!-- Pre-rendered error state for expired payloads -->
-          <div id="errorContainer">
-            <div class="alert alert-danger">
-              <h4 class="alert-heading">Cannot access this message</h4>
-              <p id="errorMessage">This message has expired or has been viewed the maximum number of times.</p>
-            </div>
+    <% else %>
+      <!-- Password input for password-protected content -->
+      <div id="passwordContainer" class="d-none mb-4">
+        <div class="gh-flash gh-flash-info mb-3">
+          <div class="gh-flash-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
           </div>
-        <% else %>
-          <!-- Debug information (only visible in development) -->
+          <div class="gh-flash-content">
+            <div class="gh-flash-title">Password Protected Content</div>
+            <p class="mb-0">This content requires a password to access.</p>
           </div>
+        </div>
 
-          <!-- Password input for password-protected content -->
-          <div id="passwordContainer" class="d-none">
-            <div class="alert alert-info mb-3">
-              <strong>Password Protected Content</strong>
-              <p>This content requires a password to access.</p>
-            </div>
-            <div class="mb-3">
-              <label for="passwordInput" class="form-label">Enter Password:</label>
-              <div class="input-group">
-                <input type="password" class="form-control" id="passwordInput" placeholder="Enter the password...">
-                <button class="btn btn-primary" type="button" id="submitPasswordBtn">Decrypt</button>
-              </div>
-              <div id="passwordError" class="invalid-feedback" style="display:none;">
-                Incorrect password. Please try again.
-              </div>
-            </div>
+        <div class="mb-3">
+          <label for="passwordInput" class="form-label">Enter Password:</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="passwordInput" placeholder="Enter the password...">
+            <button class="btn btn-primary" type="button" id="submitPasswordBtn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Decrypt
+            </button>
           </div>
-
-          <!-- Loading state -->
-          <div id="loadingContainer">
-            <div class="text-center p-4">
-              <div class="spinner-border mb-3" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p>Fetching encrypted data...</p>
-            </div>
+          <div id="passwordError" class="invalid-feedback" style="display:none;">
+            Incorrect password. Please try again.
           </div>
-
-          <!-- Error state -->
-          <div id="errorContainer" class="d-none">
-            <div class="alert alert-danger">
-              <h4 class="alert-heading">Cannot access this message</h4>
-              <p id="errorMessage">The message may have expired or been viewed the maximum number of times.</p>
-            </div>
-          </div>
-
-          <!-- Success state for messages -->
-          <div id="messageContainer" class="d-none">
-            <div class="alert alert-warning mb-3">
-              <strong>One-time message!</strong> This message has been decrypted in your browser and cannot be accessed again.
-            </div>
-
-            <!-- Message content if present -->
-            <div id="messageContent" class="mb-3 d-none">
-              <label class="form-label">Decrypted Message:</label>
-              <div id="decryptedContent" class="form-control p-3" style="min-height: 100px; white-space: pre-wrap;"></div>
-            </div>
-
-            <!-- Files container with pagination -->
-            <div id="filesContainer" class="mb-3 d-none">
-              <label class="form-label">Attached Files:</label>
-
-              <div class="table-responsive">
-                <table class="table table-sm table-hover">
-                  <thead>
-                    <tr>
-                      <th>File</th>
-                      <th>Size</th>
-                      <th>Type</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="filesTableBody">
-                    <!-- File rows will be added dynamically -->
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Pagination controls -->
-              <div id="pagination" class="d-flex justify-content-center"></div>
-            </div>
-
-            <div class="d-grid gap-2">
-              <button id="copyMessageBtn" class="btn btn-outline-primary d-none">Copy Message</button>
-              <a href="/" class="btn btn-primary">Create Your Own Encrypted Message</a>
-            </div>
-          </div>
-        <% end %>
+        </div>
       </div>
-    </div>
+
+      <!-- Loading state -->
+      <div id="loadingContainer">
+        <div class="text-center py-5">
+          <div class="spinner-border mb-3" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mb-0">Fetching encrypted data...</p>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div id="errorContainer" class="d-none">
+        <div class="gh-flash gh-flash-danger">
+          <div class="gh-flash-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="gh-flash-content">
+            <div class="gh-flash-title">Cannot access this message</div>
+            <p id="errorMessage" class="mb-0">The message may have expired or been viewed the maximum number of times.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success state for messages -->
+      <div id="messageContainer" class="d-none">
+        <div class="gh-flash gh-flash-warning mb-4">
+          <div class="gh-flash-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <div class="gh-flash-content">
+            <div class="gh-flash-title">One-time message!</div>
+            <p class="mb-0">This message has been decrypted in your browser and cannot be accessed again.</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Message content if present -->
+          <div id="messageContent" class="col-lg-7 mb-4 d-none">
+            <div class="gh-section-title">Decrypted Message:</div>
+            <div id="decryptedContent" class="rich-text-content trix-content"></div>
+
+            <button id="copyMessageBtn" class="btn btn-outline-primary mt-3 d-none">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Message
+            </button>
+          </div>
+
+          <!-- Files container with pagination -->
+          <div id="filesContainer" class="col-lg-5 mb-4 d-none">
+            <div class="gh-section-title">Attached Files:</div>
+
+            <div class="gh-file-list">
+              <div id="filesListBody">
+                <!-- File items will be added dynamically -->
+              </div>
+            </div>
+
+            <!-- Pagination controls -->
+            <div id="pagination" class="gh-pagination mt-2"></div>
+          </div>
+        </div>
+
+        <div class="d-grid">
+          <a href="/" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+              <path d="M2 2l7.586 7.586"></path>
+              <circle cx="11" cy="11" r="2"></circle>
+            </svg>
+            Create Your Own Encrypted Message
+          </a>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>
 
@@ -105,6 +148,7 @@
   // Import decryption module
   import { decryptMessage, decryptFile } from "/decrypt.js";
 
+  // Keep the main JavaScript functionality with updates for rich text
   // Pagination variables
   let decryptedFiles = [];
   let currentPage = 1;
@@ -116,10 +160,11 @@
   let ciphertextBase64 = '';
   let payloadData = null;
 
-  // File icons
+  // File icons - GitHub-style icons
   const fileIcons = {
-    'pdf': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
-    'default': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+    'pdf': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5Z"/><polyline points="14 4 9 4 9 0"/></svg>',
+    'doc': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5Z"/><polyline points="14 4 9 4 9 0"/></svg>',
+    'default': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5Z"/></svg>'
   };
 
   // Format file size
@@ -130,22 +175,11 @@
     else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
   }
 
-  // Update debug info
-  function updateDebugInfo(data) {
-    for (const [key, value] of Object.entries(data)) {
-      const element = document.getElementById('debug' + key);
-      if (element) {
-        element.textContent = value;
-      }
-    }
-  }
-
   // Get message ID and key from URL fragment
   async function loadAndDecrypt() {
     try {
       const fragment = window.location.hash.substring(1);
-      
-      
+
       if (!fragment) {
         throw new Error('No decryption information found in URL');
       }
@@ -153,11 +187,9 @@
       // Split fragment by dot to get payload ID and possibly the encryption key
       const parts = fragment.split('.');
       const id = parts[0]; // This should always exist
-      
-      
+
       // Key may not exist for password-protected content
       const keyBase64 = parts.length > 1 ? parts[1] : null;
-      
 
       // Fetch the encrypted data - use cache busting to prevent duplicate requests
       console.log("Fetching encrypted data...");
@@ -179,24 +211,20 @@
 
       payloadData = await response.json();
       console.log("Received payload data:", payloadData);
-      
+
       ciphertextBase64 = payloadData.ciphertext;
       ivBase64 = payloadData.nonce;
-      
+
       // Explicitly convert to true boolean for password_protected check
       isPasswordProtected = payloadData.password_protected === true;
-      
-      
+
       if (isPasswordProtected) {
         passwordSalt = payloadData.password_salt || '';
-        
-        
-        
-        
+
         // Hide loading, show password form
         document.getElementById('loadingContainer').classList.add('d-none');
         document.getElementById('passwordContainer').classList.remove('d-none');
-        
+
         // Handle password submit button
         document.getElementById('submitPasswordBtn').addEventListener('click', handlePasswordSubmit);
         document.getElementById('passwordInput').addEventListener('keypress', function(e) {
@@ -205,12 +233,11 @@
           }
         });
       } else {
-        
         // For non-password protected content, we need the key from the URL
         if (!keyBase64) {
           throw new Error('No decryption key found in URL');
         }
-        
+
         encryptionKey = keyBase64;
         await decryptContent();
       }
@@ -221,7 +248,7 @@
       document.getElementById('errorMessage').textContent = error.message;
     }
   }
-  
+
   // Handle password submission
   async function handlePasswordSubmit() {
     try {
@@ -231,15 +258,13 @@
         document.getElementById('passwordError').textContent = 'Please enter a password.';
         return;
       }
-      
+
       // Show loading state
       const submitBtn = document.getElementById('submitPasswordBtn');
-      const originalText = submitBtn.textContent;
+      const originalText = submitBtn.innerHTML;
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-      
-      
-      
+
       // Try to decrypt with the password
       try {
         await decryptContent(password);
@@ -251,7 +276,7 @@
         document.getElementById('passwordError').style.display = 'block';
         document.getElementById('passwordError').textContent = 'Incorrect password. Please try again.';
         submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
+        submitBtn.innerHTML = originalText;
       }
     } catch (error) {
       console.error('Password processing error:', error);
@@ -260,12 +285,12 @@
 
   // Decrypt the content
   async function decryptContent(password = '') {
-    console.log("Starting content decryption...", { 
+    console.log("Starting content decryption...", {
       hasPassword: !!password,
       hasPasswordSalt: !!passwordSalt,
       hasEncryptionKey: !!encryptionKey
     });
-    
+
     // Store nonce in a meta tag for file decryption
     const meta = document.createElement('meta');
     meta.name = 'nonce';
@@ -277,14 +302,28 @@
     if (ciphertextBase64 && ciphertextBase64.length > 0) {
       console.log("Decrypting message...");
       decryptedText = await decryptMessage(
-        ciphertextBase64, 
-        ivBase64, 
+        ciphertextBase64,
+        ivBase64,
         encryptionKey,
         password,
         passwordSalt
       );
       console.log("Message decrypted successfully");
-      document.getElementById('decryptedContent').textContent = decryptedText;
+
+      // Set decrypted content to the rich text container
+      // Check if it's HTML content or plain text
+      const richTextContainer = document.getElementById('decryptedContent');
+
+      // If the content is HTML (e.g., from Trix editor), use it directly
+      if (decryptedText.trim().startsWith('<') &&
+          (decryptedText.includes('<div>') || decryptedText.includes('<p>') ||
+           decryptedText.includes('<h1>') || decryptedText.includes('</div>'))) {
+        richTextContainer.innerHTML = decryptedText;
+      } else {
+        // If it's plain text, ensure it's properly escaped
+        richTextContainer.textContent = decryptedText;
+      }
+
       document.getElementById('messageContent').classList.remove('d-none');
       document.getElementById('copyMessageBtn').classList.remove('d-none');
     }
@@ -312,9 +351,9 @@
     document.getElementById('messageContainer').classList.remove('d-none');
   }
 
-  // Update files list with pagination
+  // Update files list with GitHub-style file list
   function updateFilesList() {
-    const filesTableBody = document.getElementById('filesTableBody');
+    const filesListBody = document.getElementById('filesListBody');
     const paginationElement = document.getElementById('pagination');
 
     // Calculate pagination
@@ -323,32 +362,38 @@
     const endIndex = Math.min(startIndex + itemsPerPage, decryptedFiles.length);
     const currentFiles = decryptedFiles.slice(startIndex, endIndex);
 
-    // Clear the table body
-    filesTableBody.innerHTML = '';
+    // Clear the list body
+    filesListBody.innerHTML = '';
 
-    // Add file rows
+    // Add file items
     currentFiles.forEach((file, index) => {
       const extension = file.name.split('.').pop().toLowerCase();
       const iconSvg = fileIcons[extension] || fileIcons['default'];
 
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>
-          <div class="d-flex align-items-center">
-            <div class="file-icon me-2" style="width: 24px; height: 24px;">${iconSvg}</div>
-            <div class="text-truncate" style="max-width: 200px;">${file.name}</div>
+      const fileItem = document.createElement('div');
+      fileItem.className = 'gh-file-item';
+      fileItem.innerHTML = `
+        <div class="gh-file-details">
+          <div class="gh-file-icon">${iconSvg}</div>
+          <div class="gh-file-name">${file.name}</div>
+          <div class="gh-file-meta">
+            <span class="gh-file-size">${formatFileSize(file.size)}</span>
+            <span class="gh-file-type">${file.type || 'Unknown'}</span>
           </div>
-        </td>
-        <td>${formatFileSize(file.size)}</td>
-        <td>${file.type || 'Unknown'}</td>
-        <td>
+        </div>
+        <div class="gh-file-actions">
           <button type="button" class="btn btn-sm btn-primary download-btn" data-index="${startIndex + index}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
             Download
           </button>
-        </td>
+        </div>
       `;
 
-      filesTableBody.appendChild(row);
+      filesListBody.appendChild(fileItem);
     });
 
     // Add download button event listeners
@@ -359,6 +404,7 @@
 
         // Show loading state
         this.disabled = true;
+        const originalText = this.innerHTML;
         this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
         try {
@@ -368,10 +414,10 @@
           // Decrypt the file
           const fileDataBase64 = file.data;
           const decryptedData = await decryptFile(
-            fileDataBase64, 
-            ivBase64, 
-            file.key, 
-            file.password, 
+            fileDataBase64,
+            ivBase64,
+            file.key,
+            file.password,
             file.passwordSalt
           );
 
@@ -388,21 +434,21 @@
 
           // Reset button
           this.disabled = false;
-          this.textContent = 'Download';
+          this.innerHTML = originalText;
         } catch (error) {
           console.error('Error downloading file:', error);
           alert('Error downloading file: ' + error.message);
           this.disabled = false;
-          this.textContent = 'Download';
+          this.innerHTML = originalText;
         }
       });
     });
 
-    // Update pagination controls
+    // Update pagination controls - GitHub style
     updatePagination(totalPages);
   }
 
-  // Update pagination controls
+  // Update pagination controls with GitHub-style
   function updatePagination(totalPages) {
     const paginationElement = document.getElementById('pagination');
     paginationElement.innerHTML = '';
@@ -411,82 +457,191 @@
       return;
     }
 
-    const ul = document.createElement('ul');
-    ul.className = 'pagination pagination-sm';
-
     // Previous button
-    const prevLi = document.createElement('li');
-    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-    const prevLink = document.createElement('a');
-    prevLink.className = 'page-link';
-    prevLink.href = '#';
-    prevLink.textContent = '«';
-    prevLink.addEventListener('click', (e) => {
+    const prevButton = document.createElement('a');
+    prevButton.href = '#';
+    prevButton.className = `gh-page-link ${currentPage === 1 ? 'disabled' : ''}`;
+    prevButton.innerHTML = '&laquo;';
+    prevButton.addEventListener('click', (e) => {
       e.preventDefault();
       if (currentPage > 1) {
         currentPage--;
         updateFilesList();
       }
     });
-    prevLi.appendChild(prevLink);
-    ul.appendChild(prevLi);
+
+    const prevItem = document.createElement('div');
+    prevItem.className = 'gh-page-item';
+    prevItem.appendChild(prevButton);
+    paginationElement.appendChild(prevItem);
 
     // Page numbers
     for (let i = 1; i <= totalPages; i++) {
-      const li = document.createElement('li');
-      li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-
-      const link = document.createElement('a');
-      link.className = 'page-link';
-      link.href = '#';
-      link.textContent = i;
-      link.addEventListener('click', (e) => {
+      const pageLink = document.createElement('a');
+      pageLink.href = '#';
+      pageLink.className = `gh-page-link ${i === currentPage ? 'active' : ''}`;
+      pageLink.textContent = i;
+      pageLink.addEventListener('click', (e) => {
         e.preventDefault();
         currentPage = i;
         updateFilesList();
       });
 
-      li.appendChild(link);
-      ul.appendChild(li);
+      const pageItem = document.createElement('div');
+      pageItem.className = 'gh-page-item';
+      pageItem.appendChild(pageLink);
+      paginationElement.appendChild(pageItem);
     }
 
     // Next button
-    const nextLi = document.createElement('li');
-    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-    const nextLink = document.createElement('a');
-    nextLink.className = 'page-link';
-    nextLink.href = '#';
-    nextLink.textContent = '»';
-    nextLink.addEventListener('click', (e) => {
+    const nextButton = document.createElement('a');
+    nextButton.href = '#';
+    nextButton.className = `gh-page-link ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextButton.innerHTML = '&raquo;';
+    nextButton.addEventListener('click', (e) => {
       e.preventDefault();
       if (currentPage < totalPages) {
         currentPage++;
         updateFilesList();
       }
     });
-    nextLi.appendChild(nextLink);
-    ul.appendChild(nextLi);
 
-    paginationElement.appendChild(ul);
+    const nextItem = document.createElement('div');
+    nextItem.className = 'gh-page-item';
+    nextItem.appendChild(nextButton);
+    paginationElement.appendChild(nextItem);
   }
 
   // Handle copy message button
   document.getElementById('copyMessageBtn').addEventListener('click', function() {
-    const messageText = document.getElementById('decryptedContent').textContent;
-    navigator.clipboard.writeText(messageText).then(() => {
+    const messageElement = document.getElementById('decryptedContent');
+
+    // Try to copy the formatted HTML if possible, otherwise just the text
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(messageElement);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    try {
+      document.execCommand('copy');
+
       // Visual feedback
-      this.textContent = 'Copied!';
+      const originalText = this.innerHTML;
+      this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M20 6 9 17l-5-5"/></svg> Copied!';
+      this.classList.add('btn-success');
+      this.classList.remove('btn-outline-primary');
+
       setTimeout(() => {
-        this.textContent = 'Copy Message';
+        this.innerHTML = originalText;
+        this.classList.remove('btn-success');
+        this.classList.add('btn-outline-primary');
       }, 2000);
-    });
+    } catch (err) {
+      console.error('Could not copy text: ', err);
+      alert('Could not copy text. Please try manually selecting and copying.');
+    }
+
+    // Clean up
+    selection.removeAllRanges();
   });
 
   // Start decryption when page loads
-  
   document.addEventListener('DOMContentLoaded', () => {
-    
     setTimeout(loadAndDecrypt, 100);
   });
 </script>
 <% end %>
+<script>
+  // Function to safely render HTML content in the decrypted area
+  function renderRichContent(element, content) {
+    if (!element) return;
+
+    // Check if content looks like HTML
+    if (content && typeof content === 'string' &&
+        (content.includes('<div>') || content.includes('<p>') ||
+         content.includes('<h1>') || content.includes('</div>'))) {
+      element.innerHTML = content;
+    } else {
+      // Plain text - escape and preserve line breaks
+      element.textContent = content;
+    }
+  }
+
+  // Override the default content setting function if it exists
+  document.addEventListener('DOMContentLoaded', function() {
+    // Wait for the main script to load
+    setTimeout(function() {
+      if (window.decryptContent) {
+        const originalDecryptContent = window.decryptContent;
+        window.decryptContent = async function(password = '') {
+          await originalDecryptContent(password);
+
+          // If we have decrypted content, try to render it as rich text
+          const contentElement = document.getElementById('decryptedContent');
+          if (contentElement && contentElement.textContent) {
+            renderRichContent(contentElement, contentElement.textContent);
+          }
+        };
+      }
+    }, 500);
+  });
+</script>
+<script>
+  // Function to safely render HTML content in the decrypted area
+  document.addEventListener('DOMContentLoaded', function() {
+    // Wait for main script to load
+    setTimeout(function() {
+      const originalDecryptMessage = window.decryptMessage;
+
+      if (originalDecryptMessage) {
+        window.decryptMessage = async function() {
+          const result = await originalDecryptMessage.apply(this, arguments);
+
+          // Check if the decrypted content container exists
+          const contentContainer = document.getElementById('decryptedContent');
+          if (contentContainer && result) {
+            // If it looks like HTML, render it as HTML
+            if (result.includes('<') && result.includes('>')) {
+              contentContainer.innerHTML = result;
+            } else {
+              // Otherwise treat as plain text
+              contentContainer.textContent = result;
+            }
+          }
+
+          return result;
+        };
+      }
+    }, 500);
+  });
+</script>
+<script>
+  // Function to safely render HTML content in the decrypted area
+  document.addEventListener('DOMContentLoaded', function() {
+    // Wait for main script to load
+    setTimeout(function() {
+      const originalDecryptMessage = window.decryptMessage;
+
+      if (originalDecryptMessage) {
+        window.decryptMessage = async function() {
+          const result = await originalDecryptMessage.apply(this, arguments);
+
+          // Check if the decrypted content container exists
+          const contentContainer = document.getElementById('decryptedContent');
+          if (contentContainer && result) {
+            // If it looks like HTML, render it as HTML
+            if (result.includes('<') && result.includes('>')) {
+              contentContainer.innerHTML = result;
+            } else {
+              // Otherwise treat as plain text
+              contentContainer.textContent = result;
+            }
+          }
+
+          return result;
+        };
+      }
+    }, 500);
+  });
+</script>
