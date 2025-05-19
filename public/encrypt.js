@@ -8,7 +8,7 @@
  */
 export async function encryptMessage(message, ttl, views, password = '') {
   try {
-    console.log("Starting message encryption process, password protected:", !!password);
+    
     const usePassword = !!(password && password.trim().length > 0);
 
     // For password-based encryption, we'll use PBKDF2
@@ -87,7 +87,7 @@ export async function encryptMessage(message, ttl, views, password = '') {
     }
 
     const data = await response.json();
-    console.log("Server response:", data);
+    
 
     // Create URL with the ID and key in the fragment
     const baseUrl = window.location.origin;
@@ -207,7 +207,7 @@ export async function encryptFiles(files, message, ttl, views, password = '') {
     // Calculate hash for each file for integrity verification
     const encryptedFiles = [];
     for (const file of files) {
-      console.log(`Encrypting file: ${file.name} (${formatFileSize(file.size)})`);
+      
 
       // Read file as ArrayBuffer
       const fileArrayBuffer = await readFileAsArrayBuffer(file);
@@ -237,10 +237,10 @@ export async function encryptFiles(files, message, ttl, views, password = '') {
         hash: fileHash
       });
 
-      console.log(`File encrypted: ${file.name}`);
+      
     }
 
-    console.log("All files encrypted, sending to server");
+    
 
     // Post encrypted data to server
     const response = await fetch('/encrypt', {
@@ -267,17 +267,17 @@ export async function encryptFiles(files, message, ttl, views, password = '') {
     }
 
     const data = await response.json();
-    console.log("Server response:", data);
+    
 
     // Create URL with the ID and key in the fragment
     const baseUrl = window.location.origin;
     if (usePassword) {
       // For password protected links, we don't include the key in the URL
-      console.log("Creating password-protected URL (no key in URL)");
+      
       return `${baseUrl}/${data.id}#${data.id}`;
     } else {
       // For non-password links, include key in URL fragment
-      console.log("Creating standard URL (with key)");
+      
       return `${baseUrl}/${data.id}#${data.id}.${keyBase64}`;
     }
   } catch (error) {

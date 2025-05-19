@@ -40,3 +40,6 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false  # Rails style guide
   gem "rubocop", require: false  # Ruby style checker
 end
+
+# Rate limiting
+gem "rack-attack"

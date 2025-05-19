@@ -15,15 +15,6 @@
           </div>
         <% else %>
           <!-- Debug information (only visible in development) -->
-          <div id="debugInfo" class="alert alert-info mb-3">
-            <h5>Debug Information</h5>
-            <div id="debugContent">
-              <p>URL Fragment: <span id="debugUrlFragment">None</span></p>
-              <p>Payload ID: <span id="debugPayloadId">None</span></p>
-              <p>Is Password Protected: <span id="debugIsPasswordProtected">Unknown</span></p>
-              <p>Has Salt: <span id="debugHasSalt">Unknown</span></p>
-              <p>Has Key: <span id="debugHasKey">Unknown</span></p>
-            </div>
           </div>
 
           <!-- Password input for password-protected content -->
@@ -153,7 +144,7 @@
   async function loadAndDecrypt() {
     try {
       const fragment = window.location.hash.substring(1);
-      updateDebugInfo({ 'UrlFragment': fragment || 'None' });
+      
       
       if (!fragment) {
         throw new Error('No decryption information found in URL');
@@ -162,11 +153,11 @@
       // Split fragment by dot to get payload ID and possibly the encryption key
       const parts = fragment.split('.');
       const id = parts[0]; // This should always exist
-      updateDebugInfo({ 'PayloadId': id });
+      
       
       // Key may not exist for password-protected content
       const keyBase64 = parts.length > 1 ? parts[1] : null;
-      updateDebugInfo({ 'HasKey': keyBase64 ? 'Yes' : 'No' });
+      
 
       // Fetch the encrypted data - use cache busting to prevent duplicate requests
       console.log("Fetching encrypted data...");
@@ -194,13 +185,13 @@
       
       // Explicitly convert to true boolean for password_protected check
       isPasswordProtected = payloadData.password_protected === true;
-      updateDebugInfo({ 'IsPasswordProtected': isPasswordProtected ? 'Yes' : 'No' });
+      
       
       if (isPasswordProtected) {
         passwordSalt = payloadData.password_salt || '';
-        updateDebugInfo({ 'HasSalt': passwordSalt ? 'Yes' : 'No' });
         
-        console.log("This is a password-protected message.");
+        
+        
         
         // Hide loading, show password form
         document.getElementById('loadingContainer').classList.add('d-none');
@@ -214,7 +205,7 @@
           }
         });
       } else {
-        console.log("This is not a password-protected message, using key from URL.");
+        
         // For non-password protected content, we need the key from the URL
         if (!keyBase64) {
           throw new Error('No decryption key found in URL');
@@ -247,7 +238,7 @@
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
       
-      console.log("Attempting decryption with password");
+      
       
       // Try to decrypt with the password
       try {
@@ -492,9 +483,9 @@
   });
 
   // Start decryption when page loads
-  console.log("Initializing decryption process...");
+  
   document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM loaded, starting decryption...");
+    
     setTimeout(loadAndDecrypt, 100);
   });
 </script>
