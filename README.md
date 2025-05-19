@@ -41,8 +41,8 @@ A zero-knowledge, client-side encrypted message and file sharing service. Send e
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/encryptor-link.git
-cd encryptor-link
+git clone https://github.com/Shayancx/encryptor.link.git
+cd encryptor.link
 ```
 
 2. Install dependencies
