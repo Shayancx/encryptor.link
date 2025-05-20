@@ -16,6 +16,14 @@ class DecryptionsController < ApplicationController
   def data
     payload_id = params[:id]
 
+    # Check if this payload has already been viewed in this session
+    if session[:viewed_payloads]&.include?(payload_id)
+      # If we've already viewed it once in this session, just return gone
+      Rails.logger.info("Payload #{payload_id} already viewed in this session")
+      head :gone
+      return
+    end
+
     # Find the payload
     payload = EncryptedPayload.find_by(id: payload_id)
 
@@ -27,14 +35,11 @@ class DecryptionsController < ApplicationController
       return
     end
 
-    # Process the view
+    # For the first view in a session, mark it as viewed but don't delete yet
     payload.with_lock do
-      # If there are no more views left, mark as gone
-      if payload.remaining_views <= 0
-        Rails.logger.info("Payload #{payload_id} has no remaining views")
-        head :gone
-        return
-      end
+      # Record that we've viewed this payload in this session
+      session[:viewed_payloads] ||= []
+      session[:viewed_payloads] << payload_id
 
       # Decrement the view counter
       payload.decrement!(:remaining_views)
