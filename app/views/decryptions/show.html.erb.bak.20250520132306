@@ -178,20 +178,26 @@
   // Get message ID and key from URL fragment
   async function loadAndDecrypt() {
     try {
-      // Get the pathId (UUID) from the window location
-      const pathId = window.location.pathname.substring(1);
-      console.log("Using path ID (UUID):", pathId);
-
-      // Get the encryption key from the URL fragment
       const fragment = window.location.hash.substring(1);
 
-      // The key may not exist for password-protected content
-      let keyBase64 = fragment || null;
+      if (!fragment) {
+        throw new Error('No decryption information found in URL');
+      }
+
+      // Split fragment by dot to get payload ID and possibly the encryption key
+      const parts = fragment.split('.');
+      const id = parts[0]; // This should always exist
+
+      // Key may not exist for password-protected content
+      const keyBase64 = parts.length > 1 ? parts[1] : null;
 
       // Fetch the encrypted data - use cache busting to prevent duplicate requests
       console.log("Fetching encrypted data...");
       const cacheBuster = Date.now();
-      const response = await fetch(`/${pathId}/data?t=${cacheBuster}`, {
+      // Get the path ID (UUID) from the window location
+    const pathId = window.location.pathname.substring(1);
+    console.log("Using path ID (UUID):", pathId);
+    const response = await fetch(`/${pathId}/data?t=${cacheBuster}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
@@ -545,8 +551,100 @@
 
   // Start decryption when page loads
   document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded, starting decryption process...");
     setTimeout(loadAndDecrypt, 100);
   });
 </script>
 <% end %>
+<script>
+  // Function to safely render HTML content in the decrypted area
+  function renderRichContent(element, content) {
+    if (!element) return;
+
+    // Check if content looks like HTML
+    if (content && typeof content === 'string' &&
+        (content.includes('<div>') || content.includes('<p>') ||
+         content.includes('<h1>') || content.includes('</div>'))) {
+      element.innerHTML = content;
+    } else {
+      // Plain text - escape and preserve line breaks
+      element.textContent = content;
+    }
+  }
+
+  // Override the default content setting function if it exists
+  document.addEventListener('DOMContentLoaded', function() {
+    // Wait for the main script to load
+    setTimeout(function() {
+      if (window.decryptContent) {
+        const originalDecryptContent = window.decryptContent;
+        window.decryptContent = async function(password = '') {
+          await originalDecryptContent(password);
+
+          // If we have decrypted content, try to render it as rich text
+          const contentElement = document.getElementById('decryptedContent');
+          if (contentElement && contentElement.textContent) {
+            renderRichContent(contentElement, contentElement.textContent);
+          }
+        };
+      }
+    }, 500);
+  });
+</script>
+<script>
+  // Function to safely render HTML content in the decrypted area
+  document.addEventListener('DOMContentLoaded', function() {
+    // Wait for main script to load
+    setTimeout(function() {
+      const originalDecryptMessage = window.decryptMessage;
+
+      if (originalDecryptMessage) {
+        window.decryptMessage = async function() {
+          const result = await originalDecryptMessage.apply(this, arguments);
+
+          // Check if the decrypted content container exists
+          const contentContainer = document.getElementById('decryptedContent');
+          if (contentContainer && result) {
+            // If it looks like HTML, render it as HTML
+            if (result.includes('<') && result.includes('>')) {
+              contentContainer.innerHTML = result;
+            } else {
+              // Otherwise treat as plain text
+              contentContainer.textContent = result;
+            }
+          }
+
+          return result;
+        };
+      }
+    }, 500);
+  });
+</script>
+<script>
+  // Function to safely render HTML content in the decrypted area
+  document.addEventListener('DOMContentLoaded', function() {
+    // Wait for main script to load
+    setTimeout(function() {
+      const originalDecryptMessage = window.decryptMessage;
+
+      if (originalDecryptMessage) {
+        window.decryptMessage = async function() {
+          const result = await originalDecryptMessage.apply(this, arguments);
+
+          // Check if the decrypted content container exists
+          const contentContainer = document.getElementById('decryptedContent');
+          if (contentContainer && result) {
+            // If it looks like HTML, render it as HTML
+            if (result.includes('<') && result.includes('>')) {
+              contentContainer.innerHTML = result;
+            } else {
+              // Otherwise treat as plain text
+              contentContainer.textContent = result;
+            }
+          }
+
+          return result;
+        };
+      }
+    }, 500);
+  });
+</script>

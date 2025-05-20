@@ -19,7 +19,6 @@ class DecryptionsController < ApplicationController
     # Check if this payload has already been viewed in this session
     if session[:viewed_payloads]&.include?(payload_id)
       # If we've already viewed it once in this session, just return gone
-      Rails.logger.info("Payload #{payload_id} already viewed in this session")
       head :gone
       return
     end
@@ -29,7 +28,6 @@ class DecryptionsController < ApplicationController
 
     # If it doesn't exist or is expired, return gone
     if payload.nil? || payload.expires_at < Time.current
-      Rails.logger.info("Payload #{payload_id} not found or expired")
       session[:payload_expired] = true
       head :gone
       return
@@ -44,18 +42,8 @@ class DecryptionsController < ApplicationController
       # Decrement the view counter
       payload.decrement!(:remaining_views)
 
-      # Log the remaining views count for debugging
-      Rails.logger.info("Payload #{payload_id} has #{payload.remaining_views} remaining views after decrement")
-
       # If it's down to zero views, mark it for deletion after response
-      if payload.remaining_views <= 0
-        session[:delete_payload] = payload_id
-        Rails.logger.info("Marking payload #{payload_id} for deletion after response")
-      else
-        # Make sure we don't have any stale deletion markers
-        session.delete(:delete_payload) if session[:delete_payload] == payload_id
-        Rails.logger.info("NOT marking payload #{payload_id} for deletion - has #{payload.remaining_views} views left")
-      end
+      session[:delete_payload] = payload_id if payload.remaining_views <= 0
     end
 
     # Build response data
@@ -106,31 +94,16 @@ class DecryptionsController < ApplicationController
     # If this payload was marked for deletion, delete it now
     if session[:delete_payload].present?
       payload_id = session[:delete_payload]
-
-      # Clear the deletion marker immediately to prevent duplicate deletions
-      session.delete(:delete_payload)
-
-      Rails.logger.info("Running cleanup for payload #{payload_id}")
+      session[:delete_payload] = nil
 
       # Run deletion in a background thread to not block the response
       Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do
           begin
             payload = EncryptedPayload.find_by(id: payload_id)
-
-            if payload
-              # Double-check the remaining views to be sure
-              if payload.remaining_views <= 0
-                Rails.logger.info("Destroying payload #{payload_id} with 0 remaining views")
-                payload.destroy
-              else
-                Rails.logger.info("NOT destroying payload #{payload_id} - it has #{payload.remaining_views} views left")
-              end
-            else
-              Rails.logger.info("Payload #{payload_id} not found for deletion")
-            end
+            payload&.destroy
           rescue => e
-            Rails.logger.error("Error in cleanup_payload: #{e.message}")
+            Rails.logger.error("Error deleting payload: #{e.message}")
           end
         end
       end
