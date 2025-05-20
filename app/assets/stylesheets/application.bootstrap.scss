@@ -1330,3 +1330,168 @@ trix-editor:focus {
 [data-bs-theme="light"] .rich-editor-content[contenteditable=true]:empty:before {
   color: #bbb;
 }
+/* UI Consistency Improvements */
+.theme-switch-slider, .theme-switch-icon {
+  transition: all 0.3s ease-in-out;
+}
+
+.theme-switch-slider:hover {
+  box-shadow: 0 0 5px var(--gh-accent-color);
+}
+
+/* Fix inconsistent border radius */
+.form-control, .btn, .gh-card, .gh-flash, .file-upload-area, .gh-file-list {
+  border-radius: 6px;
+}
+
+/* Fix inconsistent shadow effects */
+.gh-card, .gh-setting-panel, .rich-editor-container {
+  box-shadow: var(--gh-shadow-small);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.gh-card:hover {
+  box-shadow: var(--gh-shadow-medium);
+}
+
+/* Improve transitions for theme switching */
+[data-bs-theme="dark"], [data-bs-theme="light"], body, header, footer,
+.gh-card, .gh-card-header, .gh-card-body, .gh-card-footer,
+.btn, .form-control, .alert, .gh-flash,
+.rich-editor-content, .rich-editor-toolbar {
+  transition: background-color 0.3s ease-in-out,
+              color 0.3s ease-in-out,
+              border-color 0.3s ease-in-out;
+}
+
+/* Better focus states */
+.form-control:focus, .btn:focus, .form-select:focus {
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.25);
+  border-color: var(--gh-accent-color);
+}
+
+/* Enhanced loading spinner */
+.spinner-border {
+  border-width: 3px;
+  animation-duration: 0.8s;
+}
+
+/* Better accessibility for disabled buttons */
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Unified padding */
+.gh-card-body, .gh-flash, .gh-setting-panel {
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .gh-card-body, .gh-flash, .gh-setting-panel {
+    padding: 12px;
+  }
+}
+
+/* Fix vertical spacing */
+.mb-3, .mb-4 {
+  margin-bottom: 1rem !important;
+}
+
+/* File upload area enhancements */
+.file-upload-area {
+  transition: all 0.3s ease;
+  border: 2px dashed var(--gh-border-color);
+}
+
+.file-upload-area:hover {
+  border-color: var(--gh-accent-color);
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+/* Fix icon alignment */
+svg {
+  vertical-align: -0.125em;
+}
+
+/* Fix decrypted content display */
+#decryptedContent {
+  min-height: 100px;
+  word-break: break-word;
+  padding: 16px;
+  border-radius: 6px;
+  line-height: 1.6;
+}
+
+/* Fix file list appearance */
+.gh-file-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.gh-file-item {
+  padding: 12px 16px;
+}
+
+.gh-file-item:hover {
+  background-color: var(--gh-bg-secondary);
+}
+
+/* Fix for rich text editor consistency */
+.rich-editor-content {
+  min-height: 100px;
+  padding: 12px;
+  line-height: 1.6;
+}
+
+.rich-editor-button {
+  transition: all 0.2s ease;
+}
+
+.rich-editor-button:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* Responsive fixes */
+@media (max-width: 576px) {
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .row {
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+
+  .col, .col-lg-5, .col-lg-7 {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* Better error messages */
+#passwordError, .invalid-feedback {
+  color: var(--gh-danger-color);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Button hover effect improvements */
+.btn-primary:hover {
+  background-color: var(--gh-accent-hover);
+  border-color: var(--gh-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--gh-accent-color);
+  border-color: var(--gh-accent-color);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.btn {
+  transition: all 0.2s ease-in-out;
+}

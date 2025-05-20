@@ -1,0 +1,147 @@
+// Web Crypto API wrapper for decryption
+async function decryptMessage(ciphertextBase64, ivBase64, keyBase64 = null, password = '', passwordSaltBase64 = '') {
+  try {
+    // Import or derive the key
+    const key = await getDecryptionKey(keyBase64, password, passwordSaltBase64);
+
+    // Decode the ciphertext and iv
+    const ciphertext = Base64.decode(ciphertextBase64);
+    const iv = Base64.decode(ivBase64);
+
+    // Decrypt using AES-GCM
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv },
+      key,
+      ciphertext
+    );
+
+    // Convert the decrypted data to a string
+    const decoder = new TextDecoder();
+    return decoder.decode(decrypted);
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw new Error('Failed to decrypt the message. The key might be incorrect.');
+  }
+}
+
+// Decrypt file data
+async function decryptFile(fileDataBase64, ivBase64, keyBase64 = null, password = '', passwordSaltBase64 = '') {
+  try {
+    // Import or derive the key
+    const key = await getDecryptionKey(keyBase64, password, passwordSaltBase64);
+
+    // Decode the file data and iv
+    const fileData = Base64.decode(fileDataBase64);
+    const iv = Base64.decode(ivBase64);
+
+    // Decrypt using AES-GCM
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv },
+      key,
+      fileData
+    );
+
+    return decrypted;
+  } catch (error) {
+    console.error('File decryption error:', error);
+    throw new Error('Failed to decrypt the file. The key might be incorrect.');
+  }
+}
+
+// Get decryption key - either from URL or derive from password
+async function getDecryptionKey(keyBase64, password, passwordSaltBase64) {
+  // For password-protected content
+  if (password) {
+    if (!passwordSaltBase64) {
+      throw new Error('Password salt is missing.');
+    }
+
+    // Decode the salt
+    const salt = Base64.decode(passwordSaltBase64);
+
+    // Convert password to a key using PBKDF2
+    const passwordKey = await window.crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(password),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveKey']
+    );
+
+    // Derive the actual encryption key
+    return window.crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      passwordKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+  }
+  // For non-password protected content
+  else {
+    if (!keyBase64) {
+      // Try to extract key from URL path if it's not in the fragment
+      const pathParts = window.location.pathname.substring(1).split('/');
+      if (pathParts.length > 1) {
+        keyBase64 = pathParts[1];
+      }
+
+      // If still no key, check if it's in a different format in the URL
+      if (!keyBase64 && window.location.search) {
+        const params = new URLSearchParams(window.location.search);
+        keyBase64 = params.get('key');
+      }
+
+      // Last attempt - check if the key is appended to the ID with a dot
+      if (!keyBase64) {
+        const pathId = window.location.pathname.substring(1);
+        const parts = pathId.split('.');
+        if (parts.length > 1) {
+          keyBase64 = parts[1];
+        }
+      }
+
+      if (!keyBase64) {
+        throw new Error('No decryption key found in URL. This message may require a password.');
+      }
+    }
+
+    // Clean up any URL-safe base64 modifications
+    keyBase64 = keyBase64.replace(/-/g, '+').replace(/_/g, '/');
+
+    // Decode the key
+    const rawKey = Base64.decode(keyBase64);
+
+    // Import the key
+    return window.crypto.subtle.importKey(
+      'raw',
+      rawKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+  }
+}
+
+// Base64 utility object
+const Base64 = {
+  encode: function(arrayBuffer) {
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBuffer)));
+  },
+  decode: function(base64) {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
+};
+
+// Export the functions
+export { decryptMessage, decryptFile };

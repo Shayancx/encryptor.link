@@ -230,11 +230,7 @@
           }
         });
       } else {
-        // For non-password protected content, we need the key from the URL
-        if (!keyBase64) {
-          throw new Error('No decryption key found in URL');
-        }
-
+        // For non-password protected content
         encryptionKey = keyBase64;
         await decryptContent();
       }
