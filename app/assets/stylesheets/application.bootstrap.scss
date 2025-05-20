@@ -171,57 +171,6 @@ header {
   }
 }
 
-// Button styles
-.btn {
-  font-weight: 500;
-  border-radius: 6px;
-  font-size: 14px;
-  padding: 5px 16px;
-
-  &:focus {
-    box-shadow: none;
-  }
-}
-
-.btn-sm {
-  padding: 3px 12px;
-  font-size: 12px;
-}
-
-.btn-primary {
-  background-color: var(--gh-accent-color);
-  border-color: var(--gh-accent-color);
-
-  &:hover, &:focus {
-    background-color: var(--gh-accent-hover);
-    border-color: var(--gh-accent-hover);
-  }
-}
-
-.btn-outline-primary {
-  color: var(--gh-accent-color);
-  border-color: var(--gh-border-color);
-
-  &:hover, &:focus {
-    color: var(--gh-bg-primary);
-    background-color: var(--gh-accent-color);
-    border-color: var(--gh-accent-color);
-  }
-}
-
-.btn-danger {
-  background-color: var(--gh-danger-color);
-  border-color: var(--gh-danger-color);
-}
-
-.btn-icon {
-  padding: 4px 8px;
-
-  svg {
-    vertical-align: text-bottom;
-  }
-}
-
 // Form elements
 .form-control, .form-select {
   border-radius: 6px;
@@ -492,15 +441,6 @@ input:checked + .theme-switch-slider:before {
 }
 
 // Copy button animation
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-button.copied {
-  animation: pulse 0.3s ease-in-out;
-}
 
 // Pagination styling - GitHub style
 .gh-pagination {
@@ -1477,21 +1417,3 @@ svg {
   margin-top: 0.25rem;
 }
 
-/* Button hover effect improvements */
-.btn-primary:hover {
-  background-color: var(--gh-accent-hover);
-  border-color: var(--gh-accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.btn-outline-primary:hover {
-  background-color: var(--gh-accent-color);
-  border-color: var(--gh-accent-color);
-  color: #fff;
-  transform: translateY(-1px);
-}
-
-.btn {
-  transition: all 0.2s ease-in-out;
-}

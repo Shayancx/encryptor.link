@@ -1,0 +1,59 @@
+/* GitHub-style Button Component */
+.btn {
+  display: inline-block;
+  font-weight: 500;
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 5px 16px;
+  border: 1px solid var(--gh-border-color);
+  color: var(--gh-text-primary);
+  background-color: var(--gh-bg-primary);
+  &:focus { box-shadow: none; }
+}
+.btn-sm { padding: 3px 12px; font-size: 12px; }
+.btn-primary {
+  color: #fff;
+  background-color: var(--gh-accent-color);
+  border-color: var(--gh-accent-color);
+}
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--gh-accent-hover);
+  border-color: var(--gh-accent-hover);
+}
+.btn-primary:active {
+  background-color: var(--gh-accent-hover);
+  border-color: var(--gh-accent-hover);
+}
+.btn-outline-primary {
+  color: var(--gh-text-primary);
+  background-color: var(--gh-bg-primary);
+  border: 1px solid var(--gh-border-color);
+}
+.btn-outline-primary:hover {
+  background-color: var(--gh-bg-secondary);
+  border-color: var(--gh-border-color);
+}
+.btn-outline-primary:active {
+  background-color: #eaeef2;
+  border-color: var(--gh-border-color);
+}
+.btn-danger {
+  color: #fff;
+  background-color: var(--gh-danger-color);
+  border-color: var(--gh-danger-color);
+}
+.btn-danger:hover, .btn-danger:focus {
+  background-color: darken(var(--gh-danger-color), 5%);
+  border-color: darken(var(--gh-danger-color), 5%);
+}
+.btn-outline-danger {
+  color: var(--gh-danger-color);
+  background-color: var(--gh-bg-primary);
+  border: 1px solid var(--gh-danger-color);
+}
+.btn-outline-danger:hover {
+  background-color: fade-out(var(--gh-danger-color), 0.9);
+}
+.btn-outline-danger:active {
+  background-color: fade-out(var(--gh-danger-color), 0.8);
+}
