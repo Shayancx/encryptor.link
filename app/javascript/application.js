@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (command === 'h1' || command === 'h2' || command === 'h3') {
           document.execCommand('formatBlock', false, command);
-        } else if (command === 'createlink') {
+        } else if (command === 'createLink') {
           const url = prompt('Enter the link URL:');
           if (url) document.execCommand(command, false, url);
         } else {
