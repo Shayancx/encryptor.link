@@ -1,0 +1,25 @@
+// =============================================================================
+// DARK THEME
+// =============================================================================
+
+[data-bs-theme="dark"] {
+  // Dark theme variables
+  --gh-text-primary: #{$gh-dark-text-primary};
+  --gh-text-secondary: #{$gh-dark-text-secondary};
+  --gh-bg-primary: #{$gh-dark-bg-primary};
+  --gh-bg-secondary: #{$gh-dark-bg-secondary};
+  --gh-border-color: #{$gh-dark-border-color};
+  --gh-border-muted: #{$gh-dark-border-muted};
+  --gh-accent-color: #{$gh-dark-accent-color};
+  --gh-accent-hover: #{$gh-dark-accent-hover};
+
+  // Bootstrap overrides
+  --bs-body-color: var(--gh-text-primary);
+  --bs-body-bg: var(--gh-bg-primary);
+  --bs-border-color: var(--gh-border-color);
+  --bs-primary: var(--gh-accent-color);
+  --bs-primary-rgb: 47, 129, 247;
+  --bs-danger: var(--gh-danger-color);
+  --bs-success: var(--gh-success-color);
+}
+

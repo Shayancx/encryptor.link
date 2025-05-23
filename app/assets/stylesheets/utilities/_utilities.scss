@@ -1,0 +1,38 @@
+// Smooth theme color transition for theme toggle (dark/light mode)
+[data-bs-theme="dark"],
+[data-bs-theme="light"],
+body, header, footer,
+.gh-card, .gh-card-header, .gh-card-body, .gh-card-footer,
+.btn, .form-control, .alert, .gh-flash,
+.rich-editor-content, .rich-editor-toolbar {
+  transition: background-color 0.3s ease-in-out,
+              color 0.3s ease-in-out,
+              border-color 0.3s ease-in-out;
+}
+// Enhanced focus outline for inputs & buttons
+.form-control:focus, .btn:focus, .form-select:focus {
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.25);
+  border-color: var(--gh-accent-color);
+}
+// Disabled button appearance
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+// Unified inner padding on certain components at smaller screens
+@media (max-width: 768px) {
+  .gh-card-header, .gh-card-body, .gh-card-footer {
+    padding: 12px;
+  }
+  .gh-table td, .gh-table th {
+    padding: 8px 12px;
+  }
+}
+// Consistent spacing utility adjustments
+.mb-3, .mb-4 {
+  margin-bottom: 1rem !important;
+}
+// Global SVG icon alignment
+svg {
+  vertical-align: -0.125em;
+}

@@ -1,0 +1,159 @@
+// =============================================================================
+// VARIABLES
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Color Palette
+// -----------------------------------------------------------------------------
+
+// Light theme colors
+$gh-light-text-primary: #24292f !default;
+$gh-light-text-secondary: #57606a !default;
+$gh-light-bg-primary: #ffffff !default;
+$gh-light-bg-secondary: #f6f8fa !default;
+$gh-light-border-color: #d0d7de !default;
+$gh-light-border-muted: #eaecef !default;
+$gh-light-accent-color: #0969da !default;
+$gh-light-accent-hover: #0550ae !default;
+$gh-light-danger-color: #cf222e !default;
+$gh-light-success-color: #1a7f37 !default;
+
+// Dark theme colors
+$gh-dark-text-primary: #e6edf3 !default;
+$gh-dark-text-secondary: #7d8590 !default;
+$gh-dark-bg-primary: #0d1117 !default;
+$gh-dark-bg-secondary: #161b22 !default;
+$gh-dark-border-color: #30363d !default;
+$gh-dark-border-muted: #21262d !default;
+$gh-dark-accent-color: #2f81f7 !default;
+$gh-dark-accent-hover: #4993fc !default;
+$gh-dark-danger-color: #fa4549 !default;
+$gh-dark-success-color: #26a148 !default;
+
+// -----------------------------------------------------------------------------
+// Typography
+// -----------------------------------------------------------------------------
+
+$font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !default;
+$font-family-mono: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace !default;
+
+$font-size-base: 14px !default;
+$font-size-sm: 12px !default;
+$font-size-lg: 16px !default;
+$font-size-xl: 20px !default;
+
+$font-weight-normal: 400 !default;
+$font-weight-medium: 500 !default;
+$font-weight-semibold: 600 !default;
+
+$line-height-base: 1.5 !default;
+$line-height-tight: 1.25 !default;
+$line-height-loose: 1.6 !default;
+
+// -----------------------------------------------------------------------------
+// Spacing
+// -----------------------------------------------------------------------------
+
+$spacer: 1rem !default;
+$spacers: (
+  0: 0,
+  1: $spacer * 0.25,    // 4px
+  2: $spacer * 0.5,     // 8px
+  3: $spacer * 0.75,    // 12px
+  4: $spacer,           // 16px
+  5: $spacer * 1.5,     // 24px
+  6: $spacer * 2,       // 32px
+  7: $spacer * 2.5,     // 40px
+  8: $spacer * 3        // 48px
+) !default;
+
+// -----------------------------------------------------------------------------
+// Breakpoints
+// -----------------------------------------------------------------------------
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px
+) !default;
+
+// -----------------------------------------------------------------------------
+// Layout
+// -----------------------------------------------------------------------------
+
+$container-max-width: 1280px !default;
+$container-padding-x: 32px !default;
+$container-padding-x-sm: 16px !default;
+
+// -----------------------------------------------------------------------------
+// Border Radius
+// -----------------------------------------------------------------------------
+
+$border-radius-base: 6px !default;
+$border-radius-sm: 3px !default;
+$border-radius-lg: 10px !default;
+$border-radius-pill: 50px !default;
+
+// -----------------------------------------------------------------------------
+// Shadows
+// -----------------------------------------------------------------------------
+
+$shadow-sm: 0 1px 2px rgba(31, 35, 40, 0.1) !default;
+$shadow-md: 0 3px 6px rgba(140, 149, 159, 0.15) !default;
+$shadow-lg: 0 8px 25px rgba(140, 149, 159, 0.2) !default;
+
+$shadow-dark-sm: 0 1px 2px rgba(0, 0, 0, 0.3) !default;
+$shadow-dark-md: 0 3px 6px rgba(0, 0, 0, 0.4) !default;
+$shadow-dark-lg: 0 8px 25px rgba(0, 0, 0, 0.5) !default;
+
+// -----------------------------------------------------------------------------
+// Transitions
+// -----------------------------------------------------------------------------
+
+$transition-base: all 0.2s ease-in-out !default;
+$transition-fast: all 0.1s ease-in-out !default;
+$transition-slow: all 0.3s ease-in-out !default;
+
+// -----------------------------------------------------------------------------
+// Z-index
+// -----------------------------------------------------------------------------
+
+$z-index-dropdown: 1000 !default;
+$z-index-sticky: 1020 !default;
+$z-index-fixed: 1030 !default;
+$z-index-modal-backdrop: 1040 !default;
+$z-index-modal: 1050 !default;
+$z-index-popover: 1060 !default;
+$z-index-tooltip: 1070 !default;
+
+// -----------------------------------------------------------------------------
+// Component Specific
+// -----------------------------------------------------------------------------
+
+// Buttons
+$btn-padding-y: 5px !default;
+$btn-padding-x: 16px !default;
+$btn-padding-y-sm: 3px !default;
+$btn-padding-x-sm: 12px !default;
+
+// Forms
+$input-padding-y: 5px !default;
+$input-padding-x: 12px !default;
+$input-min-height: auto !default;
+
+// Cards
+$card-padding: 16px !default;
+$card-padding-sm: 12px !default;
+
+// File upload
+$file-upload-padding: 32px !default;
+$file-upload-border-width: 2px !default;
+
+// Rich text editor
+$rich-editor-toolbar-height: 32px !default;
+$rich-editor-button-size: 28px !default;
+$rich-editor-content-height: 200px !default;
+$rich-editor-content-height-expanded: 400px !default;

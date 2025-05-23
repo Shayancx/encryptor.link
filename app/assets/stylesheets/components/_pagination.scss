@@ -1,0 +1,39 @@
+// Pagination controls (GitHub-style pagination)
+.gh-pagination {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+  .gh-page-item {
+    margin: 0 4px;
+    &:first-child { margin-left: 0; }
+    &:last-child { margin-right: 0; }
+  }
+  .gh-page-link {
+    min-width: 32px;
+    height: 32px;
+    padding: 5px 10px;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 6px;
+    color: var(--gh-text-primary);
+    background-color: var(--gh-bg-primary);
+    border: 1px solid var(--gh-border-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    &:hover {
+      background-color: var(--gh-bg-secondary);
+    }
+    &.active {
+      background-color: var(--gh-accent-color);
+      border-color: var(--gh-accent-color);
+      color: #ffffff;
+    }
+    &.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+}

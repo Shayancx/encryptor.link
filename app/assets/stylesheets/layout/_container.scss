@@ -1,0 +1,41 @@
+// =============================================================================
+// CONTAINER
+// =============================================================================
+
+.container {
+  width: 100%;
+  max-width: $container-max-width;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: $container-padding-x;
+  padding-right: $container-padding-x;
+
+  @include media-breakpoint-down(md) {
+    padding-left: $container-padding-x-sm;
+    padding-right: $container-padding-x-sm;
+  }
+
+  @include media-breakpoint-down(sm) {
+    padding-left: spacer(3);
+    padding-right: spacer(3);
+  }
+}
+
+// Responsive containers
+@each $breakpoint, $container-max-width in $grid-breakpoints {
+  .container-#{$breakpoint} {
+    width: 100%;
+    max-width: $container-max-width;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: spacer(4);
+    padding-right: spacer(4);
+  }
+}
+
+// Fluid container
+.container-fluid {
+  width: 100%;
+  padding-left: spacer(4);
+  padding-right: spacer(4);
+}

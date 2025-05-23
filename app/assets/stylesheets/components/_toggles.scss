@@ -1,0 +1,42 @@
+// Custom toggle switch (GH-style form switch)
+.gh-toggle {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+  .gh-toggle-track {
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    background-color: var(--gh-border-color);
+    border-radius: 10px;
+    position: relative;
+    transition: background-color 0.2s;
+    &:before {
+      content: "";
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+  }
+  input:checked + .gh-toggle-track {
+    background-color: var(--gh-accent-color);
+    &:before {
+      transform: translateX(16px);
+    }
+  }
+  input:focus + .gh-toggle-track {
+    box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.2);
+  }
+}

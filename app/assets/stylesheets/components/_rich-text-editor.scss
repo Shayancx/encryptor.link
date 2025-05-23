@@ -1,0 +1,423 @@
+// =============================================================================
+// RICH TEXT EDITOR
+// =============================================================================
+
+// Layout container
+.rich-text-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: spacer(4);
+  margin-bottom: spacer(4);
+}
+
+.rich-text-container {
+  flex: 1;
+  min-width: 0;
+  transition: $transition-slow;
+
+  &.expanded {
+    width: 100%;
+    flex: 1 0 100%;
+  }
+}
+
+.rich-text-settings {
+  width: 250px;
+  flex-shrink: 0;
+  transition: $transition-slow;
+
+  &.hidden {
+    display: none;
+  }
+
+  @include media-breakpoint-down(lg) {
+    width: 100%;
+    flex-basis: 100%;
+  }
+}
+
+// Editor container
+.rich-editor-container {
+  border: 1px solid var(--gh-border-color);
+  border-radius: $border-radius-base;
+  overflow: hidden;
+  margin-bottom: 0;
+  box-shadow: var(--gh-shadow-small);
+  transition: $transition-base;
+
+  &:focus-within {
+    border-color: var(--gh-accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--gh-accent-color), 0.1);
+  }
+
+  &.expanded {
+    .rich-editor-content {
+      height: $rich-editor-content-height-expanded;
+    }
+  }
+}
+
+// Toolbar
+.rich-editor-toolbar {
+  display: flex;
+  align-items: center;
+  background-color: var(--gh-bg-secondary);
+  border-bottom: 1px solid var(--gh-border-color);
+  padding: spacer(1);
+  height: $rich-editor-toolbar-height;
+  gap: spacer(1);
+}
+
+.rich-editor-button {
+  background-color: transparent;
+  border: none;
+  color: var(--gh-text-secondary);
+  width: $rich-editor-button-size;
+  height: $rich-editor-button-size;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  transition: $transition-base;
+
+  &:hover {
+    background-color: var(--gh-bg-primary);
+    color: var(--gh-text-primary);
+  }
+
+  &:focus {
+    @include focus-ring;
+  }
+
+  &.active {
+    background-color: var(--gh-accent-color);
+    color: white;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.rich-editor-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--gh-border-color);
+  margin: 0 spacer(1);
+}
+
+.rich-editor-expand {
+  margin-left: auto;
+  color: var(--gh-text-secondary);
+  cursor: pointer;
+  padding: 0 spacer(1);
+  height: $rich-editor-button-size;
+  background: transparent;
+  border: none;
+  border-radius: $border-radius-sm;
+  display: flex;
+  align-items: center;
+  transition: $transition-base;
+
+  &:hover {
+    background-color: var(--gh-bg-primary);
+    color: var(--gh-text-primary);
+  }
+
+  &:focus {
+    @include focus-ring;
+  }
+}
+
+// Editor content
+.rich-editor-content {
+  background-color: var(--gh-bg-primary);
+  color: var(--gh-text-primary);
+  height: $rich-editor-content-height;
+  padding: spacer(3);
+  outline: none;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-loose;
+  overflow-y: auto;
+  resize: none;
+
+  &[contenteditable="true"]:empty:before {
+    content: attr(placeholder);
+    color: var(--gh-text-secondary);
+    opacity: 0.7;
+  }
+
+  // Content styling
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: spacer(3);
+    margin-bottom: spacer(2);
+    font-weight: $font-weight-semibold;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.15rem; }
+
+  ul, ol {
+    padding-left: spacer(5);
+    margin-bottom: spacer(3);
+  }
+
+  li {
+    margin-bottom: spacer(1);
+  }
+
+  blockquote {
+    border-left: 3px solid var(--gh-border-color);
+    padding-left: spacer(3);
+    margin-left: 0;
+    color: var(--gh-text-secondary);
+    margin-bottom: spacer(3);
+  }
+
+  pre {
+    background-color: var(--gh-bg-secondary);
+    border: 1px solid var(--gh-border-color);
+    border-radius: $border-radius-base;
+    padding: spacer(3);
+    font-family: $font-family-mono;
+    font-size: $font-size-sm;
+    line-height: $line-height-base;
+    overflow-x: auto;
+    margin: spacer(2) 0;
+  }
+
+  code {
+    background-color: rgba(110, 118, 129, 0.4);
+    border-radius: $border-radius-sm;
+    padding: 0.2em 0.4em;
+    font-family: $font-family-mono;
+    font-size: 85%;
+  }
+
+  a {
+    color: var(--gh-accent-color);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  p {
+    margin-bottom: spacer(2);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Settings panels
+.gh-setting-panel {
+  background-color: var(--gh-bg-secondary);
+  border: 1px solid var(--gh-border-color);
+  border-radius: $border-radius-base;
+  padding: spacer(4);
+  margin-bottom: spacer(4);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .gh-setting-title {
+    font-weight: $font-weight-semibold;
+    margin-bottom: spacer(2);
+    display: flex;
+    align-items: center;
+    gap: spacer(1);
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  .gh-setting-description {
+    color: var(--gh-text-secondary);
+    font-size: $font-size-sm;
+    margin-bottom: spacer(2);
+  }
+
+  .form-select {
+    margin-top: auto;
+  }
+
+  @include media-breakpoint-down(md) {
+    padding: spacer(3);
+  }
+}
+
+// Settings grid
+.gh-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: spacer(4);
+
+  @include media-breakpoint-down(md) {
+    grid-template-columns: 1fr;
+    gap: spacer(3);
+  }
+}
+
+// Rich content output (for displaying decrypted content)
+.rich-content-output {
+  background-color: var(--gh-bg-secondary);
+  border: 1px solid var(--gh-border-color);
+  border-radius: $border-radius-base;
+  padding: spacer(4);
+  min-height: $rich-editor-content-height;
+  overflow-x: auto;
+  font-family: $font-family-base;
+  line-height: $line-height-loose;
+
+  // Apply the same content styling
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: spacer(3);
+    margin-bottom: spacer(2);
+    font-weight: $font-weight-semibold;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.15rem; }
+
+  ul, ol {
+    padding-left: spacer(5);
+    margin-bottom: spacer(3);
+  }
+
+  blockquote {
+    border-left: 3px solid var(--gh-border-color);
+    padding-left: spacer(3);
+    margin-left: 0;
+    color: var(--gh-text-secondary);
+  }
+
+  pre {
+    background-color: var(--gh-bg-primary);
+    border: 1px solid var(--gh-border-color);
+    border-radius: $border-radius-base;
+    padding: spacer(3);
+    font-family: $font-family-mono;
+    overflow-x: auto;
+  }
+
+  code {
+    background-color: rgba(110, 118, 129, 0.4);
+    padding: 0.2em 0.4em;
+    border-radius: $border-radius-sm;
+    font-family: $font-family-mono;
+  }
+}
+
+// Trix editor integration
+.trix-editor-container {
+  width: 100%;
+  margin-bottom: spacer(4);
+  border-radius: $border-radius-base;
+  overflow: hidden;
+  border: 1px solid var(--gh-border-color);
+}
+
+.trix-button-row {
+  background-color: var(--gh-bg-secondary);
+  padding: spacer(2);
+  border-bottom: 1px solid var(--gh-border-color);
+  display: flex;
+  flex-wrap: wrap;
+  gap: spacer(1);
+}
+
+.trix-button {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: $border-radius-sm;
+  background-color: var(--gh-bg-primary);
+  border: 1px solid var(--gh-border-muted);
+  margin: 0;
+  transition: $transition-base;
+
+  &:hover {
+    background-color: var(--gh-bg-secondary);
+  }
+
+  &.trix-active {
+    background-color: rgba(var(--gh-accent-color), 0.1);
+    border-color: var(--gh-accent-color);
+  }
+}
+
+.trix-button-group {
+  border: none;
+  margin: 0;
+
+  &::after {
+    display: none;
+  }
+}
+
+trix-editor {
+  padding: spacer(4);
+  min-height: $rich-editor-content-height;
+  background-color: var(--gh-bg-primary);
+  color: var(--gh-text-primary);
+  border: none;
+  outline: none;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// Hide file tools since we have our own file upload
+.trix-button-group--file-tools {
+  display: none !important;
+}
+
+// Responsive adjustments
+@include media-breakpoint-down(lg) {
+  .rich-text-layout {
+    flex-direction: column;
+  }
+
+  .rich-text-settings {
+    order: -1;
+  }
+}
+
+@include media-breakpoint-down(md) {
+  .rich-editor-content {
+    height: 150px;
+    padding: spacer(2);
+  }
+
+  .rich-editor-container.expanded .rich-editor-content {
+    height: 300px;
+  }
+
+  .gh-setting-panel {
+    padding: spacer(3);
+  }
+}

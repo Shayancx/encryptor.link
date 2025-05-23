@@ -1,0 +1,23 @@
+// Alert component (Bootstrap alerts) overrides
+.alert {
+  border-radius: 6px;
+  border: 1px solid var(--gh-border-color);
+  padding: 12px 16px;
+  font-size: 14px;
+}
+.alert-success {
+  background-color: rgba(var(--bs-success-rgb), 0.1);
+  border-color: var(--gh-success-color);
+}
+.alert-info {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  border-color: var(--gh-accent-color);
+}
+.alert-warning {
+  background-color: rgba(212, 167, 44, 0.1);
+  border-color: #d4a72c;
+}
+.alert-danger {
+  background-color: rgba(var(--bs-danger-rgb), 0.1);
+  border-color: var(--gh-danger-color);
+}

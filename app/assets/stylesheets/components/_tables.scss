@@ -1,0 +1,214 @@
+// =============================================================================
+// TABLES
+// =============================================================================
+
+// GitHub-style tables
+.gh-table {
+  width: 100%;
+  margin-bottom: spacer(4);
+  color: var(--gh-text-primary);
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--gh-border-color);
+  border-radius: $border-radius-base;
+  overflow: hidden;
+
+  th {
+    background-color: var(--gh-bg-secondary);
+    color: var(--gh-text-secondary);
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    text-align: left;
+    padding: spacer(2) spacer(4);
+    border-bottom: 1px solid var(--gh-border-color);
+    border-top: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  td {
+    padding: spacer(2) spacer(4);
+    border-bottom: 1px solid var(--gh-border-muted);
+    font-size: $font-size-base;
+    vertical-align: middle;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background-color: var(--gh-bg-secondary);
+  }
+
+  // Table utilities
+  .gh-table-actions {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .gh-table-number {
+    text-align: right;
+    font-family: $font-family-mono;
+  }
+
+  .gh-table-center {
+    text-align: center;
+  }
+
+  // Responsive table
+  @include media-breakpoint-down(md) {
+    th, td {
+      padding: spacer(2) spacer(3);
+    }
+  }
+
+  @include media-breakpoint-down(sm) {
+    th, td {
+      padding: spacer(2);
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+// File list (special table variant)
+.gh-file-list {
+  border: 1px solid var(--gh-border-color);
+  border-radius: $border-radius-base;
+  overflow: hidden;
+
+  .gh-file-item {
+    padding: spacer(2) spacer(4);
+    border-bottom: 1px solid var(--gh-border-muted);
+    display: flex;
+    align-items: center;
+    gap: spacer(2);
+    transition: $transition-base;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: var(--gh-bg-secondary);
+    }
+  }
+
+  .gh-file-details {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: spacer(2);
+    min-width: 0; // Allow text truncation
+  }
+
+  .gh-file-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--gh-text-secondary);
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .gh-file-name {
+    font-weight: $font-weight-medium;
+    color: var(--gh-text-primary);
+    @include text-truncate;
+  }
+
+  .gh-file-meta {
+    display: flex;
+    align-items: center;
+    gap: spacer(4);
+    color: var(--gh-text-secondary);
+    font-size: $font-size-sm;
+    flex-shrink: 0;
+
+    @include media-breakpoint-down(sm) {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: spacer(1);
+    }
+  }
+
+  .gh-file-size,
+  .gh-file-type {
+    white-space: nowrap;
+  }
+
+  .gh-file-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  // Responsive adjustments
+  @include media-breakpoint-down(md) {
+    .gh-file-item {
+      padding: spacer(3);
+    }
+  }
+
+  @include media-breakpoint-down(sm) {
+    .gh-file-item {
+      flex-direction: column;
+      align-items: stretch;
+      gap: spacer(2);
+    }
+
+    .gh-file-details {
+      justify-content: space-between;
+    }
+
+    .gh-file-actions {
+      margin-left: 0;
+    }
+  }
+}
+
+// Table loading state
+.table-loading {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(var(--gh-bg-primary), 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+}
+
+// Empty state
+.table-empty {
+  text-align: center;
+  padding: spacer(8) spacer(4);
+  color: var(--gh-text-secondary);
+
+  .table-empty-icon {
+    font-size: 48px;
+    margin-bottom: spacer(4);
+    opacity: 0.5;
+  }
+
+  .table-empty-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    margin-bottom: spacer(2);
+  }
+
+  .table-empty-description {
+    font-size: $font-size-sm;
+  }
+}

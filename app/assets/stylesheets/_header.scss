@@ -1,0 +1,73 @@
+// Header (navbar) styles
+header {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gh-border-color);
+  background-color: var(--gh-header-bg);
+}
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.app-brand {
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--gh-text-primary);
+  text-decoration: none;
+  &:hover {
+    text-decoration: none;
+    color: var(--gh-accent-color);
+  }
+}
+
+// Theme switch toggle (dark/light mode)
+.theme-switch {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  margin: 0;
+}
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.theme-switch-slider {
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: var(--gh-border-color);
+  border-radius: 10px;
+  position: relative;
+  transition: background-color 0.2s;
+  &:before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+}
+input:checked + .theme-switch-slider {
+  background-color: var(--gh-accent-color);
+}
+input:checked + .theme-switch-slider:before {
+  transform: translateX(20px);
+}
+.theme-switch-icon {
+  display: inline-flex;
+  margin-left: 8px;
+  align-items: center;
+}
+.theme-switch-slider, .theme-switch-icon {
+  transition: all 0.3s ease-in-out;
+}
+.theme-switch-slider:hover {
+  box-shadow: 0 0 5px var(--gh-accent-color);
+}

@@ -1,0 +1,100 @@
+// Trix rich text editor base styles (from ActionText)
+.trix-editor-container {
+  width: 100%;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--gh-border-color);
+}
+.trix-button-row {
+  background-color: var(--gh-bg-secondary);
+  padding: 8px;
+  border-bottom: 1px solid var(--gh-border-color);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.trix-button {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 4px;
+  background-color: var(--gh-bg-primary);
+  border: 1px solid var(--gh-border-muted);
+  margin: 0;
+}
+.trix-button:hover {
+  background-color: var(--gh-bg-secondary);
+}
+.trix-button.trix-active {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  border-color: var(--gh-accent-color);
+}
+.trix-button--icon::before {
+  filter: var(--gh-icon-filter, none);
+}
+.trix-button-group {
+  border: none;
+  margin: 0;
+}
+.trix-button-group::after {
+  display: none;
+}
+/* Trix editor content area */
+trix-editor {
+  padding: 16px;
+  min-height: 200px;
+  background-color: var(--gh-bg-primary);
+  color: var(--gh-text-primary);
+  border: none;
+  outline: none;
+}
+trix-editor:focus {
+  outline: none;
+}
+/* Hide file attachment tools (using custom uploader UI) */
+.trix-button-group--file-tools {
+  display: none !important;
+}
+/* Dark theme adjustments for Trix */
+[data-bs-theme="dark"] {
+  --gh-icon-filter: invert(0.8);
+  trix-editor {
+    color: var(--gh-text-primary);
+    background-color: var(--gh-bg-primary);
+  }
+  .trix-button {
+    background-color: var(--gh-bg-secondary);
+  }
+  .trix-button:hover {
+    background-color: var(--gh-border-muted);
+  }
+}
+/* Trix content (rendered HTML) styling */
+.trix-content h1 {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.trix-content blockquote {
+  border-left: 3px solid var(--gh-border-color);
+  padding-left: 0.5rem;
+  margin-left: 0;
+  color: var(--gh-text-secondary);
+}
+.trix-content pre {
+  background-color: var(--gh-bg-secondary);
+  padding: 0.5rem;
+  border-radius: 3px;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+.trix-content ul, .trix-content ol {
+  padding-left: 1.5rem;
+}
+.trix-content a {
+  color: var(--gh-accent-color);
+}
+/* Ensure Trix caret is visible */
+.trix-content .trix-cursor {
+  border-left-color: currentColor;
+}

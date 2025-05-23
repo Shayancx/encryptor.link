@@ -1,0 +1,51 @@
+// =============================================================================
+// HEADER
+// =============================================================================
+
+header {
+  padding: spacer(4) 0;
+  border-bottom: 1px solid var(--gh-border-color);
+  background-color: var(--gh-header-bg);
+  position: sticky;
+  top: 0;
+  z-index: $z-index-sticky;
+  transition: $transition-base;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: spacer(4);
+
+  @include media-breakpoint-down(sm) {
+    gap: spacer(2);
+  }
+}
+
+.app-brand {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-xl;
+  color: var(--gh-text-primary);
+  text-decoration: none;
+  transition: $transition-base;
+
+  &:hover {
+    text-decoration: none;
+    color: var(--gh-accent-color);
+  }
+
+  &:focus {
+    @include focus-ring;
+  }
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: spacer(3);
+
+  @include media-breakpoint-down(sm) {
+    gap: spacer(2);
+  }
+}

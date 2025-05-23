@@ -1,0 +1,15 @@
+// Section divider (horizontal rule) styles
+.gh-section {
+  padding: 16px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--gh-border-muted);
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  .gh-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+}

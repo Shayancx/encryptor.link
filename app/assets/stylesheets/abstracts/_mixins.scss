@@ -1,0 +1,195 @@
+// =============================================================================
+// MIXINS
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Media Queries
+// -----------------------------------------------------------------------------
+
+@mixin media-breakpoint-up($name) {
+  $min: map-get($grid-breakpoints, $name);
+  @if $min != 0 {
+    @media (min-width: $min) {
+      @content;
+    }
+  } @else {
+    @content;
+  }
+}
+
+@mixin media-breakpoint-down($name) {
+  $max: map-get($grid-breakpoints, $name) - 0.02;
+  @media (max-width: $max) {
+    @content;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Buttons
+// -----------------------------------------------------------------------------
+
+@mixin button-base {
+  display: inline-block;
+  font-weight: $font-weight-medium;
+  font-size: $font-size-base;
+  border-radius: $border-radius-base;
+  padding: $btn-padding-y $btn-padding-x;
+  border: 1px solid var(--gh-border-color);
+  color: var(--gh-text-primary);
+  background-color: var(--gh-bg-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.25);
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-size($padding-y, $padding-x, $font-size) {
+  padding: $padding-y $padding-x;
+  font-size: $font-size;
+}
+
+@mixin button-variant($bg-color, $border-color, $color: #fff) {
+  color: $color;
+  background-color: $bg-color;
+  border-color: $border-color;
+
+  &:hover,
+  &:focus {
+    background-color: darken($bg-color, 10%);
+    border-color: darken($border-color, 10%);
+  }
+
+  &:active {
+    background-color: darken($bg-color, 15%);
+    border-color: darken($border-color, 15%);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Cards
+// -----------------------------------------------------------------------------
+
+@mixin card-base {
+  background-color: var(--gh-card-bg);
+  border: 1px solid var(--gh-border-color);
+  border-radius: $border-radius-base;
+  box-shadow: var(--gh-shadow-small);
+  margin-bottom: map-get($spacers, 5);
+  width: 100%;
+}
+
+@mixin card-header {
+  padding: $card-padding;
+  background-color: var(--gh-bg-secondary);
+  border-bottom: 1px solid var(--gh-border-color);
+  border-top-left-radius: $border-radius-base;
+  border-top-right-radius: $border-radius-base;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin card-body {
+  padding: $card-padding;
+}
+
+@mixin card-footer {
+  padding: $card-padding;
+  background-color: var(--gh-bg-secondary);
+  border-top: 1px solid var(--gh-border-color);
+  border-bottom-left-radius: $border-radius-base;
+  border-bottom-right-radius: $border-radius-base;
+}
+
+// -----------------------------------------------------------------------------
+// Forms
+// -----------------------------------------------------------------------------
+
+@mixin form-control-base {
+  border-radius: $border-radius-base;
+  border: 1px solid var(--gh-border-color);
+  background-color: var(--gh-bg-primary);
+  color: var(--gh-text-primary);
+  font-size: $font-size-base;
+  padding: $input-padding-y $input-padding-x;
+  transition: $transition-base;
+
+  &:focus {
+    border-color: var(--gh-accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.2);
+    outline: none;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Utilities
+// -----------------------------------------------------------------------------
+
+@mixin sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@mixin clearfix {
+  &::after {
+    display: block;
+    clear: both;
+    content: "";
+  }
+}
+
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// -----------------------------------------------------------------------------
+// Animations
+// -----------------------------------------------------------------------------
+
+@mixin pulse-animation($scale: 1.05) {
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale($scale); }
+    100% { transform: scale(1); }
+  }
+
+  &.pulse {
+    animation: pulse 0.3s ease-in-out;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Focus Management
+// -----------------------------------------------------------------------------
+
+@mixin focus-visible {
+  &:focus-visible {
+    outline: 2px solid var(--gh-accent-color);
+    outline-offset: 2px;
+  }
+}
+
+@mixin focus-ring($color: var(--gh-accent-color)) {
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($color, 0.25);
+    outline: none;
+  }
+}

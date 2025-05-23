@@ -1,0 +1,1341 @@
+// Import Bootstrap first so we can override it
+@import "bootstrap";
+
+// GitHub-inspired variables
+:root {
+  // Light theme variables
+  --gh-text-primary: #24292f;
+  --gh-text-secondary: #57606a;
+  --gh-bg-primary: #ffffff;
+  --gh-bg-secondary: #f6f8fa;
+  --gh-border-color: #d0d7de;
+  --gh-border-muted: #eaecef;
+  --gh-accent-color: #0969da;
+  --gh-accent-hover: #0550ae;
+  --gh-danger-color: #cf222e;
+  --gh-success-color: #1a7f37;
+  --gh-header-bg: #ffffff;
+  --gh-footer-bg: #f6f8fa;
+  --gh-card-bg: #ffffff;
+  --gh-card-border: #d0d7de;
+  --gh-shadow-small: 0 1px 2px rgba(31, 35, 40, 0.1);
+  --gh-shadow-medium: 0 3px 6px rgba(140, 149, 159, 0.15);
+
+  // Common variables
+  --bs-body-color: var(--gh-text-primary);
+  --bs-body-bg: var(--gh-bg-primary);
+  --bs-border-color: var(--gh-border-color);
+  --bs-primary: var(--gh-accent-color);
+  --bs-primary-rgb: 9, 105, 218;
+  --bs-danger: var(--gh-danger-color);
+  --bs-success: var(--gh-success-color);
+}
+
+// Dark theme variables
+[data-bs-theme="dark"] {
+  --gh-text-primary: #e6edf3;
+  --gh-text-secondary: #7d8590;
+  --gh-bg-primary: #0d1117;
+  --gh-bg-secondary: #161b22;
+  --gh-border-color: #30363d;
+  --gh-border-muted: #21262d;
+  --gh-accent-color: #2f81f7;
+  --gh-accent-hover: #4993fc;
+  --gh-danger-color: #fa4549;
+  --gh-success-color: #26a148;
+  --gh-header-bg: #0d1117;
+  --gh-footer-bg: #0d1117;
+  --gh-card-bg: #161b22;
+  --gh-card-border: #30363d;
+  --gh-shadow-small: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --gh-shadow-medium: 0 3px 6px rgba(0, 0, 0, 0.4);
+
+  // Override Bootstrap variables for dark mode
+  --bs-body-color: var(--gh-text-primary);
+  --bs-body-bg: var(--gh-bg-primary);
+  --bs-border-color: var(--gh-border-color);
+  --bs-primary: var(--gh-accent-color);
+  --bs-primary-rgb: 47, 129, 247;
+  --bs-danger: var(--gh-danger-color);
+  --bs-success: var(--gh-success-color);
+}
+
+// Global styles
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--gh-text-primary);
+  background-color: var(--gh-bg-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// GitHub-style container - wider to use more space
+.container {
+  width: 100%;
+  max-width: 1280px; // GitHub's max-width
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+// Header styles
+header {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gh-border-color);
+  background-color: var(--gh-header-bg);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-brand {
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--gh-text-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+    color: var(--gh-accent-color);
+  }
+}
+
+// Card styles
+.gh-card {
+  background-color: var(--gh-card-bg);
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  box-shadow: var(--gh-shadow-small);
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.gh-card-header {
+  padding: 16px;
+  background-color: var(--gh-bg-secondary);
+  border-bottom: 1px solid var(--gh-border-color);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.gh-card-body {
+  padding: 16px;
+}
+
+.gh-card-footer {
+  padding: 16px;
+  background-color: var(--gh-bg-secondary);
+  border-top: 1px solid var(--gh-border-color);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+// GitHub-style section dividers
+.gh-section {
+  padding: 16px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--gh-border-muted);
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .gh-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+}
+
+// Button styles
+.btn {
+  font-weight: 500;
+  border-radius: 6px;
+  font-size: 14px;
+  padding: 5px 16px;
+
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+.btn-sm {
+  padding: 3px 12px;
+  font-size: 12px;
+}
+
+.btn-primary {
+  background-color: var(--gh-accent-color);
+  border-color: var(--gh-accent-color);
+
+  &:hover, &:focus {
+    background-color: var(--gh-accent-hover);
+    border-color: var(--gh-accent-hover);
+  }
+}
+
+.btn-outline-primary {
+  color: var(--gh-accent-color);
+  border-color: var(--gh-border-color);
+
+  &:hover, &:focus {
+    color: var(--gh-bg-primary);
+    background-color: var(--gh-accent-color);
+    border-color: var(--gh-accent-color);
+  }
+}
+
+.btn-danger {
+  background-color: var(--gh-danger-color);
+  border-color: var(--gh-danger-color);
+}
+
+.btn-icon {
+  padding: 4px 8px;
+
+  svg {
+    vertical-align: text-bottom;
+  }
+}
+
+// Form elements
+.form-control, .form-select {
+  border-radius: 6px;
+  border-color: var(--gh-border-color);
+  background-color: var(--gh-bg-primary);
+  color: var(--gh-text-primary);
+  font-size: 14px;
+
+  &:focus {
+    border-color: var(--gh-accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.2);
+  }
+}
+
+.form-control {
+  padding: 5px 12px;
+}
+
+.form-select {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+textarea.form-control {
+  min-height: 200px;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--gh-text-primary);
+  font-size: 14px;
+}
+
+.form-check-input:checked {
+  background-color: var(--gh-accent-color);
+  border-color: var(--gh-accent-color);
+}
+
+// Theme switch
+.theme-switch {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  margin: 0;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.theme-switch-slider {
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: var(--gh-border-color);
+  border-radius: 10px;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.theme-switch-slider:before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+input:checked + .theme-switch-slider {
+  background-color: var(--gh-accent-color);
+}
+
+input:checked + .theme-switch-slider:before {
+  transform: translateX(20px);
+}
+
+.theme-switch-icon {
+  display: inline-flex;
+  margin-left: 8px;
+  align-items: center;
+}
+
+// Alert styles
+.alert {
+  border-radius: 6px;
+  border: 1px solid var(--gh-border-color);
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+.alert-success {
+  background-color: rgba(var(--bs-success-rgb), 0.1);
+  border-color: var(--gh-success-color);
+}
+
+.alert-info {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  border-color: var(--gh-accent-color);
+}
+
+.alert-warning {
+  background-color: rgba(212, 167, 44, 0.1);
+  border-color: #d4a72c;
+}
+
+.alert-danger {
+  background-color: rgba(var(--bs-danger-rgb), 0.1);
+  border-color: var(--gh-danger-color);
+}
+
+// Footer
+.footer {
+  margin-top: auto;
+  padding: 24px 0;
+  background-color: var(--gh-footer-bg);
+  border-top: 1px solid var(--gh-border-color);
+  color: var(--gh-text-secondary);
+  font-size: 12px;
+}
+
+// Enhanced Tables - GitHub style
+.gh-table {
+  width: 100%;
+  margin-bottom: 16px;
+  color: var(--gh-text-primary);
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  overflow: hidden;
+
+  th {
+    background-color: var(--gh-bg-secondary);
+    color: var(--gh-text-secondary);
+    font-weight: 600;
+    font-size: 12px;
+    text-align: left;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--gh-border-color);
+    border-top: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  td {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--gh-border-muted);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background-color: var(--gh-bg-secondary);
+  }
+
+  .gh-table-actions {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .gh-file-icon {
+    display: inline-flex;
+    margin-right: 8px;
+    color: var(--gh-text-secondary);
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .gh-file-name {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px; // Adjust based on layout
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .gh-file-size, .gh-file-type {
+    color: var(--gh-text-secondary);
+    white-space: nowrap;
+  }
+}
+
+// GitHub-style file list alternative
+.gh-file-list {
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  overflow: hidden;
+
+  .gh-file-item {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--gh-border-muted);
+    display: flex;
+    align-items: center;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: var(--gh-bg-secondary);
+    }
+  }
+
+  .gh-file-details {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .gh-file-meta {
+    display: flex;
+    align-items: center;
+    margin-left: 16px;
+    color: var(--gh-text-secondary);
+    font-size: 12px;
+
+    > span {
+      margin-right: 16px;
+      white-space: nowrap;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  .gh-file-actions {
+    margin-left: auto;
+  }
+}
+
+// File upload styling
+.file-upload-area {
+  border: 2px dashed var(--gh-border-color);
+  border-radius: 6px;
+  padding: 32px;
+  text-align: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: var(--gh-accent-color);
+  }
+
+  &.dragover {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    border-color: var(--gh-accent-color);
+  }
+}
+
+// Copy button animation
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+button.copied {
+  animation: pulse 0.3s ease-in-out;
+}
+
+// Pagination styling - GitHub style
+.gh-pagination {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+
+  .gh-page-item {
+    margin: 0 4px;
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  .gh-page-link {
+    min-width: 32px;
+    height: 32px;
+    padding: 5px 10px;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 6px;
+    color: var(--gh-text-primary);
+    background-color: var(--gh-bg-primary);
+    border: 1px solid var(--gh-border-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+
+    &:hover {
+      background-color: var(--gh-bg-secondary);
+    }
+
+    &.active {
+      background-color: var(--gh-accent-color);
+      border-color: var(--gh-accent-color);
+      color: white;
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+}
+
+// Decrypted content
+#decryptedContent {
+  white-space: pre-wrap;
+  overflow-x: auto;
+  background-color: var(--gh-bg-secondary) !important;
+  color: var(--gh-text-primary) !important;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--gh-border-color);
+}
+
+// Spinner styles
+.spinner-border {
+  border-width: 2px;
+  color: var(--gh-accent-color);
+}
+
+// Settings panels
+.gh-setting-panel {
+  background-color: var(--gh-bg-secondary);
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+
+  .gh-setting-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .gh-setting-description {
+    color: var(--gh-text-secondary);
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+}
+
+// Two-column layout for settings
+.gh-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// GitHub-style toggle switches
+.gh-toggle {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+
+  .gh-toggle-track {
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    background-color: var(--gh-border-color);
+    border-radius: 10px;
+    position: relative;
+    transition: background-color 0.2s;
+
+    &:before {
+      content: "";
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+  }
+
+  input:checked + .gh-toggle-track {
+    background-color: var(--gh-accent-color);
+
+    &:before {
+      transform: translateX(16px);
+    }
+  }
+
+  input:focus + .gh-toggle-track {
+    box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.2);
+  }
+}
+
+// Flash messages (for notifications)
+.gh-flash {
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--gh-border-color);
+  display: flex;
+  align-items: flex-start;
+
+  .gh-flash-icon {
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  .gh-flash-content {
+    flex: 1;
+  }
+
+  .gh-flash-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  &.gh-flash-success {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    border-color: var(--gh-success-color);
+  }
+
+  &.gh-flash-info {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-color: var(--gh-accent-color);
+  }
+
+  &.gh-flash-warning {
+    background-color: rgba(212, 167, 44, 0.1);
+    border-color: #d4a72c;
+  }
+
+  &.gh-flash-danger {
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    border-color: var(--gh-danger-color);
+  }
+}
+
+// File Preview
+.gh-preview {
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  overflow: hidden;
+
+  .gh-preview-header {
+    padding: 8px 16px;
+    background-color: var(--gh-bg-secondary);
+    border-bottom: 1px solid var(--gh-border-color);
+    display: flex;
+    align-items: center;
+
+    .gh-preview-title {
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .gh-preview-meta {
+      color: var(--gh-text-secondary);
+      font-size: 12px;
+    }
+
+    .gh-preview-actions {
+      margin-left: auto;
+    }
+  }
+
+  .gh-preview-content {
+    padding: 16px;
+
+    img {
+      max-width: 100%;
+      display: block;
+      margin: 0 auto;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .gh-card-header, .gh-card-body, .gh-card-footer {
+    padding: 12px;
+  }
+
+  .gh-table td, .gh-table th {
+    padding: 8px 12px;
+  }
+}
+
+// Import custom Trix styles
+@import "trix_custom";
+@import "actiontext";
+
+/* Rich Text Editor Styles */
+.trix-editor-container {
+  width: 100%;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--gh-border-color);
+}
+
+.trix-button-row {
+  background-color: var(--gh-bg-secondary);
+  padding: 8px;
+  border-bottom: 1px solid var(--gh-border-color);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.trix-button {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 4px;
+  background-color: var(--gh-bg-primary);
+  border: 1px solid var(--gh-border-muted);
+  margin: 0;
+}
+
+.trix-button:hover {
+  background-color: var(--gh-bg-secondary);
+}
+
+.trix-button.trix-active {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  border-color: var(--gh-accent-color);
+}
+
+.trix-button--icon::before {
+  filter: var(--gh-icon-filter, none);
+}
+
+.trix-button-group {
+  border: none;
+  margin: 0;
+}
+
+.trix-button-group::after {
+  display: none;
+}
+
+trix-editor {
+  padding: 16px;
+  min-height: 200px;
+  background-color: var(--gh-bg-primary);
+  color: var(--gh-text-primary);
+  border: none;
+  outline: none;
+}
+
+trix-editor:focus {
+  outline: none;
+}
+
+/* Hide file tools since we have our own file upload */
+.trix-button-group--file-tools {
+  display: none !important;
+}
+
+/* Dark mode styles */
+[data-bs-theme="dark"] {
+  --gh-icon-filter: invert(0.8);
+
+  trix-editor {
+    color: var(--gh-text-primary);
+    background-color: var(--gh-bg-primary);
+  }
+
+  .trix-button {
+    background-color: var(--gh-bg-secondary);
+  }
+
+  .trix-button:hover {
+    background-color: var(--gh-border-muted);
+  }
+}
+
+/* Rich Text Content Styling */
+.trix-content h1 {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.trix-content blockquote {
+  border-left: 3px solid var(--gh-border-color);
+  padding-left: 0.5rem;
+  color: var(--gh-text-secondary);
+}
+
+.trix-content pre {
+  background-color: var(--gh-bg-secondary);
+  padding: 0.5rem;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.trix-content ul, .trix-content ol {
+  padding-left: 1.5rem;
+}
+
+.trix-content a {
+  color: var(--gh-accent-color);
+}
+
+/* Custom Rich Text Editor Styles */
+.rich-editor-container {
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.rich-editor-toolbar {
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333;
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.rich-editor-button {
+  background-color: transparent;
+  border: none;
+  color: #ccc;
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rich-editor-button:hover {
+  background-color: #333;
+}
+
+.rich-editor-button.active {
+  background-color: rgba(0, 122, 255, 0.2);
+  color: #fff;
+}
+
+.rich-editor-divider {
+  width: 1px;
+  height: 24px;
+  background-color: #333;
+  margin: 0 4px;
+}
+
+.rich-editor-content {
+  background-color: #0d1117;
+  color: #e6edf3;
+  min-height: 200px;
+  padding: 16px;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.rich-editor-content[contenteditable=true]:empty:before {
+  content: attr(placeholder);
+  color: #666;
+}
+
+/* Styling for edited content */
+.rich-editor-content h1 {
+  font-size: 1.8rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.3em;
+}
+
+.rich-editor-content h2 {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.rich-editor-content h3 {
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.rich-editor-content ul, .rich-editor-content ol {
+  padding-left: 2em;
+  margin-bottom: 1em;
+}
+
+.rich-editor-content li {
+  margin-bottom: 0.25em;
+}
+
+.rich-editor-content blockquote {
+  border-left: 3px solid #333;
+  padding-left: 1em;
+  margin-left: 0;
+  color: #8b949e;
+}
+
+.rich-editor-content pre {
+  background-color: #161b22;
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.rich-editor-content code {
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  background-color: rgba(110, 118, 129, 0.4);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+/* Light theme adjustments */
+[data-bs-theme="light"] .rich-editor-toolbar {
+  background-color: #f6f8fa;
+  border-bottom: 1px solid #d0d7de;
+}
+
+[data-bs-theme="light"] .rich-editor-button {
+  color: #24292f;
+}
+
+[data-bs-theme="light"] .rich-editor-button:hover {
+  background-color: #eaeef2;
+}
+
+[data-bs-theme="light"] .rich-editor-divider {
+  background-color: #d0d7de;
+}
+
+[data-bs-theme="light"] .rich-editor-content {
+  background-color: #ffffff;
+  color: #24292f;
+}
+
+[data-bs-theme="light"] .rich-editor-content blockquote {
+  border-left-color: #d0d7de;
+  color: #57606a;
+}
+
+[data-bs-theme="light"] .rich-editor-content pre {
+  background-color: #f6f8fa;
+}
+
+[data-bs-theme="light"] .rich-editor-content code {
+  background-color: rgba(175, 184, 193, 0.2);
+}
+
+/* Display output styles */
+.rich-content-output {
+  background-color: var(--gh-bg-secondary);
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  padding: 16px;
+  min-height: 200px;
+  overflow-x: auto;
+}
+
+/* Fixed Rich Text Editor Styles */
+.rich-editor-container {
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0; /* Remove bottom margin */
+}
+
+.rich-editor-toolbar {
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #333;
+  padding: 4px 6px; /* Smaller padding */
+  display: flex;
+  flex-wrap: nowrap; /* Keep buttons in a single row */
+  gap: 0; /* Remove gap */
+  height: 32px; /* Fixed height for toolbar */
+}
+
+.rich-editor-button {
+  background-color: transparent;
+  border: none;
+  color: #ccc;
+  width: 28px; /* Smaller button width */
+  height: 24px; /* Smaller button height */
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  margin: 0 1px; /* Small margin between buttons */
+  font-size: 12px; /* Smaller font size for heading buttons */
+}
+
+.rich-editor-button:hover {
+  background-color: #333;
+}
+
+.rich-editor-button.active {
+  background-color: rgba(0, 122, 255, 0.2);
+  color: #fff;
+}
+
+.rich-editor-divider {
+  width: 1px;
+  height: 20px; /* Smaller divider */
+  background-color: #333;
+  margin: 0 4px;
+}
+
+.rich-editor-content {
+  background-color: #0d1117;
+  color: #e6edf3;
+  height: 200px; /* Fixed height matching original textarea */
+  min-height: 0; /* Override min-height */
+  padding: 8px 12px;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  overflow-y: auto;
+}
+
+.rich-editor-content[contenteditable=true]:empty:before {
+  content: attr(placeholder);
+  color: #666;
+}
+
+/* SVG icon sizes */
+.rich-editor-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Styling for edited content */
+.rich-editor-content h1, .rich-editor-content h2, .rich-editor-content h3 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.rich-editor-content h1 {
+  font-size: 1.5rem;
+}
+
+.rich-editor-content h2 {
+  font-size: 1.3rem;
+}
+
+.rich-editor-content h3 {
+  font-size: 1.15rem;
+}
+
+/* Light theme adjustments */
+[data-bs-theme="light"] .rich-editor-toolbar {
+  background-color: #f6f8fa;
+  border-bottom: 1px solid #d0d7de;
+}
+
+[data-bs-theme="light"] .rich-editor-button {
+  color: #24292f;
+}
+
+[data-bs-theme="light"] .rich-editor-button:hover {
+  background-color: #eaeef2;
+}
+
+[data-bs-theme="light"] .rich-editor-divider {
+  background-color: #d0d7de;
+}
+
+[data-bs-theme="light"] .rich-editor-content {
+  background-color: #ffffff;
+  color: #24292f;
+}
+
+/* Enhanced Rich Text Editor Styles */
+.rich-text-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.rich-text-container {
+  flex: 1;
+  min-width: 0;
+  transition: all 0.3s ease;
+}
+
+.rich-text-container.expanded {
+  width: 100%;
+  flex: 1 0 100%;
+}
+
+.rich-text-settings {
+  width: 250px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.rich-text-settings.hidden {
+  display: none;
+}
+
+.rich-editor-container {
+  border: 1px solid var(--gh-border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.rich-editor-toolbar {
+  display: flex;
+  align-items: center;
+  background-color: #0d1117;
+  border-bottom: 1px solid #30363d;
+  padding: 4px;
+  height: 32px;
+}
+
+.rich-editor-button {
+  background-color: transparent;
+  border: none;
+  color: #8b949e;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0 1px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.rich-editor-button:hover {
+  background-color: #1f2937;
+  color: #e6edf3;
+}
+
+.rich-editor-button.active {
+  background-color: #1f6feb;
+  color: #fff;
+}
+
+.rich-editor-divider {
+  width: 1px;
+  height: 20px;
+  background-color: #30363d;
+  margin: 0 6px;
+}
+
+.rich-editor-expand {
+  margin-left: auto;
+  color: #8b949e;
+  cursor: pointer;
+  padding: 0 6px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.rich-editor-expand:hover {
+  background-color: #1f2937;
+  color: #e6edf3;
+}
+
+.rich-editor-content {
+  background-color: #0d1117;
+  color: #e6edf3;
+  height: 200px;
+  padding: 12px;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-y: auto;
+}
+
+.rich-editor-content[contenteditable=true]:empty:before {
+  content: attr(placeholder);
+  color: #484f58;
+}
+
+.rich-editor-container.expanded .rich-editor-content {
+  height: 400px;
+}
+
+/* Styling for code blocks */
+.rich-editor-content pre {
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 12px;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.rich-editor-content code {
+  background-color: rgba(110, 118, 129, 0.4);
+  border-radius: 3px;
+  padding: 0.2em 0.4em;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+}
+
+/* Light theme adjustments */
+[data-bs-theme="light"] .rich-editor-toolbar {
+  background-color: #f6f8fa;
+  border-bottom: 1px solid #d0d7de;
+}
+
+[data-bs-theme="light"] .rich-editor-button {
+  color: #57606a;
+}
+
+[data-bs-theme="light"] .rich-editor-button:hover {
+  background-color: #eaeef2;
+  color: #24292f;
+}
+
+[data-bs-theme="light"] .rich-editor-button.active {
+  background-color: #0969da;
+  color: #fff;
+}
+
+[data-bs-theme="light"] .rich-editor-divider {
+  background-color: #d0d7de;
+}
+
+[data-bs-theme="light"] .rich-editor-expand {
+  color: #57606a;
+}
+
+[data-bs-theme="light"] .rich-editor-expand:hover {
+  background-color: #eaeef2;
+  color: #24292f;
+}
+
+[data-bs-theme="light"] .rich-editor-content {
+  background-color: #ffffff;
+  color: #24292f;
+}
+
+[data-bs-theme="light"] .rich-editor-content pre {
+  background-color: #f6f8fa;
+  border: 1px solid #d0d7de;
+}
+
+[data-bs-theme="light"] .rich-editor-content code {
+  background-color: rgba(175, 184, 193, 0.2);
+}
+
+[data-bs-theme="light"] .rich-editor-content[contenteditable=true]:empty:before {
+  color: #bbb;
+}
+
+/* Import custom rich text layout */
+@import "rich_text_layout";
+
+/* Import custom panel fixes */
+@import "panel_fixes";
+
+/* Import custom layout boxes */
+@import "layout_boxes";

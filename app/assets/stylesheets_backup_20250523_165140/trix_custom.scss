@@ -1,0 +1,41 @@
+// Custom styles for Trix editor
+
+/* Fix cursor visibility in Trix editor */
+.trix-content .trix-cursor {
+  border-left-color: currentColor;
+}
+
+/* Make toolbar buttons more visible */
+.trix-button {
+  &:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+  }
+
+  &.trix-active {
+    background-color: rgba(var(--bs-primary-rgb), 0.2);
+  }
+}
+
+/* Style blockquotes better */
+.trix-content blockquote {
+  border-left: 3px solid var(--gh-border-color);
+  padding-left: 0.5rem;
+  margin-left: 0;
+  color: var(--gh-text-secondary);
+}
+
+/* Style code elements */
+.trix-content pre {
+  background-color: var(--gh-bg-secondary);
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.trix-content code {
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  background-color: rgba(110, 118, 129, 0.4);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}

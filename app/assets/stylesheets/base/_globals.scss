@@ -1,0 +1,94 @@
+// =============================================================================
+// GLOBAL STYLES
+// =============================================================================
+
+// Body
+body {
+  color: var(--gh-text-primary);
+  background-color: var(--gh-bg-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: $transition-slow;
+}
+
+// Main content area
+main {
+  flex: 1;
+}
+
+// Focus management
+:focus-visible {
+  @include focus-visible;
+}
+
+// Smooth scrolling
+html {
+  scroll-behavior: smooth;
+}
+
+// Selection styles
+::selection {
+  background-color: var(--gh-accent-color);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--gh-accent-color);
+  color: white;
+}
+
+// Scrollbar styles for webkit browsers
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gh-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gh-border-color);
+  border-radius: $border-radius-base;
+
+  &:hover {
+    background: var(--gh-text-secondary);
+  }
+}
+
+// Loading states
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: wait;
+}
+
+// Disabled states
+.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+// Visually hidden content (for screen readers)
+.sr-only {
+  @include sr-only;
+}
+
+// Skip link for accessibility
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--gh-accent-color);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: $border-radius-base;
+  z-index: $z-index-tooltip;
+
+  &:focus {
+    top: 6px;
+  }
+}

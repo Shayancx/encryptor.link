@@ -1,0 +1,107 @@
+// =============================================================================
+// CARDS
+// =============================================================================
+
+// Base card
+.gh-card {
+  @include card-base;
+  transition: $transition-base;
+
+  &:hover {
+    box-shadow: var(--gh-shadow-medium);
+  }
+}
+
+// Card header
+.gh-card-header {
+  @include card-header;
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// Card body
+.gh-card-body {
+  @include card-body;
+
+  @include media-breakpoint-down(md) {
+    padding: $card-padding-sm;
+  }
+}
+
+// Card footer
+.gh-card-footer {
+  @include card-footer;
+
+  @include media-breakpoint-down(md) {
+    padding: $card-padding-sm;
+  }
+}
+
+// Card variants
+.gh-card-elevated {
+  box-shadow: var(--gh-shadow-medium);
+
+  &:hover {
+    box-shadow: var(--gh-shadow-lg);
+    transform: translateY(-2px);
+  }
+}
+
+.gh-card-bordered {
+  border: 2px solid var(--gh-border-color);
+}
+
+// Content boxes (alternative card style)
+.content-box {
+  @include card-base;
+  padding: spacer(4);
+
+  @include media-breakpoint-down(md) {
+    padding: spacer(3);
+  }
+}
+
+.content-box-header {
+  border-bottom: 1px solid var(--gh-border-color);
+  margin-bottom: spacer(4);
+  padding-bottom: spacer(2);
+}
+
+.content-box-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin: 0;
+}
+
+.content-box-body {
+  padding: 0;
+}
+
+.content-box-footer {
+  border-top: 1px solid var(--gh-border-color);
+  margin-top: spacer(4);
+  padding-top: spacer(2);
+}
+
+// Section dividers
+.gh-section {
+  padding: spacer(4) 0;
+  margin-bottom: spacer(4);
+  border-bottom: 1px solid var(--gh-border-muted);
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+}
+
+.gh-section-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  margin-bottom: spacer(2);
+  color: var(--gh-text-primary);
+}

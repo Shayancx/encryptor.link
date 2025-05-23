@@ -1,0 +1,29 @@
+// =============================================================================
+// FOOTER
+// =============================================================================
+
+.footer {
+  margin-top: auto;
+  padding: spacer(6) 0;
+  background-color: var(--gh-footer-bg);
+  border-top: 1px solid var(--gh-border-color);
+  color: var(--gh-text-secondary);
+  font-size: $font-size-sm;
+  transition: $transition-base;
+
+  p {
+    margin-bottom: spacer(1);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  a {
+    color: var(--gh-text-secondary);
+
+    &:hover {
+      color: var(--gh-accent-color);
+    }
+  }
+}

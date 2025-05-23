@@ -2,7 +2,7 @@
 @import "abstracts/mixins";
 @import "abstracts/functions";
 
-@import "bootstrap";
+@import "vendors/bootstrap";
 
 @import "base/reset";
 @import "base/typography";
@@ -15,22 +15,13 @@
 
 @import "components/buttons";
 @import "components/cards";
-@import "components/sections";
 @import "components/forms";
 @import "components/alerts";
 @import "components/tables";
 @import "components/pagination";
 @import "components/file-upload";
-@import "components/file_upload";
 @import "components/rich-text-editor";
-@import "components/settings_panel";
-@import "components/toggles";
-@import "components/flash";
-@import "components/trix";
-
-@import "pages/decryptions";
-
-@import "utilities/utilities";
+@import "components/theme-switch";
 
 @import "themes/light";
 @import "themes/dark";

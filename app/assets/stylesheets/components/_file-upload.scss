@@ -1,0 +1,261 @@
+// =============================================================================
+// FILE UPLOAD
+// =============================================================================
+
+// File upload area
+.file-upload-area {
+  border: $file-upload-border-width dashed var(--gh-border-color);
+  border-radius: $border-radius-base;
+  padding: $file-upload-padding;
+  text-align: center;
+  margin-bottom: spacer(4);
+  cursor: pointer;
+  transition: $transition-base;
+  background-color: var(--gh-bg-primary);
+
+  &:hover {
+    border-color: var(--gh-accent-color);
+    background-color: rgba(var(--gh-accent-color), 0.02);
+  }
+
+  &:focus-within {
+    border-color: var(--gh-accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--gh-accent-color), 0.1);
+  }
+
+  &.dragover {
+    background-color: rgba(var(--gh-accent-color), 0.05);
+    border-color: var(--gh-accent-color);
+    border-style: solid;
+    transform: scale(1.02);
+  }
+
+  // Upload icon
+  .upload-icon {
+    color: var(--gh-text-secondary);
+    margin-bottom: spacer(2);
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  // Upload text
+  p {
+    margin-bottom: spacer(1);
+    color: var(--gh-text-primary);
+    font-weight: $font-weight-medium;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  small {
+    color: var(--gh-text-secondary);
+    font-size: $font-size-sm;
+  }
+
+  // Hidden file input
+  input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  // Error state
+  &.error {
+    border-color: var(--gh-danger-color);
+    background-color: rgba(var(--gh-danger-color), 0.05);
+
+    .upload-icon,
+    p,
+    small {
+      color: var(--gh-danger-color);
+    }
+  }
+
+  // Loading state
+  &.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 24px;
+      height: 24px;
+      margin: -12px 0 0 -12px;
+      border: 2px solid transparent;
+      border-top-color: var(--gh-accent-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Responsive adjustments
+  @include media-breakpoint-down(md) {
+    padding: spacer(4);
+  }
+
+  @include media-breakpoint-down(sm) {
+    padding: spacer(3);
+
+    .upload-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+// File preview
+.file-preview {
+  margin-top: spacer(4);
+
+  .file-preview-item {
+    display: flex;
+    align-items: center;
+    gap: spacer(2);
+    padding: spacer(2);
+    border: 1px solid var(--gh-border-color);
+    border-radius: $border-radius-base;
+    margin-bottom: spacer(2);
+    background-color: var(--gh-bg-primary);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .file-icon {
+      flex-shrink: 0;
+      color: var(--gh-text-secondary);
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-weight: $font-weight-medium;
+      color: var(--gh-text-primary);
+      @include text-truncate;
+    }
+
+    .file-meta {
+      font-size: $font-size-sm;
+      color: var(--gh-text-secondary);
+      margin-top: spacer(1);
+    }
+
+    .file-actions {
+      flex-shrink: 0;
+    }
+
+    // File type specific colors
+    &.file-image .file-icon { color: #28a745; }
+    &.file-document .file-icon { color: #007bff; }
+    &.file-archive .file-icon { color: #ffc107; }
+    &.file-video .file-icon { color: #dc3545; }
+    &.file-audio .file-icon { color: #6f42c1; }
+  }
+}
+
+// Upload progress
+.upload-progress {
+  margin-top: spacer(3);
+
+  .progress {
+    height: 8px;
+    background-color: var(--gh-bg-secondary);
+    border-radius: $border-radius-base;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background-color: var(--gh-accent-color);
+    border-radius: $border-radius-base;
+    transition: width 0.3s ease;
+  }
+
+  .progress-text {
+    text-align: center;
+    margin-top: spacer(1);
+    font-size: $font-size-sm;
+    color: var(--gh-text-secondary);
+  }
+}
+
+// File size indicator
+.file-size {
+  .file-size-current {
+    font-weight: $font-weight-medium;
+    color: var(--gh-text-primary);
+  }
+
+  .file-size-limit {
+    color: var(--gh-text-secondary);
+  }
+
+  &.over-limit {
+    .file-size-current {
+      color: var(--gh-danger-color);
+    }
+  }
+}
+
+// Drag and drop overlay
+.drag-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(var(--gh-accent-color), 0.1);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-index-modal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+
+  &.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .drag-message {
+    background-color: var(--gh-card-bg);
+    border: 2px dashed var(--gh-accent-color);
+    border-radius: $border-radius-lg;
+    padding: spacer(6);
+    text-align: center;
+    color: var(--gh-accent-color);
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+
+    svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: spacer(3);
+    }
+  }
+}

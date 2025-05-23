@@ -1,0 +1,36 @@
+// Flash message (notification banner) styles
+.gh-flash {
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--gh-border-color);
+  display: flex;
+  align-items: flex-start;
+  .gh-flash-icon {
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .gh-flash-content {
+    flex: 1;
+  }
+  .gh-flash-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  &.gh-flash-success {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    border-color: var(--gh-success-color);
+  }
+  &.gh-flash-info {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-color: var(--gh-accent-color);
+  }
+  &.gh-flash-warning {
+    background-color: rgba(212, 167, 44, 0.1);
+    border-color: #d4a72c;
+  }
+  &.gh-flash-danger {
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    border-color: var(--gh-danger-color);
+  }
+}
