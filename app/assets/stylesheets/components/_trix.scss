@@ -1,100 +1,110 @@
-// Trix rich text editor base styles (from ActionText)
+// =============================================================================
+// TRIX EDITOR
+// =============================================================================
+
 .trix-editor-container {
   width: 100%;
-  margin-bottom: 16px;
-  border-radius: 6px;
+  margin-bottom: spacer(4);
+  border-radius: $border-radius-base;
   overflow: hidden;
   border: 1px solid var(--gh-border-color);
 }
+
 .trix-button-row {
   background-color: var(--gh-bg-secondary);
-  padding: 8px;
+  padding: spacer(2);
   border-bottom: 1px solid var(--gh-border-color);
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: spacer(1);
 }
+
 .trix-button {
   width: 2.5em;
   height: 2.5em;
-  border-radius: 4px;
+  border-radius: $border-radius-sm;
   background-color: var(--gh-bg-primary);
   border: 1px solid var(--gh-border-muted);
   margin: 0;
+  transition: $transition-base;
+
+  &:hover {
+    background-color: var(--gh-bg-secondary);
+  }
+
+  &.trix-active {
+    background-color: rgba(var(--gh-accent-color), 0.1);
+    border-color: var(--gh-accent-color);
+  }
 }
-.trix-button:hover {
-  background-color: var(--gh-bg-secondary);
-}
-.trix-button.trix-active {
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
-  border-color: var(--gh-accent-color);
-}
-.trix-button--icon::before {
-  filter: var(--gh-icon-filter, none);
-}
+
 .trix-button-group {
   border: none;
   margin: 0;
+
+  &::after {
+    display: none;
+  }
 }
-.trix-button-group::after {
-  display: none;
-}
-/* Trix editor content area */
+
 trix-editor {
-  padding: 16px;
+  padding: spacer(4);
   min-height: 200px;
   background-color: var(--gh-bg-primary);
   color: var(--gh-text-primary);
   border: none;
   outline: none;
+
+  &:focus {
+    outline: none;
+  }
 }
-trix-editor:focus {
-  outline: none;
-}
-/* Hide file attachment tools (using custom uploader UI) */
+
+// Hide file tools since we have our own file upload
 .trix-button-group--file-tools {
   display: none !important;
 }
-/* Dark theme adjustments for Trix */
-[data-bs-theme="dark"] {
-  --gh-icon-filter: invert(0.8);
-  trix-editor {
-    color: var(--gh-text-primary);
-    background-color: var(--gh-bg-primary);
+
+// Rich Text Content Styling
+.trix-content {
+  h1 {
+    font-size: 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
   }
-  .trix-button {
+
+  blockquote {
+    border-left: 3px solid var(--gh-border-color);
+    padding-left: 0.5rem;
+    margin-left: 0;
+    color: var(--gh-text-secondary);
+  }
+
+  pre {
     background-color: var(--gh-bg-secondary);
+    padding: 0.5rem;
+    border-radius: $border-radius-sm;
+    font-family: $font-family-mono;
   }
-  .trix-button:hover {
-    background-color: var(--gh-border-muted);
+
+  ul, ol {
+    padding-left: 1.5rem;
+  }
+
+  a {
+    color: var(--gh-accent-color);
+  }
+
+  code {
+    font-family: $font-family-mono;
+    background-color: rgba(110, 118, 129, 0.4);
+    padding: 0.2em 0.4em;
+    border-radius: $border-radius-sm;
   }
 }
-/* Trix content (rendered HTML) styling */
-.trix-content h1 {
-  font-size: 1.5rem;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-.trix-content blockquote {
-  border-left: 3px solid var(--gh-border-color);
-  padding-left: 0.5rem;
-  margin-left: 0;
-  color: var(--gh-text-secondary);
-}
-.trix-content pre {
-  background-color: var(--gh-bg-secondary);
-  padding: 0.5rem;
-  border-radius: 3px;
-  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-}
-.trix-content ul, .trix-content ol {
-  padding-left: 1.5rem;
-}
-.trix-content a {
-  color: var(--gh-accent-color);
-}
-/* Ensure Trix caret is visible */
+
+// Ensure cursor is visible
 .trix-content .trix-cursor {
-  border-left-color: currentColor;
+  border-left-color: var(--gh-text-primary);
 }

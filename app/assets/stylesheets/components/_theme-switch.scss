@@ -2,170 +2,64 @@
 // THEME SWITCH
 // =============================================================================
 
-.theme-switch {
+.theme-switch-container {
   display: flex;
   align-items: center;
-  position: relative;
-  cursor: pointer;
-  user-select: none;
-  margin: 0;
-  gap: spacer(2);
-
-  input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    position: absolute;
-
-    &:focus + .theme-switch-slider {
-      box-shadow: 0 0 0 3px rgba(var(--gh-accent-color), 0.2);
-    }
-  }
 }
 
-.theme-switch-slider {
-  display: inline-block;
+.theme-switch-btn {
+  background: transparent;
+  border: 1px solid var(--gh-border-color);
+  border-radius: $border-radius-base;
   width: 40px;
-  height: 20px;
-  background-color: var(--gh-border-color);
-  border-radius: $border-radius-lg;
-  position: relative;
-  transition: $transition-base;
-  flex-shrink: 0;
-
-  &:hover {
-    box-shadow: 0 0 5px rgba(var(--gh-accent-color), 0.3);
-  }
-
-  &:before {
-    content: "";
-    position: absolute;
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    border-radius: 50%;
-    transition: $transition-base;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
-
-  input:checked + & {
-    background-color: var(--gh-accent-color);
-
-    &:before {
-      transform: translateX(20px);
-    }
-  }
-}
-
-.theme-switch-icon {
-  display: inline-flex;
+  height: 40px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--gh-text-secondary);
+  cursor: pointer;
   transition: $transition-base;
+  color: var(--gh-text-secondary);
+  padding: 0;
 
-  svg {
-    width: 16px;
-    height: 16px;
+  &:hover {
+    background-color: var(--gh-bg-secondary);
+    border-color: var(--gh-accent-color);
+    color: var(--gh-accent-color);
   }
 
-  &#sun-icon {
+  &:focus {
+    outline: 2px solid var(--gh-accent-color);
+    outline-offset: 2px;
+  }
+
+  svg {
+    transition: $transition-base;
+  }
+
+  #sun-icon {
     color: #f59e0b;
   }
 
-  &#moon-icon {
+  #moon-icon {
     color: #6366f1;
   }
 }
 
-// Alternative toggle styles
-.gh-toggle {
-  position: relative;
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: spacer(2);
-
-  input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    position: absolute;
-
-    &:focus + .gh-toggle-track {
-      box-shadow: 0 0 0 2px rgba(var(--gh-accent-color), 0.2);
-    }
-  }
-
-  .gh-toggle-track {
-    display: inline-block;
-    width: 36px;
-    height: 20px;
-    background-color: var(--gh-border-color);
-    border-radius: $border-radius-lg;
-    position: relative;
-    transition: $transition-base;
-
-    &:before {
-      content: "";
-      position: absolute;
-      height: 16px;
-      width: 16px;
-      left: 2px;
-      bottom: 2px;
-      background-color: white;
-      border-radius: 50%;
-      transition: $transition-base;
-    }
-  }
-
-  input:checked + .gh-toggle-track {
-    background-color: var(--gh-accent-color);
-
-    &:before {
-      transform: translateX(16px);
-    }
-  }
-}
-
-// Theme transition for smooth switching
+// Smooth theme transitions
 [data-bs-theme] {
   transition: color $transition-slow, background-color $transition-slow;
 
   * {
-    transition: border-color $transition-slow, box-shadow $transition-fast;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
   }
 }
 
 // Reduced motion preferences
 @media (prefers-reduced-motion: reduce) {
-  .theme-switch-slider,
-  .theme-switch-slider:before,
-  .theme-switch-icon,
-  .gh-toggle-track,
-  .gh-toggle-track:before {
-    transition: none;
-  }
-}
-
-// High contrast mode adjustments
-@media (prefers-contrast: high) {
-  .theme-switch-slider {
-    border: 2px solid var(--gh-text-primary);
-
-    &:before {
-      border: 1px solid var(--gh-text-primary);
-    }
-  }
-}
-
-// Focus management for keyboard navigation
-.theme-switch {
-  &:focus-within {
-    .theme-switch-slider {
-      outline: 2px solid var(--gh-accent-color);
-      outline-offset: 2px;
-    }
+  .theme-switch-btn,
+  .theme-switch-btn svg,
+  [data-bs-theme],
+  [data-bs-theme] * {
+    transition: none !important;
   }
 }

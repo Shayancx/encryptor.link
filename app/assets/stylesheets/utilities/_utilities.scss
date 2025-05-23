@@ -1,38 +1,76 @@
-// Smooth theme color transition for theme toggle (dark/light mode)
-[data-bs-theme="dark"],
-[data-bs-theme="light"],
-body, header, footer,
-.gh-card, .gh-card-header, .gh-card-body, .gh-card-footer,
-.btn, .form-control, .alert, .gh-flash,
-.rich-editor-content, .rich-editor-toolbar {
-  transition: background-color 0.3s ease-in-out,
-              color 0.3s ease-in-out,
-              border-color 0.3s ease-in-out;
+// =============================================================================
+// UTILITIES
+// =============================================================================
+
+// Spacing utilities
+@for $i from 0 through 8 {
+  .m-#{$i} { margin: spacer($i) !important; }
+  .mt-#{$i} { margin-top: spacer($i) !important; }
+  .mb-#{$i} { margin-bottom: spacer($i) !important; }
+  .ms-#{$i} { margin-left: spacer($i) !important; }
+  .me-#{$i} { margin-right: spacer($i) !important; }
+  .mx-#{$i} { margin-left: spacer($i) !important; margin-right: spacer($i) !important; }
+  .my-#{$i} { margin-top: spacer($i) !important; margin-bottom: spacer($i) !important; }
+
+  .p-#{$i} { padding: spacer($i) !important; }
+  .pt-#{$i} { padding-top: spacer($i) !important; }
+  .pb-#{$i} { padding-bottom: spacer($i) !important; }
+  .ps-#{$i} { padding-left: spacer($i) !important; }
+  .pe-#{$i} { padding-right: spacer($i) !important; }
+  .px-#{$i} { padding-left: spacer($i) !important; padding-right: spacer($i) !important; }
+  .py-#{$i} { padding-top: spacer($i) !important; padding-bottom: spacer($i) !important; }
 }
-// Enhanced focus outline for inputs & buttons
-.form-control:focus, .btn:focus, .form-select:focus {
-  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.25);
+
+// Text utilities
+.text-muted { color: var(--gh-text-secondary) !important; }
+.text-primary { color: var(--gh-text-primary) !important; }
+.text-success { color: var(--gh-success-color) !important; }
+.text-danger { color: var(--gh-danger-color) !important; }
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+
+// Display utilities
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+
+// Flexbox utilities
+.flex-column { flex-direction: column !important; }
+.flex-row { flex-direction: row !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-start { justify-content: flex-start !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.align-items-start { align-items: flex-start !important; }
+.align-items-end { align-items: flex-end !important; }
+
+// Enhanced focus outline for accessibility
+.form-control:focus,
+.btn:focus,
+.form-select:focus {
+  box-shadow: 0 0 0 3px rgba(var(--gh-accent-color), 0.25);
   border-color: var(--gh-accent-color);
 }
-// Disabled button appearance
+
+// Disabled states
 .btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
-// Unified inner padding on certain components at smaller screens
-@media (max-width: 768px) {
-  .gh-card-header, .gh-card-body, .gh-card-footer {
-    padding: 12px;
-  }
-  .gh-table td, .gh-table th {
-    padding: 8px 12px;
-  }
-}
-// Consistent spacing utility adjustments
-.mb-3, .mb-4 {
-  margin-bottom: 1rem !important;
-}
+
 // Global SVG icon alignment
 svg {
   vertical-align: -0.125em;
+}
+
+// Smooth transitions for theme switching
+* {
+  transition: background-color $transition-base,
+              color $transition-base,
+              border-color $transition-base;
 }

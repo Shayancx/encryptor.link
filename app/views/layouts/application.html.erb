@@ -21,26 +21,24 @@
       <div class="app-header">
         <a href="/" class="app-brand">encryptor.link</a>
 
-        <label class="theme-switch">
-          <input type="checkbox" id="themeToggle">
-          <span class="theme-switch-slider"></span>
-          <span class="theme-switch-icon">
-            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-              <circle cx="8" cy="8" r="4"></circle>
-              <line x1="8" y1="0" x2="8" y2="2"></line>
-              <line x1="8" y1="14" x2="8" y2="16"></line>
-              <line x1="0" y1="8" x2="2" y2="8"></line>
-              <line x1="14" y1="8" x2="16" y2="8"></line>
-              <line x1="2.34" y1="2.34" x2="3.76" y2="3.76"></line>
-              <line x1="12.24" y1="12.24" x2="13.66" y2="13.66"></line>
-              <line x1="2.34" y1="13.66" x2="3.76" y2="12.24"></line>
-              <line x1="12.24" y1="3.76" x2="13.66" y2="2.34"></line>
+        <div class="theme-switch-container">
+          <button type="button" class="theme-switch-btn" id="themeToggle" aria-label="Toggle theme">
+            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="m12 2 0 2"></path>
+              <path d="m12 20 0 2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path>
+              <path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="m2 12 2 0"></path>
+              <path d="m20 12 2 0"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path>
+              <path d="m19.07 4.93-1.41 1.41"></path>
             </svg>
-            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-              <path d="M12 3a6 6 0 0 1 1 10.22 6 6 0 0 1-10.22-1 6 6 0 0 1 1-10.22 6 6 0 0 1 10.22 1z"></path>
+            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
             </svg>
-          </span>
-        </label>
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -73,31 +71,33 @@
       // Function to update icon visibility
       function updateThemeIcons(isDark) {
         if (isDark) {
-          moonIcon.style.display = 'inline-block';
+          moonIcon.style.display = 'block';
           sunIcon.style.display = 'none';
         } else {
-          sunIcon.style.display = 'inline-block';
+          sunIcon.style.display = 'block';
           moonIcon.style.display = 'none';
         }
       }
 
       // Set initial theme
+      let currentTheme;
       if (savedTheme) {
-        htmlElement.setAttribute('data-bs-theme', savedTheme);
-        themeToggle.checked = savedTheme === 'dark';
-        updateThemeIcons(savedTheme === 'dark');
+        currentTheme = savedTheme;
       } else {
-        htmlElement.setAttribute('data-bs-theme', userPrefersDark ? 'dark' : 'light');
-        themeToggle.checked = userPrefersDark;
-        updateThemeIcons(userPrefersDark);
+        currentTheme = userPrefersDark ? 'dark' : 'light';
       }
 
-      // Toggle theme when switch is clicked
-      themeToggle.addEventListener('change', () => {
-        const newTheme = themeToggle.checked ? 'dark' : 'light';
+      htmlElement.setAttribute('data-bs-theme', currentTheme);
+      updateThemeIcons(currentTheme === 'dark');
+
+      // Toggle theme when button is clicked
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = htmlElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
         htmlElement.setAttribute('data-bs-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        updateThemeIcons(themeToggle.checked);
+        updateThemeIcons(newTheme === 'dark');
       });
     });
   </script>

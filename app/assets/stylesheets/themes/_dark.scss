@@ -12,6 +12,15 @@
   --gh-border-muted: #{$gh-dark-border-muted};
   --gh-accent-color: #{$gh-dark-accent-color};
   --gh-accent-hover: #{$gh-dark-accent-hover};
+  --gh-danger-color: #{$gh-dark-danger-color};
+  --gh-success-color: #{$gh-dark-success-color};
+  --gh-header-bg: #{$gh-dark-bg-primary};
+  --gh-footer-bg: #{$gh-dark-bg-primary};
+  --gh-card-bg: #{$gh-dark-bg-secondary};
+  --gh-card-border: #{$gh-dark-border-color};
+  --gh-shadow-small: #{$shadow-dark-sm};
+  --gh-shadow-medium: #{$shadow-dark-md};
+  --gh-shadow-lg: #{$shadow-dark-lg};
 
   // Bootstrap overrides
   --bs-body-color: var(--gh-text-primary);
@@ -22,4 +31,3 @@
   --bs-danger: var(--gh-danger-color);
   --bs-success: var(--gh-success-color);
 }
-
