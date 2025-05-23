@@ -1,26 +1,74 @@
-// Settings panel styles - proper spacing, no overlapping
+// =============================================================================
+// SETTINGS PANEL - HORIZONTAL LAYOUT (No Hover Animation)
+// =============================================================================
+
+// Settings row container - horizontal layout
+.settings-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: stretch; // Ensure equal height
+
+  @media (max-width: 992px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+// Individual setting panels
 .gh-setting-panel {
+  flex: 1; // Equal width distribution
   background-color: var(--gh-bg-secondary);
   border: 1px solid var(--gh-border-color);
   border-radius: 8px;
   padding: 20px;
-  margin-bottom: 20px;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease; // Removed transform
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  min-height: 140px; // Fixed height for consistency
+  position: relative; // For password input positioning
 
   &:hover {
     border-color: var(--gh-accent-color);
     box-shadow: 0 2px 8px rgba(var(--gh-accent-color), 0.15);
-    transform: translateY(-1px);
+    // Removed transform: translateY(-1px); - NO MORE FLOATING!
   }
 
-  &:last-child {
-    margin-bottom: 0;
+  // Responsive behavior
+  @media (max-width: 992px) {
+    min-height: auto;
   }
 }
 
 .gh-setting-header {
   margin-bottom: 16px;
+  flex-grow: 1; // Take up available space to push controls to bottom
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+// Special layout for password panel title row (inline toggle)
+.gh-setting-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  gap: 8px;
+
+  .form-check.form-switch {
+    margin: 0;
+    flex-shrink: 0;
+
+    .form-check-input {
+      margin: 0;
+    }
+
+    .form-check-label {
+      display: none; // Hide the empty label
+    }
+  }
 }
 
 .gh-setting-title {
@@ -32,6 +80,7 @@
   gap: 8px;
   color: var(--gh-text-primary);
   line-height: 1.3;
+  flex: 1; // Take available space in title row
 
   svg {
     flex-shrink: 0;
@@ -44,9 +93,12 @@
   font-size: 13px;
   line-height: 1.4;
   margin: 0;
+  flex-grow: 1;
 }
 
 .gh-setting-controls {
+  margin-top: auto; // Push controls to bottom of panel
+
   .form-select {
     width: 100%;
     font-size: 14px;
@@ -67,58 +119,73 @@
   }
 }
 
-// Rich text layout adjustments - make editor narrower to accommodate settings
-.rich-text-layout {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 16px;
+// Password input container - positioned to not affect panel size
+.password-input-container {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  right: 20px;
+  z-index: 2;
+  background-color: var(--gh-bg-secondary);
+  border-radius: 6px;
+  margin-top: 0 !important;
 
-  @media (max-width: 1200px) {
-    flex-direction: column;
-    gap: 16px;
+  .form-control-sm {
+    font-size: 13px;
+    padding: 6px 10px;
+    border-color: var(--gh-border-color);
+    background-color: var(--gh-bg-primary);
+
+    &:focus {
+      border-color: var(--gh-accent-color);
+      box-shadow: 0 0 0 2px rgba(var(--gh-accent-color), 0.2);
+    }
+
+    &::placeholder {
+      color: var(--gh-text-secondary);
+      opacity: 0.7;
+    }
   }
 }
 
-.rich-text-container {
-  flex: 1;
-  min-width: 0;
-  max-width: calc(100% - 280px); // Make room for settings sidebar
-  transition: all 0.3s ease;
-
-  &.expanded {
-    max-width: 100%;
-  }
-
-  @media (max-width: 1200px) {
-    max-width: 100%;
+// Ensure password panel maintains consistent layout
+.gh-setting-panel:has(.password-input-container) {
+  .gh-setting-controls {
+    // Add padding to bottom to make room for absolute positioned input
+    padding-bottom: 44px; // Height of input + spacing
   }
 }
 
-.rich-text-settings {
-  width: 260px;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-
-  &.hidden {
-    display: none;
-  }
-
-  @media (max-width: 1200px) {
-    width: 100%;
-  }
+// Legacy password container (fallback)
+#passwordContainer {
+  margin-top: 0 !important;
 }
 
-// Ensure rich editor container has proper dimensions
-.rich-editor-container {
-  border: 1px solid var(--gh-border-color);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+// Ensure consistent heights on mobile
+@media (max-width: 576px) {
+  .settings-row {
+    gap: 12px;
+  }
 
-.rich-editor-content {
-  min-height: 200px;
-  padding: 16px;
-  font-size: 14px;
-  line-height: 1.6;
+  .gh-setting-panel {
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .gh-setting-title {
+    font-size: 14px;
+  }
+
+  .gh-setting-description {
+    font-size: 12px;
+  }
+
+  .password-input-container {
+    position: static; // On mobile, use normal flow
+    margin-top: 12px !important;
+  }
+
+  .gh-setting-panel:has(.password-input-container) .gh-setting-controls {
+    padding-bottom: 0; // Remove extra padding on mobile
+  }
 }

@@ -1,55 +1,16 @@
 // =============================================================================
-// RICH TEXT EDITOR - Updated for better layout
+// RICH TEXT EDITOR - FULL WIDTH LAYOUT
 // =============================================================================
 
-// Layout container
-.rich-text-layout {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 16px;
-
-  @media (max-width: 1200px) {
-    flex-direction: column;
-    gap: 16px;
-  }
-}
-
-.rich-text-container {
-  flex: 1;
-  min-width: 0;
-  max-width: calc(100% - 280px);
-  transition: all 0.3s ease;
-
-  &.expanded {
-    max-width: 100%;
-  }
-
-  @media (max-width: 1200px) {
-    max-width: 100%;
-  }
-}
-
-.rich-text-settings {
-  width: 260px;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-
-  &.hidden {
-    display: none;
-  }
-
-  @media (max-width: 1200px) {
-    width: 100%;
-  }
-}
-
-// Editor container
+// Editor container - now full width
 .rich-editor-container {
+  width: 100%;
   border: 1px solid var(--gh-border-color);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  margin-bottom: 20px; // Space before settings panels
 
   &:focus-within {
     border-color: var(--gh-accent-color);
@@ -230,16 +191,6 @@
 }
 
 // Responsive adjustments
-@media (max-width: 1200px) {
-  .rich-text-layout {
-    flex-direction: column;
-  }
-
-  .rich-text-settings {
-    order: -1;
-  }
-}
-
 @media (max-width: 768px) {
   .rich-editor-content {
     height: 150px;
@@ -258,4 +209,12 @@
     width: 28px;
     height: 28px;
   }
+}
+
+// Remove old layout styles that are no longer needed
+.rich-text-layout,
+.rich-text-container,
+.rich-text-settings {
+  // These classes are no longer used in the new layout
+  display: none !important;
 }
