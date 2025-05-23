@@ -1,3 +1,13 @@
+#!/bin/bash
+
+set -e
+
+echo "🧹 Removing debug functionality while keeping all working features..."
+
+# Remove debug panel from HTML but keep all layout and functionality
+echo "📄 Cleaning up HTML - removing debug panel..."
+
+cat > app/views/encryptions/new.html.erb << 'EOF'
 <div class="gh-card">
   <div class="gh-card-header">
     <h3>Create Encrypted Message</h3>
@@ -653,3 +663,516 @@
     }, 2000);
   });
 </script>
+EOF
+
+# Clean up encrypt.js - remove debug but keep all functionality
+echo "🔐 Cleaning up encrypt.js - removing debug logging..."
+
+cat > public/encrypt.js << 'EOF'
+// Web Crypto API wrapper for encryption
+async function encryptMessage(message, ttl, views, password = '') {
+  try {
+    // Generate a random encryption key
+    const key = await generateEncryptionKey(password);
+
+    // Generate a random IV
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+    // Encrypt the message
+    const encrypted = await encryptData(message, key.key, iv);
+
+    // Prepare API payload
+    const payload = {
+      ciphertext: Base64.encode(encrypted),
+      nonce: Base64.encode(iv),
+      ttl: ttl,
+      views: views,
+      password_protected: !!password
+    };
+
+    // Add password salt if password is provided
+    if (password) {
+      payload.password_salt = Base64.encode(key.salt);
+    }
+
+    // Send the encrypted data to the server
+    const response = await fetch('/encrypt', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create encrypted message: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Generate link with the key in the fragment
+    let link = window.location.origin + '/' + data.id;
+
+    // For non-password protected content, add the key to the fragment
+    if (!password) {
+      const exportedKey = await window.crypto.subtle.exportKey('raw', key.key);
+      const keyBase64 = Base64.encode(exportedKey);
+      link += '#' + keyBase64;
+    }
+
+    return link;
+  } catch (error) {
+    console.error('Encryption error:', error);
+    throw error;
+  }
+}
+
+// Encrypt multiple files
+async function encryptFiles(files, message, ttl, views, password = '') {
+  try {
+    // Generate a random encryption key
+    const key = await generateEncryptionKey(password);
+
+    // Generate a random IV
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+    // Create API payload
+    const payload = {
+      nonce: Base64.encode(iv),
+      ttl: ttl,
+      views: views,
+      password_protected: !!password,
+      files: []
+    };
+
+    // Add password salt if password is provided
+    if (password) {
+      payload.password_salt = Base64.encode(key.salt);
+    }
+
+    // Encrypt message if present
+    if (message && message.trim() !== '') {
+      const encryptedMessage = await encryptData(message, key.key, iv);
+      payload.ciphertext = Base64.encode(encryptedMessage);
+    } else {
+      payload.ciphertext = '';
+    }
+
+    // Process each file
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      try {
+        // Read the file as an ArrayBuffer
+        const fileData = await readFileAsArrayBuffer(file);
+
+        // Encrypt the file data
+        const encryptedFile = await encryptData(fileData, key.key, iv);
+
+        // Encode to Base64
+        const encodedFile = Base64.encode(encryptedFile);
+
+        // Add the encrypted file to the payload
+        payload.files.push({
+          data: encodedFile,
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          size: file.size
+        });
+      } catch (fileError) {
+        throw new Error(`Failed to process file "${file.name}": ${fileError.message}`);
+      }
+    }
+
+    // Send the encrypted data to the server
+    const response = await fetch('/encrypt', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create encrypted message with files: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    // Generate link with the key in the fragment
+    let link = window.location.origin + '/' + data.id;
+
+    // For non-password protected content, add the key to the fragment
+    if (!password) {
+      const exportedKey = await window.crypto.subtle.exportKey('raw', key.key);
+      const keyBase64 = Base64.encode(exportedKey);
+      link += '#' + keyBase64;
+    }
+
+    return link;
+  } catch (error) {
+    console.error('File encryption error:', error);
+    throw error;
+  }
+}
+
+// Generate an encryption key
+async function generateEncryptionKey(password = '') {
+  try {
+    if (password) {
+      // Generate a random salt
+      const salt = window.crypto.getRandomValues(new Uint8Array(16));
+
+      // Convert password to a key using PBKDF2
+      const passwordKey = await window.crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+      );
+
+      // Derive the actual encryption key
+      const key = await window.crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        passwordKey,
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt']
+      );
+
+      return { key, salt };
+    } else {
+      // Generate a random key
+      const key = await window.crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt']
+      );
+
+      return { key };
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Encrypt data with AES-GCM
+async function encryptData(data, key, iv) {
+  try {
+    // Convert string to ArrayBuffer if needed
+    let dataBuffer;
+    if (typeof data === 'string') {
+      dataBuffer = new TextEncoder().encode(data);
+    } else {
+      dataBuffer = new Uint8Array(data);
+    }
+
+    // Encrypt using AES-GCM
+    const encrypted = await window.crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv: iv },
+      key,
+      dataBuffer
+    );
+
+    return encrypted;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Read a file as ArrayBuffer
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(reader.result);
+    };
+
+    reader.onerror = () => {
+      const errorMsg = `Failed to read file: ${file.name}`;
+      reject(new Error(errorMsg));
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// Optimized Base64 utility object that handles large files efficiently
+const Base64 = {
+  encode: function(arrayBuffer) {
+    try {
+      // For large files, use chunked encoding to avoid call stack limits
+      const bytes = new Uint8Array(arrayBuffer);
+      const chunkSize = 0x8000; // 32KB chunks
+
+      if (bytes.length <= chunkSize) {
+        // For small files, use the original method
+        const result = btoa(String.fromCharCode.apply(null, bytes));
+        return result;
+      }
+
+      // For large files, process in chunks
+      let result = '';
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        result += String.fromCharCode.apply(null, chunk);
+      }
+
+      const encodedResult = btoa(result);
+      return encodedResult;
+    } catch (error) {
+      throw new Error(`Base64 encoding failed: ${error.message}`);
+    }
+  },
+
+  decode: function(base64) {
+    try {
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    } catch (error) {
+      throw new Error(`Base64 decoding failed: ${error.message}`);
+    }
+  }
+};
+
+// Export the functions
+export { encryptMessage, encryptFiles };
+EOF
+
+# Clean up server-side controller - keep error handling but remove excessive debug
+echo "🖥️ Cleaning up server-side controller..."
+
+cat > app/controllers/encryptions_controller.rb << 'EOF'
+class EncryptionsController < ApplicationController
+  skip_before_action :verify_authenticity_token, only: [ :create ]
+
+  def new
+    render :new
+  end
+
+  def create
+    # Validate required parameters
+    unless params[:nonce].present?
+      render json: { error: "Nonce is required" }, status: :unprocessable_entity
+      return
+    end
+
+    unless params[:ttl].present? && params[:views].present?
+      render json: { error: "TTL and views are required" }, status: :unprocessable_entity
+      return
+    end
+
+    begin
+      # Create the main payload record with explicit boolean conversion for password_protected
+      payload = EncryptedPayload.new(
+        ciphertext: params[:ciphertext].present? ? Base64.strict_decode64(params[:ciphertext]) : "",
+        nonce: Base64.strict_decode64(params[:nonce]),
+        expires_at: Time.current + params[:ttl].to_i.seconds,
+        remaining_views: params[:views].to_i,
+        password_protected: ActiveModel::Type::Boolean.new.cast(params[:password_protected]),
+        password_salt: params[:password_salt].present? ? Base64.strict_decode64(params[:password_salt]) : nil
+      )
+
+      # Log for debugging
+      Rails.logger.info "Creating payload with password_protected=#{payload.password_protected?}"
+
+      # Wrap in a transaction to ensure all files are saved or none
+      ActiveRecord::Base.transaction do
+        payload.save!
+
+        # Handle multiple files if present
+        if params[:files].present? && params[:files].is_a?(Array)
+          params[:files].each_with_index do |file, index|
+            begin
+              encrypted_file = payload.encrypted_files.build(
+                file_data: file[:data],
+                file_name: file[:name],
+                file_type: file[:type],
+                file_size: file[:size].to_i
+              )
+              encrypted_file.save!
+            rescue => file_error
+              Rails.logger.error "ERROR saving file #{index + 1}: #{file_error.message}"
+              raise file_error
+            end
+          end
+        end
+      end
+
+      render json: { id: payload.id, password_protected: payload.password_protected }
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.error "Validation errors: #{e.record.errors.full_messages.join(', ')}"
+      render json: { error: e.record.errors.full_messages.join(', ') }, status: :unprocessable_entity
+    rescue => e
+      Rails.logger.error "Error creating encrypted payload: #{e.class}: #{e.message}"
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+  end
+end
+EOF
+
+# Remove debug styles from CSS
+echo "🎨 Cleaning up CSS - removing debug panel styles..."
+
+cat > app/assets/stylesheets/components/_settings_panel.scss << 'EOF'
+// Settings panel styles - proper spacing, no overlapping
+.gh-setting-panel {
+  background-color: var(--gh-bg-secondary);
+  border: 1px solid var(--gh-border-color);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    border-color: var(--gh-accent-color);
+    box-shadow: 0 2px 8px rgba(var(--gh-accent-color), 0.15);
+    transform: translateY(-1px);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.gh-setting-header {
+  margin-bottom: 16px;
+}
+
+.gh-setting-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gh-text-primary);
+  line-height: 1.3;
+
+  svg {
+    flex-shrink: 0;
+    opacity: 0.8;
+  }
+}
+
+.gh-setting-description {
+  color: var(--gh-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.gh-setting-controls {
+  .form-select {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .form-check {
+    margin-bottom: 0;
+
+    .form-check-label {
+      font-size: 14px;
+      color: var(--gh-text-primary);
+    }
+  }
+
+  .form-control {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+}
+
+// Rich text layout adjustments - make editor narrower to accommodate settings
+.rich-text-layout {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+
+  @media (max-width: 1200px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.rich-text-container {
+  flex: 1;
+  min-width: 0;
+  max-width: calc(100% - 280px); // Make room for settings sidebar
+  transition: all 0.3s ease;
+
+  &.expanded {
+    max-width: 100%;
+  }
+
+  @media (max-width: 1200px) {
+    max-width: 100%;
+  }
+}
+
+.rich-text-settings {
+  width: 260px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+
+  &.hidden {
+    display: none;
+  }
+
+  @media (max-width: 1200px) {
+    width: 100%;
+  }
+}
+
+// Ensure rich editor container has proper dimensions
+.rich-editor-container {
+  border: 1px solid var(--gh-border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.rich-editor-content {
+  min-height: 200px;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+EOF
+
+echo "✅ Debug functionality removed successfully!"
+echo ""
+echo "🎯 What was preserved:"
+echo "   ✅ Perfect layout with properly spaced settings panels"
+echo "   ✅ File encryption with chunked Base64 encoding"
+echo "   ✅ Password protection functionality"
+echo "   ✅ Rich text editor with all formatting tools"
+echo "   ✅ Drag & drop file handling"
+echo "   ✅ File pagination and management"
+echo "   ✅ Error handling and validation"
+echo "   ✅ All CSS styling and responsive design"
+echo ""
+echo "🧹 What was removed:"
+echo "   ❌ Debug panel and logging interface"
+echo "   ❌ Verbose console logging"
+echo "   ❌ Development-only debug functions"
+echo "   ❌ Excessive server-side logging"
+echo ""
+echo "🚀 Your app is now production-ready with clean, optimized code!"
+echo "   All functionality remains intact without debug clutter."

@@ -5,6 +5,7 @@ class EncryptedFile < ApplicationRecord
   validate :file_size_within_limit
 
   private
+
   def file_size_within_limit
     max_size = 1000.megabytes
     if file_size && file_size > max_size

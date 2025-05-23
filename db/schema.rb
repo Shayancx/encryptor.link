@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_19_200357) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_23_184437) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -61,6 +61,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_19_200357) do
     t.integer "file_size", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "compressed", default: false, null: false
+    t.index ["encrypted_payload_id"], name: "idx_encrypted_files_payload"
     t.index ["encrypted_payload_id"], name: "index_encrypted_files_on_encrypted_payload_id"
   end
 
@@ -73,6 +75,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_19_200357) do
     t.datetime "updated_at", null: false
     t.boolean "password_protected", default: false, null: false
     t.binary "password_salt"
+    t.index ["expires_at", "remaining_views"], name: "idx_payloads_cleanup"
     t.index ["expires_at"], name: "index_encrypted_payloads_on_expires_at"
   end
 

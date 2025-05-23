@@ -128,11 +128,27 @@ async function getDecryptionKey(keyBase64, password, passwordSaltBase64) {
   }
 }
 
-// Base64 utility object
+// Optimized Base64 utility object that handles large files efficiently
 const Base64 = {
   encode: function(arrayBuffer) {
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBuffer)));
+    // For large files, use chunked encoding to avoid call stack limits
+    const bytes = new Uint8Array(arrayBuffer);
+    const chunkSize = 0x8000; // 32KB chunks
+
+    if (bytes.length <= chunkSize) {
+      // For small files, use the original method
+      return btoa(String.fromCharCode.apply(null, bytes));
+    }
+
+    // For large files, process in chunks
+    let result = '';
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      result += String.fromCharCode.apply(null, chunk);
+    }
+    return btoa(result);
   },
+
   decode: function(base64) {
     const binaryString = atob(base64);
     const bytes = new Uint8Array(binaryString.length);

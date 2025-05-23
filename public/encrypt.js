@@ -35,7 +35,8 @@ async function encryptMessage(message, ttl, views, password = '') {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create encrypted message');
+      const errorText = await response.text();
+      throw new Error(`Failed to create encrypted message: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -45,7 +46,9 @@ async function encryptMessage(message, ttl, views, password = '') {
 
     // For non-password protected content, add the key to the fragment
     if (!password) {
-      link += '#' + Base64.encode(await window.crypto.subtle.exportKey('raw', key.key));
+      const exportedKey = await window.crypto.subtle.exportKey('raw', key.key);
+      const keyBase64 = Base64.encode(exportedKey);
+      link += '#' + keyBase64;
     }
 
     return link;
@@ -87,20 +90,29 @@ async function encryptFiles(files, message, ttl, views, password = '') {
     }
 
     // Process each file
-    for (const file of files) {
-      // Read the file as an ArrayBuffer
-      const fileData = await readFileAsArrayBuffer(file);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
 
-      // Encrypt the file data
-      const encryptedFile = await encryptData(fileData, key.key, iv);
+      try {
+        // Read the file as an ArrayBuffer
+        const fileData = await readFileAsArrayBuffer(file);
 
-      // Add the encrypted file to the payload
-      payload.files.push({
-        data: Base64.encode(encryptedFile),
-        name: file.name,
-        type: file.type || 'application/octet-stream',
-        size: file.size
-      });
+        // Encrypt the file data
+        const encryptedFile = await encryptData(fileData, key.key, iv);
+
+        // Encode to Base64
+        const encodedFile = Base64.encode(encryptedFile);
+
+        // Add the encrypted file to the payload
+        payload.files.push({
+          data: encodedFile,
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          size: file.size
+        });
+      } catch (fileError) {
+        throw new Error(`Failed to process file "${file.name}": ${fileError.message}`);
+      }
     }
 
     // Send the encrypted data to the server
@@ -114,7 +126,8 @@ async function encryptFiles(files, message, ttl, views, password = '') {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create encrypted message with files');
+      const errorText = await response.text();
+      throw new Error(`Failed to create encrypted message with files: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -124,7 +137,9 @@ async function encryptFiles(files, message, ttl, views, password = '') {
 
     // For non-password protected content, add the key to the fragment
     if (!password) {
-      link += '#' + Base64.encode(await window.crypto.subtle.exportKey('raw', key.key));
+      const exportedKey = await window.crypto.subtle.exportKey('raw', key.key);
+      const keyBase64 = Base64.encode(exportedKey);
+      link += '#' + keyBase64;
     }
 
     return link;
@@ -136,86 +151,131 @@ async function encryptFiles(files, message, ttl, views, password = '') {
 
 // Generate an encryption key
 async function generateEncryptionKey(password = '') {
-  if (password) {
-    // Generate a random salt
-    const salt = window.crypto.getRandomValues(new Uint8Array(16));
+  try {
+    if (password) {
+      // Generate a random salt
+      const salt = window.crypto.getRandomValues(new Uint8Array(16));
 
-    // Convert password to a key using PBKDF2
-    const passwordKey = await window.crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(password),
-      { name: 'PBKDF2' },
-      false,
-      ['deriveKey']
-    );
+      // Convert password to a key using PBKDF2
+      const passwordKey = await window.crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+      );
 
-    // Derive the actual encryption key
-    const key = await window.crypto.subtle.deriveKey(
-      {
-        name: 'PBKDF2',
-        salt: salt,
-        iterations: 100000,
-        hash: 'SHA-256'
-      },
-      passwordKey,
-      { name: 'AES-GCM', length: 256 },
-      true,
-      ['encrypt']
-    );
+      // Derive the actual encryption key
+      const key = await window.crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        passwordKey,
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt']
+      );
 
-    return { key, salt };
-  } else {
-    // Generate a random key
-    const key = await window.crypto.subtle.generateKey(
-      { name: 'AES-GCM', length: 256 },
-      true,
-      ['encrypt']
-    );
+      return { key, salt };
+    } else {
+      // Generate a random key
+      const key = await window.crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt']
+      );
 
-    return { key };
+      return { key };
+    }
+  } catch (error) {
+    throw error;
   }
 }
 
 // Encrypt data with AES-GCM
 async function encryptData(data, key, iv) {
-  // Convert string to ArrayBuffer if needed
-  let dataBuffer;
-  if (typeof data === 'string') {
-    dataBuffer = new TextEncoder().encode(data);
-  } else {
-    dataBuffer = new Uint8Array(data);
-  }
+  try {
+    // Convert string to ArrayBuffer if needed
+    let dataBuffer;
+    if (typeof data === 'string') {
+      dataBuffer = new TextEncoder().encode(data);
+    } else {
+      dataBuffer = new Uint8Array(data);
+    }
 
-  // Encrypt using AES-GCM
-  return window.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: iv },
-    key,
-    dataBuffer
-  );
+    // Encrypt using AES-GCM
+    const encrypted = await window.crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv: iv },
+      key,
+      dataBuffer
+    );
+
+    return encrypted;
+  } catch (error) {
+    throw error;
+  }
 }
 
 // Read a file as ArrayBuffer
 function readFileAsArrayBuffer(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error('Failed to read file'));
+
+    reader.onload = () => {
+      resolve(reader.result);
+    };
+
+    reader.onerror = () => {
+      const errorMsg = `Failed to read file: ${file.name}`;
+      reject(new Error(errorMsg));
+    };
+
     reader.readAsArrayBuffer(file);
   });
 }
 
-// Base64 utility object
+// Optimized Base64 utility object that handles large files efficiently
 const Base64 = {
   encode: function(arrayBuffer) {
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBuffer)));
-  },
-  decode: function(base64) {
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    try {
+      // For large files, use chunked encoding to avoid call stack limits
+      const bytes = new Uint8Array(arrayBuffer);
+      const chunkSize = 0x8000; // 32KB chunks
+
+      if (bytes.length <= chunkSize) {
+        // For small files, use the original method
+        const result = btoa(String.fromCharCode.apply(null, bytes));
+        return result;
+      }
+
+      // For large files, process in chunks
+      let result = '';
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        result += String.fromCharCode.apply(null, chunk);
+      }
+
+      const encodedResult = btoa(result);
+      return encodedResult;
+    } catch (error) {
+      throw new Error(`Base64 encoding failed: ${error.message}`);
     }
-    return bytes.buffer;
+  },
+
+  decode: function(base64) {
+    try {
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    } catch (error) {
+      throw new Error(`Base64 decoding failed: ${error.message}`);
+    }
   }
 };
 
