@@ -10,6 +10,7 @@
         <!-- Rich Text Editor - Now Full Width -->
         <div class="rich-editor-container" id="richEditorContainer">
           <div class="rich-editor-toolbar">
+<<<<<<< HEAD
             <button type="button" class="rich-editor-button" data-command="bold" title="Bold">
               <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 16 16">
                 <rect width="16" height="16" fill="none" />
@@ -83,6 +84,32 @@
               </svg>
             </button>
           </div><div id="richEditor" class="rich-editor-content" contenteditable="true" placeholder="Enter your message here..."></div>
+=======
+            <button type="button" class="rich-editor-button" data-command="bold" title="Bold">B</button>
+            <button type="button" class="rich-editor-button" data-command="italic" title="Italic">I</button>
+            <button type="button" class="rich-editor-button" data-command="strikeThrough" title="Strikethrough">S</button>
+            <button type="button" class="rich-editor-button" data-command="insertHTML" data-value="<code>code</code>" title="Code">&lt;/&gt;</button>
+
+            <div class="rich-editor-divider"></div>
+
+            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h1" title="Heading 1">H1</button>
+            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h2" title="Heading 2">H2</button>
+            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h3" title="Heading 3">H3</button>
+
+            <div class="rich-editor-divider"></div>
+
+            <button type="button" class="rich-editor-button" data-command="insertUnorderedList" title="Bullet List">•</button>
+            <button type="button" class="rich-editor-button" data-command="insertOrderedList" title="Numbered List">1.</button>
+            <button type="button" class="rich-editor-button" data-command="createLink" title="Insert Link">🔗</button>
+
+            <button type="button" class="rich-editor-expand" id="expandEditor" title="Toggle expanded view">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+              </svg>
+            </button>
+          </div>
+          <div id="richEditor" class="rich-editor-content" contenteditable="true" placeholder="Enter your message here..."></div>
+>>>>>>> 35980bc (password box UI fix)
           <input type="hidden" id="hidden_message" name="message">
         </div>
       </div>
