@@ -15,7 +15,6 @@
 </head>
 <body>
   <script src="/rate-limit-handler.js"></script>
-  <script src="/csrf-helper.js"></script>
 
   <header>
     <div class="container">

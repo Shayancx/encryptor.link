@@ -24,13 +24,9 @@ async function encryptMessage(message, ttl, views, password = '') {
       payload.password_salt = Base64.encode(key.salt);
     }
 
-    // Send the encrypted data to the server
-    const response = await fetch('/encrypt', {
+    // Send the encrypted data to the server with CSRF protection
+    const response = await CSRFHelper.fetchWithCSRF('/encrypt', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
       body: JSON.stringify(payload)
     });
 
@@ -115,13 +111,9 @@ async function encryptFiles(files, message, ttl, views, password = '') {
       }
     }
 
-    // Send the encrypted data to the server
-    const response = await fetch('/encrypt', {
+    // Send the encrypted data to the server with CSRF protection
+    const response = await CSRFHelper.fetchWithCSRF('/encrypt', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
       body: JSON.stringify(payload)
     });
 

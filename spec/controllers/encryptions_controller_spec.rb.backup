@@ -23,12 +23,12 @@ RSpec.describe EncryptionsController, type: :controller do
     context 'with valid parameters' do
       it 'creates an encrypted payload' do
         expect {
-          post :create, params: valid_params, format: :json, xhr: true
+          post :create, params: valid_params, format: :json
         }.to change(EncryptedPayload, :count).by(1)
       end
 
       it 'returns the payload ID' do
-        post :create, params: valid_params, format: :json, xhr: true
+        post :create, params: valid_params, format: :json
         json_response = JSON.parse(response.body)
         expect(json_response['id']).to be_present
         expect(json_response['password_protected']).to eq(false)
