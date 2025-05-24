@@ -1,0 +1,140 @@
+require 'rails_helper'
+
+RSpec.describe DecryptionsController, type: :controller do
+  describe 'GET #show' do
+    let(:payload) { create(:encrypted_payload) }
+
+    it 'renders the show template' do
+      get :show, params: { id: payload.id }
+      expect(response).to have_http_status(:success)
+      expect(response).to render_template(:show)
+    end
+
+    it 'handles expired payload session flag' do
+      session[:payload_expired] = true
+      get :show, params: { id: 'any-id' }
+      expect(assigns(:show_error)).to be true
+      expect(session[:payload_expired]).to be_nil
+    end
+  end
+
+  describe 'GET #data' do
+    let(:payload) { create(:encrypted_payload, remaining_views: 2) }
+
+    context 'with valid payload' do
+      it 'returns encrypted data' do
+        get :data, params: { id: payload.id }, format: :json
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['ciphertext']).to be_present
+        expect(json_response['nonce']).to be_present
+        expect(json_response['password_protected']).to eq(false)
+      end
+
+      it 'decrements remaining views' do
+        expect {
+          get :data, params: { id: payload.id }, format: :json
+        }.to change { payload.reload.remaining_views }.from(2).to(1)
+      end
+
+      it 'marks for deletion when last view' do
+        payload.update!(remaining_views: 1)
+        get :data, params: { id: payload.id }, format: :json
+        expect(session[:delete_payload]).to eq(payload.id)
+      end
+
+      it 'includes password salt for protected payloads' do
+        payload = create(:encrypted_payload, :with_password)
+        get :data, params: { id: payload.id }, format: :json
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['password_salt']).to be_present
+      end
+
+      it 'includes files data' do
+        file = create(:encrypted_file, encrypted_payload: payload)
+        get :data, params: { id: payload.id }, format: :json
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['files']).to be_present
+        expect(json_response['files'].first['name']).to eq(file.file_name)
+      end
+    end
+
+    context 'with expired payload' do
+      let(:expired_payload) { create(:encrypted_payload, :expired) }
+
+      it 'returns gone status' do
+        get :data, params: { id: expired_payload.id }, format: :json
+        expect(response).to have_http_status(:gone)
+      end
+
+      it 'sets session flag' do
+        get :data, params: { id: expired_payload.id }, format: :json
+        expect(session[:payload_expired]).to be true
+      end
+    end
+
+    context 'with nonexistent payload' do
+      it 'returns gone status' do
+        get :data, params: { id: SecureRandom.uuid }, format: :json
+        expect(response).to have_http_status(:gone)
+      end
+    end
+
+    context 'with no views left' do
+      let(:no_views_payload) { create(:encrypted_payload, :no_views_left) }
+
+      it 'returns gone status' do
+        get :data, params: { id: no_views_payload.id }, format: :json
+        expect(response).to have_http_status(:gone)
+      end
+    end
+
+    context 'concurrent access' do
+      it 'handles race conditions safely' do
+        payload = create(:encrypted_payload, remaining_views: 1)
+
+        threads = []
+        results = []
+
+        2.times do
+          threads << Thread.new do
+            ActiveRecord::Base.connection_pool.with_connection do
+              begin
+                get :data, params: { id: payload.id }, format: :json
+                results << response.status
+              rescue => e
+                results << e
+              end
+            end
+          end
+        end
+
+        threads.each(&:join)
+
+        # Only one should succeed
+        expect(results.count(200)).to eq(1)
+        expect(results.count(410)).to eq(1)
+      end
+    end
+  end
+
+  describe 'cleanup_payload callback' do
+    it 'deletes payload after last view' do
+      payload = create(:encrypted_payload, remaining_views: 1)
+
+      expect {
+        get :data, params: { id: payload.id }, format: :json
+      }.to change { EncryptedPayload.exists?(payload.id) }.from(true).to(false)
+    end
+
+    it 'does not delete payload if views remain' do
+      payload = create(:encrypted_payload, remaining_views: 2)
+
+      expect {
+        get :data, params: { id: payload.id }, format: :json
+      }.not_to change { EncryptedPayload.exists?(payload.id) }
+    end
+  end
+end

@@ -12,38 +12,29 @@ gem "bootstrap", "~> 5.3"
 gem "sassc-rails"
 gem "sprockets-rails"
 gem "importmap-rails"
-gem "stimulus-rails"
 
-# Use Redis for Action Cable
-gem "redis", ">= 4.0.1"
-
-# Use Active Storage variants
-gem "image_processing", "~> 1.2"
-
-# Reduces boot times through caching; required in config/boot.rb
+# Reduces boot times through caching
 gem "bootsnap", require: false
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
+  gem "rspec-rails", "~> 7.0"
+  gem "factory_bot_rails"
+  gem "faker"
+  gem "shoulda-matchers"
+  gem "database_cleaner-active_record"
+  gem "capybara"
+  gem "selenium-webdriver"
+  gem "timecop"
+  gem "simplecov", require: false
 end
 
 group :development do
   gem "web-console"
-end
-
-# Pagination
-gem "pagy", "~> 6.0"
-
-# Gems for CI workflow
-group :development, :test do
-  gem "brakeman", require: false  # Security scanner
-  gem "rubocop-rails-omakase", require: false  # Rails style guide
-  gem "rubocop", require: false  # Ruby style checker
+  gem "brakeman", require: false
+  gem "rubocop-rails-omakase", require: false
+  gem "rubocop", require: false
 end
 
 # Rate limiting
 gem "rack-attack"
-
-# Rich text editor
-gem "trix"
-gem "actiontext"

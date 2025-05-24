@@ -1,5 +1,4 @@
 class DecryptionsController < ApplicationController
-  include Pagy::Backend
 
   def show
     # Check if we need to show an error message
