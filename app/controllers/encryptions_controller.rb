@@ -57,7 +57,7 @@ class EncryptionsController < ApplicationController
       render json: { id: payload.id, password_protected: payload.password_protected }
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error "Validation errors: #{e.record.errors.full_messages.join(', ')}"
-      render json: { error: e.record.errors.full_messages.join(', ') }, status: :unprocessable_entity
+      render json: { error: e.record.errors.full_messages.join(", ") }, status: :unprocessable_entity
     rescue => e
       Rails.logger.error "Error creating encrypted payload: #{e.class}: #{e.message}"
       render json: { error: e.message }, status: :unprocessable_entity
