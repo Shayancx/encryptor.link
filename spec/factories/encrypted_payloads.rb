@@ -23,5 +23,9 @@ FactoryBot.define do
     trait :multi_view do
       remaining_views { 5 }
     end
+
+    trait :many_views do
+      remaining_views { 5 }  # Max allowed by validation
+    end
   end
 end

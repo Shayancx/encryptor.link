@@ -16,7 +16,10 @@ RSpec.feature "Encrypt Message", type: :feature, js: true do
 
     # Check result
     expect(page).to have_content('Your encrypted link has been generated')
-    expect(find('#encryptedLink').value).to match(%r{http://.*/#.*})
+    link_value = find('#encryptedLink').value
+
+    # More flexible regex that handles the actual URL format
+    expect(link_value).to match(%r{^http://[^/]+/[a-f0-9-]+#[\w+/=-]+$})
   end
 
   scenario "User encrypts message with password" do

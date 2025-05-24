@@ -88,7 +88,8 @@ RSpec.describe EncryptionsController, type: :controller do
         post :create, params: params, format: :json
 
         payload = EncryptedPayload.last
-        expect(payload.expires_at).to be <= 7.days.from_now + 1.minute
+        # The controller now enforces the limit, so it should be exactly 7 days from now
+        expect(payload.expires_at).to be_within(1.minute).of(7.days.from_now)
       end
 
       it 'enforces maximum views of 5' do

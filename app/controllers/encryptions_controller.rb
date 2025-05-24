@@ -18,11 +18,16 @@ class EncryptionsController < ApplicationController
     end
 
     begin
+      # Enforce maximum TTL of 7 days
+      ttl = params[:ttl].to_i
+      max_ttl = 7.days.to_i
+      ttl = [ ttl, max_ttl ].min
+
       # Create the main payload record with explicit boolean conversion for password_protected
       payload = EncryptedPayload.new(
         ciphertext: params[:ciphertext].present? ? Base64.strict_decode64(params[:ciphertext]) : "",
         nonce: Base64.strict_decode64(params[:nonce]),
-        expires_at: Time.current + params[:ttl].to_i.seconds,
+        expires_at: Time.current + ttl.seconds,
         remaining_views: params[:views].to_i,
         password_protected: ActiveModel::Type::Boolean.new.cast(params[:password_protected]),
         password_salt: params[:password_salt].present? ? Base64.strict_decode64(params[:password_salt]) : nil

@@ -9,18 +9,16 @@ class Rack::Attack
   end
 
   # Throttle decryption data endpoint (GET /:id/data)
-  # Increased from 20 to 30 per minute to ensure adequate testing
   throttle("req/ip/decrypt_data", limit: 30, period: 60.seconds) do |req|
     req.ip if req.path.match(/\/[^\/]+\/data/) && req.get?
   end
 
-  # Throttle overall requests per IP (increased from 300 to 500)
+  # Throttle overall requests per IP
   throttle("req/ip", limit: 500, period: 5.minutes) do |req|
     req.ip
   end
 
-  # Block IPs that attempt to access more than 30 distinct payload IDs in 15 minutes
-  # This helps prevent scanning/enumeration attacks
+  # Block IPs that attempt to access more than 40 distinct payload IDs in 15 minutes
   throttle("payloads/ip", limit: 40, period: 15.minutes) do |req|
     if req.path.match(/\/[^\/]+\/data/) && req.get?
       req.ip
@@ -35,13 +33,14 @@ class Rack::Attack
     end
   end
 
-  # Add response headers for throttled requests
-  self.throttled_responder = lambda do |env|
-    retry_after = (env["rack.attack.match_data"] || {})[:period]
-    [
-      429,
-      { "Content-Type" => "application/json", "Retry-After" => retry_after.to_s },
-      [ { error: "Rate limit exceeded. Please try again later." }.to_json ]
-    ]
+  # Use the new throttled_responder method
+  self.throttled_responder = lambda do |req|
+    match_data = req.env["rack.attack.match_data"]
+    now = match_data[:epoch_time]
+    headers = {
+      "Content-Type" => "application/json",
+      "Retry-After" => (match_data[:period] - (now % match_data[:period])).to_s
+    }
+    [ 429, headers, [ { error: "Rate limit exceeded. Please try again later." }.to_json ] ]
   end
 end

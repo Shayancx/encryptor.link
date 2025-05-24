@@ -38,3 +38,8 @@ end
 
 # Rate limiting
 gem "rack-attack"
+
+# Testing dependencies
+group :test do
+  gem "rails-controller-testing"
+end

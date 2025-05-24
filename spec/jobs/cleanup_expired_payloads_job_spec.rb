@@ -40,13 +40,24 @@ RSpec.describe CleanupExpiredPayloadsJob, type: :job do
     end
 
     it 'handles orphaned files' do
-      # Create orphaned file
+      # Create an encrypted file
       file = create(:encrypted_file)
-      file.encrypted_payload.destroy
+      file_id = file.id
 
+      # Delete the parent payload directly to create an orphan
+      # Use delete instead of destroy to avoid cascade
+      EncryptedPayload.where(id: file.encrypted_payload_id).delete_all
+
+      # Verify file still exists (is orphaned)
+      expect(EncryptedFile.exists?(file_id)).to be true
+
+      # Run cleanup
       expect {
         described_class.new.perform
       }.to change(EncryptedFile, :count).by(-1)
+
+      # Verify orphaned file was deleted
+      expect(EncryptedFile.exists?(file_id)).to be false
     end
   end
 end
