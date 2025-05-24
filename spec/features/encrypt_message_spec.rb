@@ -39,9 +39,13 @@ RSpec.feature "Encrypt Message", type: :feature, js: true do
   scenario "User encrypts files" do
     visit root_path
 
-    # Attach file
+    # Use a fixture file that's committed to the repository
     file_path = Rails.root.join('spec', 'fixtures', 'test.txt')
-    File.write(file_path, 'Test file content')
+
+    # Check if file exists before proceeding
+    unless File.exist?(file_path)
+      raise "Test fixture file not found at #{file_path}"
+    end
 
     attach_file('fileInput', file_path, make_visible: true)
 
@@ -50,8 +54,6 @@ RSpec.feature "Encrypt Message", type: :feature, js: true do
     click_button 'Encrypt & Generate Link'
 
     expect(page).to have_content('Your encrypted link has been generated')
-
-    File.delete(file_path)
   end
 
   scenario "Validation errors are shown" do
