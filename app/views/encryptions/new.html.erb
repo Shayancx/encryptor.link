@@ -10,30 +10,79 @@
         <!-- Rich Text Editor - Now Full Width -->
         <div class="rich-editor-container" id="richEditorContainer">
           <div class="rich-editor-toolbar">
-            <button type="button" class="rich-editor-button" data-command="bold" title="Bold">B</button>
-            <button type="button" class="rich-editor-button" data-command="italic" title="Italic">I</button>
-            <button type="button" class="rich-editor-button" data-command="strikeThrough" title="Strikethrough">S</button>
-            <button type="button" class="rich-editor-button" data-command="insertHTML" data-value="<code>code</code>" title="Code">&lt;/&gt;</button>
+            <button type="button" class="rich-editor-button" data-command="bold" title="Bold">
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 16 16">
+                <rect width="16" height="16" fill="none" />
+                <path fill="currentColor" d="M4 2h4.5a3.501 3.501 0 0 1 2.852 5.53A3.499 3.499 0 0 1 9.5 14H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1m1 7v3h4.5a1.5 1.5 0 0 0 0-3Zm3.5-2a1.5 1.5 0 0 0 0-3H5v3Z" />
+              </svg>
+            </button>
+            <button type="button" class="rich-editor-button" data-command="italic" title="Italic">
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 16 16">
+                <rect width="16" height="16" fill="none" />
+                <path fill="currentColor" d="M6 2.75A.75.75 0 0 1 6.75 2h6.5a.75.75 0 0 1 0 1.5h-2.505l-3.858 9H9.25a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.505l3.858-9H6.75A.75.75 0 0 1 6 2.75" />
+              </svg>
+            </button>
+            <button type="button" class="rich-editor-button" data-command="strikeThrough" title="Strikethrough">
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 16 16">
+                <rect width="16" height="16" fill="none" />
+                <path fill="currentColor" d="M11.055 8.5c.524.536.815 1.257.811 2.007a3.13 3.13 0 0 1-1.12 2.408C9.948 13.597 8.748 14 7.096 14c-1.706 0-3.104-.607-3.902-1.377a.751.751 0 0 1 1.042-1.079c.48.463 1.487.956 2.86.956c1.422 0 2.232-.346 2.676-.726c.435-.372.594-.839.594-1.267c0-.472-.208-.857-.647-1.197c-.448-.346-1.116-.623-1.951-.81H1.75a.75.75 0 0 1 0-1.5h12.5a.75.75 0 0 1 0 1.5ZM7.581 3.25c-2.036 0-2.778 1.082-2.778 1.786q0 .082.006.157a.75.75 0 0 1-1.496.114a4 4 0 0 1-.01-.271c0-1.832 1.75-3.286 4.278-3.286c1.418 0 2.721.58 3.514 1.093a.75.75 0 1 1-.814 1.26c-.64-.414-1.662-.853-2.7-.853" />
+              </svg>
+            </button>
+            <button type="button" class="rich-editor-button" data-command="code" title="Code">
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 20 20">
+                <rect width="20" height="20" fill="none" />
+                <path fill="currentColor" d="M5.719 14.75a1 1 0 0 1-.664-.252L-.005 10l5.341-4.748a1 1 0 0 1 1.328 1.495L3.005 10l3.378 3.002a1 1 0 0 1-.664 1.748m8.945-.002L20.005 10l-5.06-4.498a.999.999 0 1 0-1.328 1.495L16.995 10l-3.659 3.252a1 1 0 0 0 1.328 1.496m-4.678 1.417l2-12a1 1 0 1 0-1.972-.329l-2 12a1 1 0 1 0 1.972.329" />
+              </svg>
+            </button>
 
             <div class="rich-editor-divider"></div>
 
-            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h1" title="Heading 1">H1</button>
-            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h2" title="Heading 2">H2</button>
-            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h3" title="Heading 3">H3</button>
+            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h1" title="Heading 1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="31" height="31" viewBox="-5 -7 24 24">
+                <rect x="-5" y="-7" width="24" height="24" fill="none" />
+                <path fill="currentColor" d="M2 4h4V1a1 1 0 1 1 2 0v8a1 1 0 1 1-2 0V6H2v3a1 1 0 1 1-2 0V1a1 1 0 1 1 2 0zm9.52.779H10V3h3.36v7h-1.84z" />
+              </svg>
+            </button>
+            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h2" title="Heading 2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="31" height="31" viewBox="-4.5 -7 24 24">
+                <rect x="-4.5" y="-7" width="24" height="24" fill="none" />
+                <path fill="currentColor" d="M2 4h4V1a1 1 0 1 1 2 0v8a1 1 0 1 1-2 0V6H2v3a1 1 0 1 1-2 0V1a1 1 0 1 1 2 0zm12.88 4.352V10H10V8.986l.1-.246l1.785-1.913c.43-.435.793-.77.923-1.011c.124-.23.182-.427.182-.587c0-.14-.04-.242-.127-.327a.47.47 0 0 0-.351-.127a.44.44 0 0 0-.355.158c-.105.117-.165.288-.173.525l-.012.338h-1.824l.016-.366c.034-.735.272-1.33.718-1.77S11.902 3 12.585 3q.637 0 1.14.275a2.1 2.1 0 0 1 .806.8q.299.516.3 1.063c0 .416-.23.849-.456 1.307c-.222.45-.534.876-1.064 1.555l-.116.123l-.254.229z" />
+              </svg>
+            </button>
+            <button type="button" class="rich-editor-button" data-command="formatBlock" data-value="h3" title="Heading 3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="31" height="31" viewBox="-4.5 -6.5 24 24">
+                <rect x="-4.5" y="-6.5" width="24" height="24" fill="none" />
+                <path fill="currentColor" d="M2 4h4V1a1 1 0 1 1 2 0v8a1 1 0 1 1-2 0V6H2v3a1 1 0 1 1-2 0V1a1 1 0 1 1 2 0zm12.453 2.513l.043.055c.254.334.38.728.38 1.172c0 .637-.239 1.187-.707 1.628c-.466.439-1.06.658-1.763.658c-.671 0-1.235-.209-1.671-.627s-.673-.983-.713-1.676L10 7.353h1.803l.047.295c.038.238.112.397.215.49c.1.091.23.137.402.137a.57.57 0 0 0 .422-.159a.5.5 0 0 0 .158-.38c0-.163-.067-.295-.224-.419c-.17-.134-.438-.21-.815-.215l-.345-.004v-1.17l.345-.004c.377-.004.646-.08.815-.215c.157-.124.224-.255.224-.418a.5.5 0 0 0-.158-.381a.57.57 0 0 0-.422-.159a.57.57 0 0 0-.402.138c-.103.092-.177.251-.215.489l-.047.295H10l.022-.37c.04-.693.277-1.258.713-1.675c.436-.419 1-.628 1.67-.628c.704 0 1.298.22 1.764.658c.468.441.708.991.708 1.629a1.9 1.9 0 0 1-.424 1.226" />
+              </svg>
+            </button>
 
             <div class="rich-editor-divider"></div>
 
-            <button type="button" class="rich-editor-button" data-command="insertUnorderedList" title="Bullet List">•</button>
-            <button type="button" class="rich-editor-button" data-command="insertOrderedList" title="Numbered List">1.</button>
-            <button type="button" class="rich-editor-button" data-command="createLink" title="Insert Link">🔗</button>
+            <button type="button" class="rich-editor-button" data-command="insertUnorderedList" title="Bullet List">
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 16 16">
+                <rect width="16" height="16" fill="none" />
+                <path fill="currentColor" d="M2 4.5a1 1 0 1 0 0-2a1 1 0 0 0 0 2M2 9a1 1 0 1 0 0-2a1 1 0 0 0 0 2m1 3.5a1 1 0 1 1-2 0a1 1 0 0 1 2 0M5.5 3a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zM5 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 5 8m.5 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z" />
+              </svg>
+            </button>
+            <button type="button" class="rich-editor-button" data-command="insertOrderedList" title="Numbered List">
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 2048 2048">
+                <rect width="2048" height="2048" fill="none" />
+                <path fill="currentColor" d="M2048 384v128H512V384zM512 896h1536v128H512zm0 512h1536v128H512zM135 349q-14 11-37 21t-43 11v-69q31-11 59-24t54-33h49v385h-82zm-1 420q25 0 47 6t39 20t26 34t10 47q0 31-12 54t-29 42t-39 33t-38 27t-30 25t-12 26h160v69H5v-41q0-18 10-39q15-34 41-57t51-44t45-40t19-47q0-27-15-38t-40-11q-26 0-49 11t-44 28v-73q50-32 111-32m36 699q36 5 61 27t25 61q0 31-12 53t-33 35t-46 20t-54 7q-24 0-48-4t-47-15v-73q19 14 41 21t47 7q26 0 46-11t21-41q0-22-13-32t-31-15t-39-5t-34 0v-64h32q18 0 34-3t28-14t12-31q0-26-16-36t-40-10q-39 0-74 24v-68q22-11 45-15t48-5q22 0 44 5t39 16t28 30t11 43q0 38-19 60t-56 32z" />
+              </svg>
+            </button>
+            <button type="button" class="rich-editor-button" data-command="createLink" title="Insert Link">
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 16 16">
+                <rect width="16" height="16" fill="none" />
+                <path fill="currentColor" d="m7.775 3.275l1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0a.75.75 0 0 1 .018-1.042a.75.75 0 0 1 1.042-.018a2 2 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.75.75 0 0 1-1.042-.018a.75.75 0 0 1-.018-1.042m-4.69 9.64a2 2 0 0 0 2.83 0l1.25-1.25a.75.75 0 0 1 1.042.018a.75.75 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0a.75.75 0 0 1-.018 1.042a.75.75 0 0 1-1.042.018a2 2 0 0 0-2.83 0l-2.5 2.5a2 2 0 0 0 0 2.83" />
+              </svg>
+            </button>
 
             <button type="button" class="rich-editor-expand" id="expandEditor" title="Toggle expanded view">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
               </svg>
             </button>
-          </div>
-          <div id="richEditor" class="rich-editor-content" contenteditable="true" placeholder="Enter your message here..."></div>
+          </div><div id="richEditor" class="rich-editor-content" contenteditable="true" placeholder="Enter your message here..."></div>
           <input type="hidden" id="hidden_message" name="message">
         </div>
       </div>
@@ -199,14 +248,14 @@
       // Update expand button icon
       if (editorContainer.classList.contains('expanded')) {
         this.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>
           </svg>
         `;
         this.title = "Collapse editor";
       } else {
         this.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
           </svg>
         `;
@@ -442,7 +491,7 @@
         </div>
         <div class="gh-file-actions">
           <button type="button" class="btn btn-sm btn-outline-danger btn-icon" data-index="${actualIndex}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 6h18"></path>
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
             </svg>
@@ -604,7 +653,7 @@
       if (editorContainer.classList.contains('expanded')) {
         editorContainer.classList.remove('expanded');
         expandButton.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
           </svg>
         `;

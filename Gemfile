@@ -45,5 +45,3 @@ end
 gem "rack-attack"
 
 # Rich text editor
-gem "trix"
-gem "actiontext"

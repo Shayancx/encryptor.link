@@ -31,15 +31,15 @@
   background-color: var(--gh-bg-secondary);
   border-bottom: 1px solid var(--gh-border-color);
   padding: 8px;
-  gap: 4px;
+  gap: 2px;
 }
 
 .rich-editor-button {
   background-color: transparent;
   border: none;
   color: var(--gh-text-secondary);
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -64,11 +64,15 @@
     background-color: var(--gh-accent-color);
     color: white;
   }
+}
 
-  svg {
-    width: 14px;
-    height: 14px;
-  }
+// Icon size variations
+.rich-editor-button svg {
+  width: auto;
+  height: auto;
+  max-width: 31px;
+  max-height: 31px;
+  pointer-events: none;
 }
 
 .rich-editor-divider {
@@ -82,8 +86,8 @@
   margin-left: auto;
   color: var(--gh-text-secondary);
   cursor: pointer;
-  padding: 0 8px;
-  height: 32px;
+  padding: 0 12px;
+  height: 38px;
   background: transparent;
   border: none;
   border-radius: 6px;
