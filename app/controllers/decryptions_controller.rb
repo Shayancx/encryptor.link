@@ -106,7 +106,7 @@ class DecryptionsController < ApplicationController
 
       Rails.logger.info("Running cleanup for payload #{payload_id}")
 
-      # Delete immediately in test environment for predictable behavior
+      # Always delete immediately in test environment for predictable behavior
       if Rails.env.test?
         payload = EncryptedPayload.find_by(id: payload_id)
         if payload && payload.remaining_views <= 0

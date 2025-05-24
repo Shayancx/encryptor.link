@@ -96,3 +96,12 @@ production:
     <<: *primary_production
     database: encryptor_link_production_cable
     migrations_paths: db/cable_migrate
+
+# CI specific configuration
+ci:
+  <<: *default
+  database: encryptor_link_test
+  username: postgres
+  password: postgres
+  host: localhost
+  port: 5432

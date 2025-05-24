@@ -17,13 +17,19 @@ class CleanupExpiredPayloadsJob < ApplicationJob
 
     Rails.logger.info "Cleanup completed: removed #{deleted_payloads_count} expired payloads and #{deleted_files_count} associated files"
 
-    # Clean up orphaned files using raw SQL to handle missing associations
-    orphaned_count = EncryptedFile.where.not(
-      encrypted_payload_id: EncryptedPayload.select(:id)
-    ).delete_all
+    # Clean up orphaned files using a more robust approach
+    begin
+      # Find files that don't have a corresponding payload
+      orphaned_count = EncryptedFile.where.not(
+        encrypted_payload_id: EncryptedPayload.select(:id)
+      ).delete_all
 
-    if orphaned_count > 0
-      Rails.logger.info "Cleaned up #{orphaned_count} orphaned files"
+      if orphaned_count > 0
+        Rails.logger.info "Cleaned up #{orphaned_count} orphaned files"
+      end
+    rescue StandardError => e
+      Rails.logger.warn "Could not clean orphaned files: #{e.message}"
+      # Continue execution even if orphaned file cleanup fails
     end
   end
 end

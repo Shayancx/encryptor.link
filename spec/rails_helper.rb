@@ -8,6 +8,7 @@ require 'selenium-webdriver'
 require 'timecop'
 
 Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }
+require Rails.root.join('spec/support/database_helpers')
 
 begin
   ActiveRecord::Migration.maintain_test_schema!

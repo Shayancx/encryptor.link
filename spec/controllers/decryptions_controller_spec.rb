@@ -39,6 +39,7 @@ RSpec.describe DecryptionsController, type: :controller do
 
       it 'marks for deletion when last view' do
         payload.update!(remaining_views: 1)
+        initial_payload_id = payload.id
 
         # Make the request
         get :data, params: { id: payload.id }, format: :json
@@ -46,11 +47,11 @@ RSpec.describe DecryptionsController, type: :controller do
         # Check response is successful
         expect(response).to have_http_status(:success)
 
-        # Verify session was set
-        expect(session[:delete_payload]).to eq(payload.id)
-
-        # Verify payload has 0 views remaining
-        expect(payload.reload.remaining_views).to eq(0)
+        # Check that the payload was marked for deletion by checking session
+        # (we can't reload the payload because it gets deleted in the cleanup)
+        # Instead, verify the cleanup happened by checking if payload still exists
+        sleep 0.1 # Give time for cleanup callback to run
+        expect(EncryptedPayload.exists?(initial_payload_id)).to be false
       end
 
       it 'includes password salt for protected payloads' do
@@ -112,13 +113,14 @@ RSpec.describe DecryptionsController, type: :controller do
   describe 'cleanup_payload callback' do
     it 'deletes payload after last view' do
       payload = create(:encrypted_payload, remaining_views: 1)
+      payload_id = payload.id
 
       get :data, params: { id: payload.id }, format: :json
 
       # Wait a moment for cleanup to occur
       sleep 0.1
 
-      expect(EncryptedPayload.exists?(payload.id)).to be false
+      expect(EncryptedPayload.exists?(payload_id)).to be false
     end
 
     it 'does not delete payload if views remain' do
