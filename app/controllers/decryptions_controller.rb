@@ -1,5 +1,4 @@
 class DecryptionsController < ApplicationController
-
   def show
     # Check if we need to show an error message
     @show_error = session[:payload_expired]
