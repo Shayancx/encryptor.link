@@ -63,8 +63,8 @@ RSpec.describe CleanupExpiredPayloadsJob, type: :job do
         )
 
         # Verify files still exist (are orphaned)
-        expect(EncryptedFile.where(id: [file1_id, file2_id]).count).to eq(2)
-        expect(EncryptedPayload.where(id: [payload1_id, payload2_id]).count).to eq(0)
+        expect(EncryptedFile.where(id: [ file1_id, file2_id ]).count).to eq(2)
+        expect(EncryptedPayload.where(id: [ payload1_id, payload2_id ]).count).to eq(0)
       ensure
         # Re-enable foreign key constraints
         ActiveRecord::Base.connection.execute("SET session_replication_role = DEFAULT;")
@@ -76,7 +76,7 @@ RSpec.describe CleanupExpiredPayloadsJob, type: :job do
       }.to change(EncryptedFile, :count).by(-2)
 
       # Verify orphaned files were deleted
-      expect(EncryptedFile.where(id: [file1_id, file2_id]).count).to eq(0)
+      expect(EncryptedFile.where(id: [ file1_id, file2_id ]).count).to eq(0)
     end
   end
 end
