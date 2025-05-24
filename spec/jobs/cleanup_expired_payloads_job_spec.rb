@@ -46,21 +46,29 @@ RSpec.describe CleanupExpiredPayloadsJob, type: :job do
       file1 = create(:encrypted_file, encrypted_payload: payload1)
       file2 = create(:encrypted_file, encrypted_payload: payload2)
 
-      # Store the file IDs before deletion
+      # Store the file IDs and payload IDs before deletion
       file1_id = file1.id
       file2_id = file2.id
       payload1_id = payload1.id
       payload2_id = payload2.id
 
-      # Use raw SQL to delete payloads without triggering Rails callbacks
-      # This simulates orphaned files that could occur due to database issues
-      ActiveRecord::Base.connection.execute(
-        "DELETE FROM encrypted_payloads WHERE id IN ('#{payload1_id}', '#{payload2_id}')"
-      )
+      # Disable foreign key constraints temporarily (PostgreSQL specific)
+      ActiveRecord::Base.connection.execute("SET session_replication_role = replica;")
 
-      # Verify files still exist (are orphaned)
-      expect(EncryptedFile.where(id: [file1_id, file2_id]).count).to eq(2)
-      expect(EncryptedPayload.where(id: [payload1_id, payload2_id]).count).to eq(0)
+      begin
+        # Use raw SQL to delete payloads without triggering Rails callbacks
+        # This simulates orphaned files that could occur due to database issues
+        ActiveRecord::Base.connection.execute(
+          "DELETE FROM encrypted_payloads WHERE id IN ('#{payload1_id}', '#{payload2_id}')"
+        )
+
+        # Verify files still exist (are orphaned)
+        expect(EncryptedFile.where(id: [file1_id, file2_id]).count).to eq(2)
+        expect(EncryptedPayload.where(id: [payload1_id, payload2_id]).count).to eq(0)
+      ensure
+        # Re-enable foreign key constraints
+        ActiveRecord::Base.connection.execute("SET session_replication_role = DEFAULT;")
+      end
 
       # Run cleanup - should remove orphaned files
       expect {
