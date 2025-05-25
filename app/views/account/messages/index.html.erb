@@ -1,0 +1,63 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Message History</h2>
+    <%= link_to "Back to Encryptor", root_path, class: "btn btn-outline-secondary" %>
+  </div>
+
+  <% if @messages.any? %>
+    <div class="gh-card">
+      <div class="gh-card-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Label</th>
+              <th>Type</th>
+              <th>Created</th>
+              <th>Expires</th>
+              <th>Views</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @messages.each do |message| %>
+              <tr>
+                <td><%= message.encrypted_label || "Untitled" %></td>
+                <td><%= message.message_type.capitalize %></td>
+                <td><%= message.created_at.strftime("%b %d, %Y") %></td>
+                <td><%= message.original_expiry.strftime("%b %d, %Y") %></td>
+                <td><%= message.accessed_count %></td>
+                <td>
+                  <% if message.expired? %>
+                    <span class="badge bg-secondary">Expired</span>
+                  <% else %>
+                    <span class="badge bg-success">Active</span>
+                  <% end %>
+                </td>
+                <td>
+                  <%= link_to "View", decrypt_path(message.message_id),
+                      class: "btn btn-sm btn-outline-primary",
+                      target: "_blank" %>
+                  <%= link_to "Remove", account_message_path(message),
+                      method: :delete,
+                      data: { confirm: "Remove from history?" },
+                      class: "btn btn-sm btn-outline-danger" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% else %>
+    <div class="alert alert-info">
+      <h5 class="alert-heading">No messages yet</h5>
+      <p>Messages you create while logged in will appear here.</p>
+    </div>
+  <% end %>
+
+  <div class="mt-4">
+    <%= link_to "Account Settings", account_preferences_path, class: "btn btn-outline-primary" %>
+    <%= link_to "Log Out", session_path, method: :delete, class: "btn btn-outline-danger" %>
+  </div>
+</div>

@@ -1,4 +1,7 @@
 class DecryptionsController < ApplicationController
+  # Allow unauthenticated access to decryption functionality
+  allow_unauthenticated_access
+
   def show
     # Check if we need to show an error message
     @show_error = session[:payload_expired]

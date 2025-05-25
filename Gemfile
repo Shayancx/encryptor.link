@@ -45,3 +45,8 @@ group :test do
 end
 
 gem "bcrypt", "~> 3.1"
+
+# Authentication
+gem "devise"
+gem "devise-two-factor"
+gem "rqrcode"

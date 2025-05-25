@@ -1,0 +1,59 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="gh-card">
+        <div class="gh-card-header">
+          <h3>Create Account</h3>
+        </div>
+        <div class="gh-card-body">
+          <%= form_with model: @user, url: registration_path do |form| %>
+            <% if @user.errors.any? %>
+              <div class="alert alert-danger">
+                <h6 class="alert-heading">Please fix the following errors:</h6>
+                <ul class="mb-0">
+                  <% @user.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <div class="mb-3">
+              <%= form.label :email_address, class: "form-label" %>
+              <%= form.email_field :email_address, required: true, autofocus: true,
+                  class: "form-control", placeholder: "Enter your email address" %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :password, class: "form-label" %>
+              <%= form.password_field :password, required: true,
+                  class: "form-control", placeholder: "Choose a password",
+                  minlength: 8, maxlength: 72 %>
+              <small class="form-text text-muted">Minimum 8 characters</small>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :password_confirmation, class: "form-label" %>
+              <%= form.password_field :password_confirmation, required: true,
+                  class: "form-control", placeholder: "Confirm your password" %>
+            </div>
+
+            <div class="alert alert-info">
+              <h6 class="alert-heading">🔐 Zero-Knowledge Account</h6>
+              <p class="mb-0">Your account enables you to track your encrypted messages and manage preferences.
+              All sensitive data remains encrypted on your device - we never see your passwords or encryption keys.</p>
+            </div>
+
+            <div class="d-grid">
+              <%= form.submit "Create Account", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+
+          <div class="text-center mt-3">
+            Already have an account? <%= link_to "Sign in", new_session_path %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

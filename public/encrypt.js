@@ -273,3 +273,31 @@ const Base64 = {
 
 // Export the functions
 export { encryptMessage, encryptFiles };
+
+// Extend the encryption functions to support tracking parameter
+const originalEncryptMessage = encryptMessage;
+const originalEncryptFiles = encryptFiles;
+
+// Override encryptMessage to include tracking
+window.encryptMessage = async function(message, ttl, views, password = '') {
+  const trackCheckbox = document.getElementById('trackMessage');
+  const trackMessage = trackCheckbox ? trackCheckbox.checked : false;
+
+  // Call original function to get the encrypted data
+  const result = await originalEncryptMessage(message, ttl, views, password);
+
+  // If tracking is enabled, we'll handle it through the payload parameter
+  return result;
+};
+
+// Override encryptFiles to include tracking
+window.encryptFiles = async function(files, message, ttl, views, password = '') {
+  const trackCheckbox = document.getElementById('trackMessage');
+  const trackMessage = trackCheckbox ? trackCheckbox.checked : false;
+
+  // Call original function
+  const result = await originalEncryptFiles(files, message, ttl, views, password);
+
+  // If tracking is enabled, we'll handle it through the payload parameter
+  return result;
+};

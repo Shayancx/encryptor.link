@@ -1,11 +1,52 @@
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="gh-card">
+        <div class="gh-card-header">
+          <h3>Sign In</h3>
+        </div>
+        <div class="gh-card-body">
+          <%= tag.div(flash[:alert], class: "alert alert-danger") if flash[:alert] %>
+          <%= tag.div(flash[:notice], class: "alert alert-success") if flash[:notice] %>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
-<% end %>
-<br>
+          <%= form_with url: session_path do |form| %>
+            <div class="mb-3">
+              <%= form.label :email_address, class: "form-label" %>
+              <%= form.email_field :email_address, required: true, autofocus: true,
+                  autocomplete: "username", class: "form-control",
+                  placeholder: "Enter your email address",
+                  value: params[:email_address] %>
+            </div>
 
-<%= link_to "Forgot password?", new_password_path %>
+            <div class="mb-3">
+              <%= form.label :password, class: "form-label" %>
+              <%= form.password_field :password, required: true,
+                  autocomplete: "current-password", class: "form-control",
+                  placeholder: "Enter your password", maxlength: 72 %>
+            </div>
+
+            <div class="d-grid">
+              <%= form.submit "Sign In", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+
+          <div class="text-center mt-3">
+            <p class="mb-2">
+              Don't have an account? <%= link_to "Create one", new_registration_path %>
+            </p>
+            <p class="mb-0">
+              <%= link_to "Forgot password?", new_password_path %>
+            </p>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="text-center">
+            <p class="text-muted mb-2">Want to use encryptor.link without an account?</p>
+            <%= link_to "Continue without account", root_path, class: "btn btn-outline-secondary" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
