@@ -1,29 +1,39 @@
 class User < ApplicationRecord
   has_secure_password
-  has_many :sessions, dependent: :destroy
-  has_many :user_message_metadata, dependent: :destroy
-  has_one :user_preference, dependent: :destroy
-
-  normalizes :email_address, with: ->(e) { e.strip.downcase }
-
-  validates :email_address, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :password, length: { minimum: 8 }, if: -> { new_record? || !password.nil? }
-
-  # Virtual attribute for password confirmation
-  attr_accessor :password_confirmation
-  validates_confirmation_of :password, if: -> { new_record? || !password.nil? }
-
-  # Callbacks
-  after_create :create_default_preferences
-
+  
+  validates :email, presence: true, uniqueness: true, format: { with: /\A[^@\s]+@[^@\s]+\z/, message: "must be a valid email address" }
+  validates :password, presence: true, length: { minimum: 6 }, if: -> { new_record? || !password.nil? }
+  
+  before_save :downcase_email
+  
   private
-
-  def create_default_preferences
-    UserPreference.create!(
-      user: self,
-      default_ttl: 86400,  # 1 day
-      default_views: 1,
-      theme_preference: 'auto'
-    )
+  
+  def downcase_email
+    self.email = email.downcase
   end
+end
+
+def self.authenticate(email, password)
+  user = find_by(email: email.downcase)
+  return user if user && user.authenticate(password)
+  nil
+end 
+
+# app/models/user.rb        
+
+# app/models/user.rb
+# app/models/user.rb  
+def self.find_by_email(email)
+
+
+  find_by(email: email.downcase)
+end
+
+def self.create_with_password(email, password)
+  create(email: email.downcase, password: password)
+end
+
+def self.update_password(user_id, new_password)
+  user = find(user_id)
+  user.update(password: new_password) if user
 end
