@@ -43,3 +43,5 @@ gem "rack-attack"
 group :test do
   gem "rails-controller-testing"
 end
+
+gem "bcrypt", "~> 3.1"
