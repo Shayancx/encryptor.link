@@ -12,9 +12,10 @@ Rails.application.routes.draw do
 
   # Account functionality (requires login)
   namespace :account do
+    resource :dashboard, only: [:show]
     resources :messages, only: [:index, :show, :update, :destroy]
     resource :preferences, only: [:show, :update]
-    resource :security, only: [] do
+    resource :security, only: [:show] do
       post :update_password
     end
     resource :statistics, only: [:show]

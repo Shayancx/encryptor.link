@@ -2,12 +2,22 @@
 .form-control, .form-select {
   border-radius: 6px;
   border-color: var(--gh-border-color);
-  background-color: var(--gh-bg-primary);
+  background-color: var(--gh-bg-primary) !important;
   color: var(--gh-text-primary);
   font-size: 14px;
   &:focus {
     border-color: var(--gh-accent-color);
+    background-color: var(--gh-bg-primary) !important;
     box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.2);
+  }
+  &:autofill,
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--gh-bg-primary) inset !important;
+    -webkit-text-fill-color: var(--gh-text-primary) !important;
+    background-color: var(--gh-bg-primary) !important;
   }
 }
 .form-control {

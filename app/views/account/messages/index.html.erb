@@ -1,7 +1,7 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Message History</h2>
-    <%= link_to "Back to Encryptor", root_path, class: "btn btn-outline-secondary" %>
+    <%= link_to "Back to Dashboard", account_dashboard_path, class: "btn btn-outline-secondary" %>
   </div>
 
   <% if @messages.any? %>
@@ -53,11 +53,17 @@
     <div class="alert alert-info">
       <h5 class="alert-heading">No messages yet</h5>
       <p>Messages you create while logged in will appear here.</p>
+      <hr>
+      <p class="mb-0">
+        <%= link_to "Create a Message", root_path, class: "btn btn-primary" %>
+      </p>
     </div>
   <% end %>
 
   <div class="mt-4">
-    <%= link_to "Account Settings", account_preferences_path, class: "btn btn-outline-primary" %>
+    <%= link_to "Account Settings", account_preferences_path, class: "btn btn-outline-primary me-2" %>
+    <%= link_to "Statistics", account_statistics_path, class: "btn btn-outline-info me-2" %>
+    <%= link_to "Security", account_security_path, class: "btn btn-outline-warning me-2" %>
     <%= link_to "Log Out", session_path, method: :delete, class: "btn btn-outline-danger" %>
   </div>
 </div>

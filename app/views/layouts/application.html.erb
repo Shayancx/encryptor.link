@@ -11,8 +11,8 @@
   <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   <%= javascript_include_tag "account_ui", "data-turbo-track": "reload", defer: true %>
 
-  <!-- GitHub-style favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><path fill-rule=%22evenodd%22 d=%22M8 1.5a6.5 6.5 0 0 0-2.05 12.675c.325.057.443-.141.443-.313l-.001-1.204c-1.8.388-2.183-.435-2.183-.435-.295-.747-.718-.945-.718-.945-.587-.402.044-.394.044-.394.649.046.99.663.99.663.577.99 1.514.704 1.883.538.058-.418.226-.703.41-.866-1.437-.163-2.947-.719-2.947-3.197 0-.706.252-1.284.665-1.736-.069-.164-.29-.823.063-1.714 0 0 .543-.174 1.777.663A6.195 6.195 0 0 1 8 5.037c.554 0 1.112.074 1.634.22 1.234-.837 1.775-.663 1.775-.663.354.891.131 1.55.066 1.714.416.452.667 1.03.667 1.736 0 2.485-1.513 3.032-2.955 3.19.23.198.439.59.439 1.19l-.001 1.762c0 .174.117.374.444.31A6.5 6.5 0 0 0 8 1.5z%22></path></svg>" />
+  <!-- Custom favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'><rect width='24' height='24' fill='none'/><path fill='%23101823' d='M 19,2 H 5 A 3,3 0 0 0 2,5 v 14 a 3,3 0 0 0 3,3 h 14 a 3,3 0 0 0 3,-3 V 5 A 3,3 0 0 0 19,2'/><g transform='matrix(1.625,0,0,1.625,2.25,2.25)'><rect width='12' height='12' fill='none'/><path fill='%23ff4654' d='m 0.998,3.248 a 2.25,2.25 0 0 1 2.25,-2.25 H 5.752 A 2.25,2.25 0 0 1 8,3.161 V 5.838 A 2.25,2.25 0 0 1 6.5,7.874 L 6.502,3.248 A 0.75,0.75 0 0 0 5.752,2.498 H 3.248 a 0.75,0.75 0 0 0 -0.75,0.75 V 5.752 C 2.498,6.079 2.708,6.357 3,6.46 V 7.988 A 2.25,2.25 0 0 1 0.998,5.752 Z M 4,8.75 A 2.25,2.25 0 0 0 6.25,11 h 2.5 A 2.25,2.25 0 0 0 11,8.75 V 6.25 A 2.25,2.25 0 0 0 9,4.014 v 1.529 c 0.291,0.103 0.5,0.38 0.5,0.707 v 2.5 A 0.75,0.75 0 0 1 8.75,9.5 H 6.25 A 0.75,0.75 0 0 1 5.5,8.75 V 4.128 A 2.25,2.25 0 0 0 4,6.25 Z'/></g></svg>" />
 </head>
 <body>
   <script src="/rate-limit-handler.js"></script>
@@ -23,23 +23,25 @@
       <div class="app-header">
         <a href="/" class="app-brand">encryptor.link</a>
 
-        <div class="theme-switch-container">
-          <button type="button" class="theme-switch-btn" id="themeToggle" aria-label="Toggle theme">
-            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="4"></circle>
-              <path d="m12 2 0 2"></path>
-              <path d="m12 20 0 2"></path>
-              <path d="m4.93 4.93 1.41 1.41"></path>
-              <path d="m17.66 17.66 1.41 1.41"></path>
-              <path d="m2 12 2 0"></path>
-              <path d="m20 12 2 0"></path>
-              <path d="m6.34 17.66-1.41 1.41"></path>
-              <path d="m19.07 4.93-1.41 1.41"></path>
-            </svg>
-            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-            </svg>
-          </button>
+        <div class="d-flex align-items-center">
+          <div class="theme-switch-container">
+            <button type="button" class="theme-switch-btn" id="themeToggle" aria-label="Toggle theme">
+              <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="m12 2 0 2"></path>
+                <path d="m12 20 0 2"></path>
+                <path d="m4.93 4.93 1.41 1.41"></path>
+                <path d="m17.66 17.66 1.41 1.41"></path>
+                <path d="m2 12 2 0"></path>
+                <path d="m20 12 2 0"></path>
+                <path d="m6.34 17.66-1.41 1.41"></path>
+                <path d="m19.07 4.93-1.41 1.41"></path>
+              </svg>
+              <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
