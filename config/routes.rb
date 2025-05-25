@@ -10,14 +10,21 @@ Rails.application.routes.draw do
   get    "/:id/data", to: "decryptions#data",  as: :decrypt_data
   root   "encryptions#new"
 
+  # Authentication status check (accessible without login)
+  get "/auth/status", to: "auth_status#check"
+
   # Account functionality (requires login)
   namespace :account do
     resource :dashboard, only: [:show]
+
+  # Authentication status check (accessible without login)
     resources :messages, only: [:index, :show, :update, :destroy]
     resource :preferences, only: [:show, :update]
     resource :security, only: [:show] do
       post :update_password
     end
     resource :statistics, only: [:show]
+
+  # Authentication status check (accessible without login)
   end
 end

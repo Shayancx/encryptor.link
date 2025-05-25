@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Insert before theme toggle
   themeToggleContainer.parentNode.insertBefore(accountButton, themeToggleContainer);
 
-  // Check if user is logged in by trying to access dashboard with JSON format
-  fetch('/account/dashboard', {
+  // Check if user is logged in using the dedicated auth status endpoint
+  fetch('/auth/status', {
     headers: {
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest'
@@ -28,12 +28,21 @@ document.addEventListener('DOMContentLoaded', () => {
     credentials: 'same-origin'
   })
   .then(response => {
-    if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+    if (!response.ok) {
+      throw new Error('Auth check failed');
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.authenticated) {
       // User is logged in - go to dashboard
       accountButton.addEventListener('click', () => {
         window.location.href = '/account/dashboard';
       });
       accountButton.setAttribute('aria-label', 'Dashboard');
+
+      // Add visual indicator that user is logged in
+      accountButton.classList.add('authenticated');
     } else {
       // User not logged in - go to sign in
       accountButton.addEventListener('click', () => {
@@ -42,7 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
       accountButton.setAttribute('aria-label', 'Sign In');
     }
   })
-  .catch(() => {
+  .catch((error) => {
+    console.error('Error checking auth status:', error);
     // Default to sign in on any error
     accountButton.addEventListener('click', () => {
       window.location.href = '/session/new';
@@ -54,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const encryptForm = document.getElementById('encryptForm');
   if (encryptForm) {
     // Check if user is logged in for message tracking
-    fetch('/account/dashboard', {
+    fetch('/auth/status', {
       headers: {
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
@@ -62,7 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
       credentials: 'same-origin'
     })
     .then(response => {
-      if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+      if (!response.ok) return { authenticated: false };
+      return response.json();
+    })
+    .then(data => {
+      if (data.authenticated) {
         // Add checkbox for tracking
         const trackingDiv = document.createElement('div');
         trackingDiv.className = 'form-check mb-3';
@@ -80,39 +94,5 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch(() => {
       // Not logged in, no tracking option
     });
-  }
-});
-
-// Update the encryption form submission to include tracking preference
-document.addEventListener('DOMContentLoaded', () => {
-  const originalEncryptMessage = window.encryptMessage;
-  const originalEncryptFiles = window.encryptFiles;
-
-  if (originalEncryptMessage) {
-    window.encryptMessage = async function(message, ttl, views, password = '') {
-      const trackCheckbox = document.getElementById('trackMessage');
-      const result = await originalEncryptMessage.call(this, message, ttl, views, password);
-
-      // If tracking is enabled and user is logged in, the server will handle it
-      if (trackCheckbox && trackCheckbox.checked) {
-        // Server-side tracking happens automatically
-      }
-
-      return result;
-    };
-  }
-
-  if (originalEncryptFiles) {
-    window.encryptFiles = async function(files, message, ttl, views, password = '') {
-      const trackCheckbox = document.getElementById('trackMessage');
-      const result = await originalEncryptFiles.call(this, files, message, ttl, views, password);
-
-      // If tracking is enabled and user is logged in, the server will handle it
-      if (trackCheckbox && trackCheckbox.checked) {
-        // Server-side tracking happens automatically
-      }
-
-      return result;
-    };
   }
 });

@@ -9,7 +9,18 @@ class Account::DashboardController < Account::BaseController
 
     respond_to do |format|
       format.html
-      format.json { render json: { status: 'authenticated', user_id: Current.user.id } }
+      format.json {
+        render json: {
+          status: 'authenticated',
+          user_id: Current.user.id,
+          email: Current.user.email_address,
+          stats: {
+            total_messages: @total_messages,
+            active_messages: @active_messages,
+            expired_messages: @expired_messages
+          }
+        }
+      }
     end
   end
 end
