@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_25_141030) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_25_201516) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -88,6 +88,32 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_25_141030) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "user_message_metadata", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "message_id"
+    t.text "encrypted_label"
+    t.text "encrypted_filename"
+    t.integer "file_size"
+    t.string "message_type"
+    t.datetime "original_expiry"
+    t.integer "accessed_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id"], name: "index_user_message_metadata_on_message_id"
+    t.index ["user_id"], name: "index_user_message_metadata_on_user_id"
+  end
+
+  create_table "user_preferences", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.integer "default_ttl"
+    t.integer "default_views"
+    t.string "theme_preference"
+    t.text "encrypted_settings"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_user_preferences_on_user_id"
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "email_address", null: false
     t.string "password_digest", null: false
@@ -107,4 +133,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_25_141030) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "encrypted_files", "encrypted_payloads"
   add_foreign_key "sessions", "users"
+  add_foreign_key "user_message_metadata", "users"
+  add_foreign_key "user_preferences", "users"
 end

@@ -7,7 +7,6 @@ class CreateUserMessageMetadata < ActiveRecord::Migration[8.0]
       t.text :encrypted_filename
       t.integer :file_size
       t.string :message_type
-      t.datetime :created_at
       t.datetime :original_expiry
       t.integer :accessed_count
 
