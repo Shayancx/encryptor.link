@@ -1,0 +1,110 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Account Dashboard</h2>
+    <%= link_to "Back to Encryptor", root_path, class: "btn btn-outline-secondary" %>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3">
+      <div class="gh-card">
+        <div class="gh-card-body text-center">
+          <h4 class="mb-1"><%= @total_messages %></h4>
+          <p class="text-muted mb-0">Total Messages</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="gh-card">
+        <div class="gh-card-body text-center">
+          <h4 class="mb-1"><%= @active_messages %></h4>
+          <p class="text-muted mb-0">Active Messages</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="gh-card">
+        <div class="gh-card-body text-center">
+          <h4 class="mb-1"><%= @expired_messages %></h4>
+          <p class="text-muted mb-0">Expired Messages</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="gh-card">
+        <div class="gh-card-body text-center">
+          <h4 class="mb-1"><%= Current.user.email_address.split('@').first %></h4>
+          <p class="text-muted mb-0">Username</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Cards -->
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="gh-card">
+        <div class="gh-card-header">
+          <h5 class="mb-0">Message History</h5>
+        </div>
+        <div class="gh-card-body">
+          <p class="text-muted">View your encrypted messages</p>
+          <%= link_to "View Messages", account_messages_path, class: "btn btn-primary" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+      <div class="gh-card">
+        <div class="gh-card-header">
+          <h5 class="mb-0">Security Settings</h5>
+        </div>
+        <div class="gh-card-body">
+          <p class="text-muted">Change password and manage security</p>
+          <%= link_to "Security Settings", account_security_path, class: "btn btn-primary" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Messages -->
+  <% if @recent_messages.any? %>
+    <div class="gh-card">
+      <div class="gh-card-header">
+        <h5 class="mb-0">Recent Messages</h5>
+      </div>
+      <div class="gh-card-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Created</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @recent_messages.each do |message| %>
+                <tr>
+                  <td><%= message.message_type&.capitalize || "Unknown" %></td>
+                  <td><%= message.created_at.strftime("%b %d, %Y") %></td>
+                  <td>
+                    <% if message.expired? %>
+                      <span class="badge bg-secondary">Expired</span>
+                    <% else %>
+                      <span class="badge bg-success">Active</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="mt-4 text-center">
+    <%= button_to "Log Out", session_path, method: :delete, class: "btn btn-outline-danger" %>
+  </div>
+</div>

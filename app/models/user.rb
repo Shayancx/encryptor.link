@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   has_secure_password
   has_many :sessions, dependent: :destroy
-  has_many :user_message_metadata, dependent: :destroy
+  has_many :user_message_metadata, class_name: 'UserMessageMetadata', dependent: :destroy
   has_one :user_preference, dependent: :destroy
 
   validates :email_address, presence: true, uniqueness: true, format: { with: /\A[^@\s]+@[^@\s]+\z/, message: "must be a valid email address" }

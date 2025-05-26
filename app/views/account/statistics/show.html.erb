@@ -4,103 +4,46 @@
     <%= link_to "Back to Dashboard", account_dashboard_path, class: "btn btn-outline-secondary" %>
   </div>
 
-  <!-- Overview Stats -->
   <div class="row mb-4">
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
       <div class="gh-card">
         <div class="gh-card-body text-center">
-          <h3 class="text-primary mb-1"><%= @stats[:total_messages] %></h3>
+          <h3 class="text-primary"><%= @stats[:total_messages] %></h3>
           <p class="text-muted mb-0">Total Messages</p>
         </div>
       </div>
     </div>
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
       <div class="gh-card">
         <div class="gh-card-body text-center">
-          <h3 class="text-success mb-1"><%= @stats[:active_messages] %></h3>
+          <h3 class="text-success"><%= @stats[:active_messages] %></h3>
           <p class="text-muted mb-0">Active Messages</p>
         </div>
       </div>
     </div>
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
       <div class="gh-card">
         <div class="gh-card-body text-center">
-          <h3 class="text-warning mb-1"><%= @stats[:total_views] %></h3>
-          <p class="text-muted mb-0">Total Views</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 mb-3">
-      <div class="gh-card">
-        <div class="gh-card-body text-center">
-          <h3 class="text-info mb-1"><%= number_to_human_size(@stats[:total_file_size]) %></h3>
-          <p class="text-muted mb-0">Total File Size</p>
+          <h3 class="text-secondary"><%= @stats[:expired_messages] %></h3>
+          <p class="text-muted mb-0">Expired Messages</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Message Types -->
-  <div class="row">
-    <div class="col-md-6 mb-4">
-      <div class="gh-card">
-        <div class="gh-card-header">
-          <h5>Messages by Type</h5>
-        </div>
-        <div class="gh-card-body">
-          <% if @stats[:messages_by_type].any? %>
-            <% @stats[:messages_by_type].each do |type, count| %>
-              <div class="d-flex justify-content-between mb-2">
-                <span><%= type.capitalize %></span>
-                <span class="badge bg-primary"><%= count %></span>
-              </div>
-            <% end %>
-          <% else %>
-            <p class="text-muted">No messages yet</p>
-          <% end %>
-        </div>
+  <% if @stats[:messages_by_type].any? %>
+    <div class="gh-card">
+      <div class="gh-card-header">
+        <h5>Messages by Type</h5>
       </div>
-    </div>
-
-    <div class="col-md-6 mb-4">
-      <div class="gh-card">
-        <div class="gh-card-header">
-          <h5>Activity Summary</h5>
-        </div>
-        <div class="gh-card-body">
-          <div class="row">
-            <div class="col-6">
-              <small class="text-muted">Expired Messages</small>
-              <div class="h4"><%= @stats[:expired_messages] %></div>
-            </div>
-            <div class="col-6">
-              <small class="text-muted">Avg Views/Message</small>
-              <div class="h4"><%= @stats[:average_views_per_message] %></div>
-            </div>
+      <div class="gh-card-body">
+        <% @stats[:messages_by_type].each do |type, count| %>
+          <div class="d-flex justify-content-between mb-2">
+            <span><%= type&.capitalize || "Unknown" %></span>
+            <span class="badge bg-primary"><%= count %></span>
           </div>
-        </div>
+        <% end %>
       </div>
     </div>
-  </div>
-
-  <!-- Monthly Activity -->
-  <div class="gh-card">
-    <div class="gh-card-header">
-      <h5>Messages Created (Last 6 Months)</h5>
-    </div>
-    <div class="gh-card-body">
-      <% if @stats[:messages_by_month].any? %>
-        <div class="row">
-          <% @stats[:messages_by_month].each do |month, count| %>
-            <div class="col-2 text-center mb-3">
-              <div class="h5"><%= count %></div>
-              <small class="text-muted"><%= month.strftime("%b %Y") %></small>
-            </div>
-          <% end %>
-        </div>
-      <% else %>
-        <p class="text-muted">No activity data available</p>
-      <% end %>
-    </div>
-  </div>
+  <% end %>
 </div>

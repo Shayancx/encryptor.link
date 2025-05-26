@@ -1,34 +1,30 @@
 class Account::MessagesController < Account::BaseController
   def index
+    # Simple pagination without gems
+    page = (params[:page] || 1).to_i
+    per_page = 20
+
     @messages = Current.user.user_message_metadata
-                           .recent
-                           .page(params[:page])
+                           .order(created_at: :desc)
+                           .limit(per_page)
+                           .offset((page - 1) * per_page)
+
+    @total_count = Current.user.user_message_metadata.count
+    @current_page = page
+    @total_pages = (@total_count.to_f / per_page).ceil
   end
 
   def show
     @message = Current.user.user_message_metadata.find(params[:id])
-    @message.increment_access_count!
-  end
-
-  def update
-    @message = Current.user.user_message_metadata.find(params[:id])
-
-    if @message.update(message_params)
-      redirect_to account_messages_path, notice: "Message updated successfully"
-    else
-      render :show
-    end
+  rescue ActiveRecord::RecordNotFound
+    redirect_to account_messages_path, alert: "Message not found"
   end
 
   def destroy
     @message = Current.user.user_message_metadata.find(params[:id])
     @message.destroy
     redirect_to account_messages_path, notice: "Message removed from history"
-  end
-
-  private
-
-  def message_params
-    params.require(:user_message_metadata).permit(:encrypted_label)
+  rescue ActiveRecord::RecordNotFound
+    redirect_to account_messages_path, alert: "Message not found"
   end
 end

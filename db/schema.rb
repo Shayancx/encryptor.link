@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_25_201516) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_26_114405) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -99,7 +99,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_25_201516) do
     t.integer "accessed_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_user_message_metadata_on_created_at"
     t.index ["message_id"], name: "index_user_message_metadata_on_message_id"
+    t.index ["original_expiry"], name: "index_user_message_metadata_on_original_expiry"
+    t.index ["user_id", "created_at"], name: "index_user_message_metadata_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_user_message_metadata_on_user_id"
   end
 

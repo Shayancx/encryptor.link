@@ -7,10 +7,15 @@ class Account::SecurityController < Account::BaseController
     @user = Current.user
 
     if @user.authenticate(params[:current_password])
-      if @user.update(password: params[:new_password], password_confirmation: params[:password_confirmation])
-        redirect_to account_security_path, notice: "Password updated successfully"
+      if params[:new_password] == params[:password_confirmation]
+        if @user.update(password: params[:new_password])
+          redirect_to account_security_path, notice: "Password updated successfully"
+        else
+          flash.now[:alert] = "Password must be at least 6 characters"
+          render :show
+        end
       else
-        flash.now[:alert] = @user.errors.full_messages.join(", ")
+        flash.now[:alert] = "New password and confirmation don't match"
         render :show
       end
     else

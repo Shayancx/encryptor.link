@@ -4,59 +4,63 @@
     <%= link_to "Back to Dashboard", account_dashboard_path, class: "btn btn-outline-secondary" %>
   </div>
 
-  <div class="gh-card">
-    <div class="gh-card-header">
-      <h3>Change Password</h3>
-    </div>
-    <div class="gh-card-body">
-      <% if flash[:notice] %>
-        <div class="alert alert-success"><%= flash[:notice] %></div>
-      <% end %>
-
-      <% if flash[:alert] %>
-        <div class="alert alert-danger"><%= flash[:alert] %></div>
-      <% end %>
-
-      <%= form_with url: account_security_update_password_path, local: true do |form| %>
-        <div class="mb-3">
-          <%= form.label :current_password, class: "form-label" %>
-          <%= form.password_field :current_password, required: true, class: "form-control", placeholder: "Enter current password" %>
+  <div class="row">
+    <div class="col-md-8">
+      <div class="gh-card">
+        <div class="gh-card-header">
+          <h3>Change Password</h3>
         </div>
+        <div class="gh-card-body">
+          <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% end %>
 
-        <div class="mb-3">
-          <%= form.label :new_password, class: "form-label" %>
-          <%= form.password_field :new_password, required: true, class: "form-control", placeholder: "Enter new password", minlength: 6 %>
-          <small class="form-text text-muted">Minimum 6 characters</small>
+          <% if flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <%= form_with url: account_security_update_password_path, local: true do |form| %>
+            <div class="mb-3">
+              <%= form.label :current_password, class: "form-label" %>
+              <%= form.password_field :current_password, required: true, class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :new_password, class: "form-label" %>
+              <%= form.password_field :new_password, required: true, class: "form-control", minlength: 6 %>
+              <small class="form-text text-muted">Minimum 6 characters</small>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :password_confirmation, "Confirm New Password", class: "form-label" %>
+              <%= form.password_field :password_confirmation, required: true, class: "form-control" %>
+            </div>
+
+            <div class="d-grid">
+              <%= form.submit "Update Password", class: "btn btn-primary" %>
+            </div>
+          <% end %>
         </div>
-
-        <div class="mb-3">
-          <%= form.label :password_confirmation, class: "form-label" %>
-          <%= form.password_field :password_confirmation, required: true, class: "form-control", placeholder: "Confirm new password" %>
-        </div>
-
-        <div class="d-grid">
-          <%= form.submit "Update Password", class: "btn btn-primary" %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-
-  <div class="gh-card mt-4">
-    <div class="gh-card-header">
-      <h3>Account Information</h3>
-    </div>
-    <div class="gh-card-body">
-      <div class="row">
-        <div class="col-sm-3"><strong>Email:</strong></div>
-        <div class="col-sm-9"><%= @user.email_address %></div>
       </div>
-      <div class="row mt-2">
-        <div class="col-sm-3"><strong>Account Created:</strong></div>
-        <div class="col-sm-9"><%= @user.created_at.strftime("%B %d, %Y") %></div>
-      </div>
-      <div class="row mt-2">
-        <div class="col-sm-3"><strong>Account ID:</strong></div>
-        <div class="col-sm-9"><code><%= @user.id %></code></div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="gh-card">
+        <div class="gh-card-header">
+          <h3>Account Information</h3>
+        </div>
+        <div class="gh-card-body">
+          <p><strong>Email:</strong> <%= @user.email_address %></p>
+          <p><strong>Member Since:</strong> <%= @user.created_at.strftime("%B %d, %Y") %></p>
+
+          <hr>
+
+          <div class="alert alert-danger">
+            <h6>Delete Account</h6>
+            <p class="mb-2">Permanently delete your account and all data.</p>
+            <button class="btn btn-sm btn-danger" disabled>Coming Soon</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

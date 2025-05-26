@@ -1,11 +1,6 @@
 class Account::PreferencesController < Account::BaseController
   def show
     @user_preference = Current.user.user_preference || Current.user.build_user_preference
-
-    respond_to do |format|
-      format.html
-      format.json { render json: { status: 'authenticated' } }
-    end
   end
 
   def update

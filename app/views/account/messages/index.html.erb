@@ -4,17 +4,15 @@
     <%= link_to "Back to Dashboard", account_dashboard_path, class: "btn btn-outline-secondary" %>
   </div>
 
-  <% if @messages.any? %>
+  <% if @messages && @messages.any? %>
     <div class="gh-card">
       <div class="gh-card-body">
         <table class="table">
           <thead>
             <tr>
-              <th>Label</th>
               <th>Type</th>
               <th>Created</th>
               <th>Expires</th>
-              <th>Views</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -22,23 +20,18 @@
           <tbody>
             <% @messages.each do |message| %>
               <tr>
-                <td><%= message.encrypted_label || "Untitled" %></td>
-                <td><%= message.message_type.capitalize %></td>
+                <td><%= message.message_type&.capitalize || "Unknown" %></td>
                 <td><%= message.created_at.strftime("%b %d, %Y") %></td>
-                <td><%= message.original_expiry.strftime("%b %d, %Y") %></td>
-                <td><%= message.accessed_count %></td>
+                <td><%= message.original_expiry&.strftime("%b %d, %Y") || "Never" %></td>
                 <td>
-                  <% if message.expired? %>
+                  <% if message.original_expiry && message.original_expiry <= Time.current %>
                     <span class="badge bg-secondary">Expired</span>
                   <% else %>
                     <span class="badge bg-success">Active</span>
                   <% end %>
                 </td>
                 <td>
-                  <%= link_to "View", decrypt_path(message.message_id),
-                      class: "btn btn-sm btn-outline-primary",
-                      target: "_blank" %>
-                  <%= link_to "Remove", account_message_path(message),
+                  <%= button_to "Remove", account_message_path(message),
                       method: :delete,
                       data: { confirm: "Remove from history?" },
                       class: "btn btn-sm btn-outline-danger" %>
@@ -47,6 +40,30 @@
             <% end %>
           </tbody>
         </table>
+
+        <% if @total_pages && @total_pages > 1 %>
+          <nav aria-label="Page navigation">
+            <ul class="pagination">
+              <% if @current_page > 1 %>
+                <li class="page-item">
+                  <%= link_to "Previous", account_messages_path(page: @current_page - 1), class: "page-link" %>
+                </li>
+              <% end %>
+
+              <% (1..@total_pages).each do |page| %>
+                <li class="page-item <%= 'active' if page == @current_page %>">
+                  <%= link_to page, account_messages_path(page: page), class: "page-link" %>
+                </li>
+              <% end %>
+
+              <% if @current_page < @total_pages %>
+                <li class="page-item">
+                  <%= link_to "Next", account_messages_path(page: @current_page + 1), class: "page-link" %>
+                </li>
+              <% end %>
+            </ul>
+          </nav>
+        <% end %>
       </div>
     </div>
   <% else %>
@@ -59,11 +76,4 @@
       </p>
     </div>
   <% end %>
-
-  <div class="mt-4">
-    <%= link_to "Account Settings", account_preferences_path, class: "btn btn-outline-primary me-2" %>
-    <%= link_to "Statistics", account_statistics_path, class: "btn btn-outline-info me-2" %>
-    <%= link_to "Security", account_security_path, class: "btn btn-outline-warning me-2" %>
-    <%= link_to "Log Out", session_path, method: :delete, class: "btn btn-outline-danger" %>
-  </div>
 </div>

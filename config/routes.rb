@@ -16,15 +16,11 @@ Rails.application.routes.draw do
   # Account functionality (requires login)
   namespace :account do
     resource :dashboard, only: [:show]
-
-  # Authentication status check (accessible without login)
-    resources :messages, only: [:index, :show, :update, :destroy]
+    resources :messages, only: [:index, :show, :destroy]
     resource :preferences, only: [:show, :update]
     resource :security, only: [:show] do
       post :update_password
     end
     resource :statistics, only: [:show]
-
-  # Authentication status check (accessible without login)
   end
 end
