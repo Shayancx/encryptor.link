@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   # Authentication routes
   resource :session
   resources :passwords, param: :token
-  resource :registration, only: [:new, :create]
+  resource :registration, only: [ :new, :create ]
 
   # Core functionality (accessible without login)
   post   "/encrypt", to: "encryptions#create"
@@ -15,12 +15,14 @@ Rails.application.routes.draw do
 
   # Account functionality (requires login)
   namespace :account do
-    resource :dashboard, only: [:show]
-    resources :messages, only: [:index, :show, :destroy]
-    resource :preferences, only: [:show, :update]
-    resource :security, only: [:show] do
+    resource :dashboard, only: [ :show ]
+    resources :messages, only: [ :index, :show, :destroy ]
+    resource :preferences, only: [ :show, :update ]
+    resource :security, only: [ :show ] do
+      get :reauthenticate
+      post :authenticate
       post :update_password
     end
-    resource :statistics, only: [:show]
+    resource :statistics, only: [ :show ]
   end
 end

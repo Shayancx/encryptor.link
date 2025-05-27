@@ -24,6 +24,17 @@ async function encryptMessage(message, ttl, views, password = '') {
       payload.password_salt = Base64.encode(key.salt);
     }
 
+    // Add tracking info if user is logged in
+    const trackCheckbox = document.getElementById('trackMessage');
+    if (trackCheckbox && trackCheckbox.checked) {
+      payload.track_message = true;
+
+      const messageLabel = document.getElementById('messageLabel');
+      if (messageLabel && messageLabel.value) {
+        payload.message_label = messageLabel.value;
+      }
+    }
+
     // Send the encrypted data to the server with CSRF protection
     const response = await CSRFHelper.fetchWithCSRF('/encrypt', {
       method: 'POST',
@@ -75,6 +86,22 @@ async function encryptFiles(files, message, ttl, views, password = '') {
     // Add password salt if password is provided
     if (password) {
       payload.password_salt = Base64.encode(key.salt);
+    }
+
+    // Add tracking info if user is logged in
+    const trackCheckbox = document.getElementById('trackMessage');
+    if (trackCheckbox && trackCheckbox.checked) {
+      payload.track_message = true;
+
+      const messageLabel = document.getElementById('messageLabel');
+      if (messageLabel && messageLabel.value) {
+        payload.message_label = messageLabel.value;
+      }
+
+      // If uploading files, use first filename as label if no label provided
+      if (files.length > 0 && !payload.message_label) {
+        payload.primary_filename = files[0].name;
+      }
     }
 
     // Encrypt message if present
@@ -140,38 +167,6 @@ async function encryptFiles(files, message, ttl, views, password = '') {
     throw error;
   }
 }
-
-// Generate an encryption key
-async function generateEncryptionKey(password = '') {
-  try {
-    if (password) {
-      // Generate a random salt
-      const salt = window.crypto.getRandomValues(new Uint8Array(16));
-
-      // Convert password to a key using PBKDF2
-      const passwordKey = await window.crypto.subtle.importKey(
-        'raw',
-        new TextEncoder().encode(password),
-        { name: 'PBKDF2' },
-        false,
-        ['deriveKey']
-      );
-
-      // Derive the actual encryption key
-      const key = await window.crypto.subtle.deriveKey(
-        {
-          name: 'PBKDF2',
-          salt: salt,
-          iterations: 100000,
-          hash: 'SHA-256'
-        },
-        passwordKey,
-        { name: 'AES-GCM', length: 256 },
-        true,
-        ['encrypt']
-      );
-
-      return { key, salt };
     } else {
       // Generate a random key
       const key = await window.crypto.subtle.generateKey(

@@ -1,18 +1,25 @@
 class Account::DashboardsController < Account::BaseController
   def show
-    # Get user's messages with proper scope chaining
     user_messages = Current.user.user_message_metadata
 
     @recent_messages = user_messages.order(created_at: :desc).limit(5)
+
+    # Decrypt message labels if we have encryption key
+    if Current.encryption_key.present?
+      @recent_messages.each do |message|
+        message.decrypt_metadata(Current.encryption_key)
+      end
+    end
+
     @total_messages = user_messages.count
-    @active_messages = user_messages.where('original_expiry IS NULL OR original_expiry > ?', Time.current).count
-    @expired_messages = user_messages.where('original_expiry IS NOT NULL AND original_expiry <= ?', Time.current).count
+    @active_messages = user_messages.where("original_expiry IS NULL OR original_expiry > ?", Time.current).count
+    @expired_messages = user_messages.where("original_expiry IS NOT NULL AND original_expiry <= ?", Time.current).count
 
     respond_to do |format|
       format.html
       format.json {
         render json: {
-          status: 'authenticated',
+          status: "authenticated",
           user_id: Current.user.id,
           email: Current.user.email_address,
           stats: {

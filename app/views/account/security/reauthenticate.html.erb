@@ -1,0 +1,31 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="gh-card">
+        <div class="gh-card-header">
+          <h3>Confirm Your Password</h3>
+        </div>
+        <div class="gh-card-body">
+          <div class="alert alert-info">
+            <p class="mb-0">For security, please enter your password to access security settings.</p>
+          </div>
+
+          <%= form_with url: account_security_authenticate_path, local: true do |form| %>
+            <div class="mb-3">
+              <%= form.label :password, "Current Password", class: "form-label" %>
+              <%= form.password_field :password, required: true, autofocus: true, class: "form-control" %>
+            </div>
+
+            <div class="d-grid">
+              <%= form.submit "Continue", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+
+          <div class="mt-3 text-center">
+            <%= link_to "Back to Dashboard", account_dashboard_path, class: "btn btn-outline-secondary" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

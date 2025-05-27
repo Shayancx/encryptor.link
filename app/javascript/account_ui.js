@@ -77,18 +77,31 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(data => {
       if (data.authenticated) {
-        // Add checkbox for tracking
+        // Add tracking options
         const trackingDiv = document.createElement('div');
-        trackingDiv.className = 'form-check mb-3';
+        trackingDiv.className = 'mb-3';
         trackingDiv.innerHTML = `
-          <input class="form-check-input" type="checkbox" id="trackMessage" checked>
-          <label class="form-check-label" for="trackMessage">
-            Save to my message history
-          </label>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="trackMessage" checked>
+            <label class="form-check-label" for="trackMessage">
+              Save to my message history
+            </label>
+          </div>
+          <div id="trackingOptions" class="ps-4">
+            <div class="mb-2">
+              <label for="messageLabel" class="form-label small">Label (optional):</label>
+              <input type="text" class="form-control form-control-sm" id="messageLabel" placeholder="e.g., Contract for John">
+            </div>
+          </div>
         `;
 
         const submitBtn = encryptForm.querySelector('button[type="submit"]');
         submitBtn.parentNode.insertBefore(trackingDiv, submitBtn);
+
+        // Toggle tracking options
+        document.getElementById('trackMessage').addEventListener('change', function() {
+          document.getElementById('trackingOptions').style.display = this.checked ? 'block' : 'none';
+        });
       }
     })
     .catch(() => {

@@ -1,5 +1,4 @@
 class EncryptionsController < ApplicationController
-  # Allow unauthenticated access to encryption functionality
   allow_unauthenticated_access
 
   def new
@@ -7,7 +6,6 @@ class EncryptionsController < ApplicationController
   end
 
   def create
-    # Validate required parameters
     unless params[:nonce].present?
       render json: { error: "Nonce is required" }, status: :unprocessable_entity
       return
@@ -19,12 +17,10 @@ class EncryptionsController < ApplicationController
     end
 
     begin
-      # Enforce maximum TTL of 7 days
       ttl = params[:ttl].to_i
       max_ttl = 7.days.to_i
       ttl = [ ttl, max_ttl ].min
 
-      # Create the main payload record with explicit boolean conversion for password_protected
       payload = EncryptedPayload.new(
         ciphertext: params[:ciphertext].present? ? Base64.strict_decode64(params[:ciphertext]) : "",
         nonce: Base64.strict_decode64(params[:nonce]),
@@ -34,14 +30,11 @@ class EncryptionsController < ApplicationController
         password_salt: params[:password_salt].present? ? Base64.strict_decode64(params[:password_salt]) : nil
       )
 
-      # Log for debugging
       Rails.logger.info "Creating payload with password_protected=#{payload.password_protected?}"
 
-      # Wrap in a transaction to ensure all files are saved or none
       ActiveRecord::Base.transaction do
         payload.save!
 
-        # Handle multiple files if present
         if params[:files].present? && params[:files].is_a?(Array)
           params[:files].each_with_index do |file, index|
             begin
@@ -60,14 +53,12 @@ class EncryptionsController < ApplicationController
         end
 
         # Track for logged-in users if they want to
-        if authenticated? && params[:track_message] == "true"
+        if authenticated? && params[:track_message] == "true" && Current.encryption_key.present?
           track_user_message(payload)
         end
       end
 
-      # Store payload reference for tracking
       @payload = payload
-
       render json: { id: payload.id, password_protected: payload.password_protected }
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error "Validation errors: #{e.record.errors.full_messages.join(', ')}"
@@ -81,18 +72,25 @@ class EncryptionsController < ApplicationController
   private
 
   def track_user_message(payload)
-    return unless payload && Current.user
+    return unless payload && Current.user && Current.encryption_key
 
-    UserMessageMetadata.create!(
+    metadata = UserMessageMetadata.new(
       user: Current.user,
       message_id: payload.id,
-      encrypted_label: params[:encrypted_label],
-      encrypted_filename: params[:encrypted_filename],
       file_size: calculate_total_file_size(payload),
       message_type: determine_message_type(payload),
       created_at: Time.current,
       original_expiry: payload.expires_at
     )
+
+    # Set virtual attributes from params
+    metadata.label = params[:message_label] if params[:message_label].present?
+    metadata.filename = params[:primary_filename] if params[:primary_filename].present?
+
+    # Encrypt the metadata
+    metadata.encrypt_metadata(Current.encryption_key)
+
+    metadata.save!
   rescue => e
     Rails.logger.error "Failed to track message: #{e.message}"
     # Don't fail the request if tracking fails
@@ -107,11 +105,11 @@ class EncryptionsController < ApplicationController
     has_files = payload.encrypted_files.any?
 
     if has_text && has_files
-      'mixed'
+      "mixed"
     elsif has_files
-      'file'
+      "file"
     else
-      'text'
+      "text"
     end
   end
 end

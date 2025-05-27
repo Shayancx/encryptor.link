@@ -1,5 +1,5 @@
 class AuthStatusController < ApplicationController
-  allow_unauthenticated_access only: [:check]
+  allow_unauthenticated_access only: [ :check ]
 
   def check
     if authenticated?

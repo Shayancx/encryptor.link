@@ -4,11 +4,12 @@ RSpec.describe AuthStatusController, type: :controller do
   describe 'GET #check' do
     context 'when user is authenticated' do
       let(:user) { create(:user) }
+      let(:user_session) { create(:session, user: user) }
 
       before do
-        # Simulate user authentication
-        allow(controller).to receive(:authenticated?).and_return(true)
-        allow(controller).to receive(:Current).and_return(double(user: user))
+        # Set up proper authentication
+        cookies.signed[:session_id] = user_session.id
+        allow(Current).to receive(:user).and_return(user)
       end
 
       it 'returns authenticated status with user info' do
@@ -22,10 +23,6 @@ RSpec.describe AuthStatusController, type: :controller do
     end
 
     context 'when user is not authenticated' do
-      before do
-        allow(controller).to receive(:authenticated?).and_return(false)
-      end
-
       it 'returns unauthenticated status' do
         get :check, format: :json
 

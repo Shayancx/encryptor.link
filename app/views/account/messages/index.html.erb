@@ -4,12 +4,21 @@
     <%= link_to "Back to Dashboard", account_dashboard_path, class: "btn btn-outline-secondary" %>
   </div>
 
+  <% if !Current.encryption_key.present? %>
+    <div class="alert alert-warning">
+      <h5 class="alert-heading">Re-authentication Required</h5>
+      <p>To view encrypted message details, please re-authenticate.</p>
+      <%= link_to "Re-authenticate", reauthenticate_account_security_path, class: "btn btn-warning" %>
+    </div>
+  <% end %>
+
   <% if @messages && @messages.any? %>
     <div class="gh-card">
       <div class="gh-card-body">
         <table class="table">
           <thead>
             <tr>
+              <th>Label</th>
               <th>Type</th>
               <th>Created</th>
               <th>Expires</th>
@@ -20,6 +29,7 @@
           <tbody>
             <% @messages.each do |message| %>
               <tr>
+                <td><%= message.label || "[Encrypted]" %></td>
                 <td><%= message.message_type&.capitalize || "Unknown" %></td>
                 <td><%= message.created_at.strftime("%b %d, %Y") %></td>
                 <td><%= message.original_expiry&.strftime("%b %d, %Y") || "Never" %></td>

@@ -32,3 +32,33 @@ RSpec.configure do |config|
     Capybara.reset_sessions! if example.metadata[:js]
   end
 end
+
+# Additional configurations for complete test coverage
+RSpec.configure do |config|
+  # Include FactoryBot methods
+  config.include FactoryBot::Syntax::Methods
+
+  # Include Devise test helpers if needed
+  # config.include Devise::Test::ControllerHelpers, type: :controller
+
+  # Database cleaner configuration
+  config.before(:suite) do
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.before(:each) do
+    DatabaseCleaner.strategy = :transaction
+  end
+
+  config.before(:each, js: true) do
+    DatabaseCleaner.strategy = :truncation
+  end
+
+  config.before(:each) do
+    DatabaseCleaner.start
+  end
+
+  config.after(:each) do
+    DatabaseCleaner.clean
+  end
+end
