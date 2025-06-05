@@ -19,7 +19,7 @@
             <div class="alert alert-danger"><%= flash[:alert] %></div>
           <% end %>
 
-          <%= form_with url: account_security_update_password_path, local: true do |form| %>
+          <%= form_with url: update_password_account_security_path, local: true do |form| %>
             <div class="mb-3">
               <%= form.label :current_password, class: "form-label" %>
               <%= form.password_field :current_password, required: true, class: "form-control" %>

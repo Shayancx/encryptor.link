@@ -10,7 +10,7 @@
             <p class="mb-0">For security, please enter your password to access security settings.</p>
           </div>
 
-          <%= form_with url: account_security_authenticate_path, local: true do |form| %>
+          <%= form_with url: authenticate_account_security_path, local: true do |form| %>
             <div class="mb-3">
               <%= form.label :password, "Current Password", class: "form-label" %>
               <%= form.password_field :password, required: true, autofocus: true, class: "form-control" %>
