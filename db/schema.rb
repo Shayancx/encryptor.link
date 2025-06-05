@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_05_131952) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_06_193000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -74,6 +74,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_05_131952) do
     t.datetime "updated_at", null: false
     t.boolean "password_protected", default: false, null: false
     t.binary "password_salt"
+    t.boolean "burn_after_reading", default: false, null: false
+    t.index ["burn_after_reading"], name: "index_encrypted_payloads_on_burn_after_reading"
     t.index ["created_at"], name: "idx_payloads_created_at"
     t.index ["expires_at", "remaining_views"], name: "idx_payloads_cleanup"
     t.index ["expires_at"], name: "index_encrypted_payloads_on_expires_at"
