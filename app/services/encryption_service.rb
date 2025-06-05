@@ -7,6 +7,7 @@ class EncryptionService
   MAX_TTL = 7.days.to_i
   MAX_VIEWS = 5
   MAX_FILE_SIZE = 1000.megabytes
+  MAX_PAYLOAD_SIZE = 50.megabytes
 
   def initialize(params)
     @params = params
@@ -31,6 +32,11 @@ class EncryptionService
     raise EncryptionError, "Nonce is required" unless @params[:nonce].present?
     raise EncryptionError, "TTL and views are required" unless @params[:ttl].present? && @params[:views].present?
 
+    if @params[:ciphertext].present?
+      decoded_size = Base64.strict_decode64(@params[:ciphertext]).bytesize rescue (raise EncryptionError, "Invalid base64 encoding")
+      raise EncryptionError, "Payload too large" if decoded_size > MAX_PAYLOAD_SIZE
+    end
+
     views = @params[:views].to_i
     raise EncryptionError, "Views must be between 1 and #{MAX_VIEWS}" unless views.between?(1, MAX_VIEWS)
   end
@@ -41,7 +47,7 @@ class EncryptionService
       nonce: decode_base64(@params[:nonce]),
       expires_at: calculate_expiry,
       remaining_views: @params[:views].to_i,
-      password_protected: ActiveModel::Type::Boolean.new.cast(@params[:password_protected]),
+      password_protected: ActiveModel::Type::Boolean.new.cast(@params[:password_protected]) || false,
       password_salt: decode_base64(@params[:password_salt])
     )
   end

@@ -22,22 +22,25 @@ RSpec.describe "Encryption Security", type: :request do
     end
 
     it 'accepts POST with valid CSRF token' do
-      # This test requires a valid session and CSRF token
-      get '/encrypt'  # Get CSRF token from the form page
-      csrf_token = response.cookies['_encryptor_link_session']
+      original_setting = ActionController::Base.allow_forgery_protection
+      ActionController::Base.allow_forgery_protection = true
+      begin
+        get '/encrypt'
+        token = Nokogiri::HTML(response.body).at('meta[name="csrf-token"]')['content']
 
-      post '/encrypt', params: {
-        ciphertext: Base64.strict_encode64('test'),
-        nonce: Base64.strict_encode64('testnonce123'),
-        ttl: 3600,
-        views: 1
-      }, as: :json, headers: {
-        'X-CSRF-Token' => csrf_token
-      }
+        post '/encrypt', params: {
+          ciphertext: Base64.strict_encode64('test'),
+          nonce: Base64.strict_encode64('testnonce123'),
+          ttl: 3600,
+          views: 1
+        }, as: :json, headers: {
+          'X-CSRF-Token' => token
+        }
 
-      # Note: This might still fail due to invalid CSRF token format,
-      # but it shows the endpoint now respects CSRF protection
-      expect([ 401, 422, 500 ]).to include(response.status)
+        expect(response).to have_http_status(:success)
+      ensure
+        ActionController::Base.allow_forgery_protection = original_setting
+      end
     end
   end
 
@@ -53,19 +56,18 @@ RSpec.describe "Encryption Security", type: :request do
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
-    it 'prevents payload size attacks' do
-      huge_payload = 'a' * 100.megabytes
+      it 'prevents payload size attacks' do
+        huge_payload = 'a' * 100.megabytes
 
-      post '/encrypt', params: {
-        ciphertext: Base64.strict_encode64(huge_payload),
-        nonce: Base64.strict_encode64('nonce'),
-        ttl: 3600,
-        views: 1
-      }, as: :json
+        post '/encrypt', params: {
+          ciphertext: Base64.strict_encode64(huge_payload),
+          nonce: Base64.strict_encode64('nonce'),
+          ttl: 3600,
+          views: 1
+        }, as: :json
 
-      # Should fail due to request size limits
-      expect(response).not_to have_http_status(:success)
-    end
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
   end
 
   describe 'Timing attack prevention' do
