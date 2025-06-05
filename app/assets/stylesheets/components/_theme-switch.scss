@@ -17,7 +17,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: $transition-base;
+  transition: none;
   color: var(--gh-text-secondary);
   padding: 0;
 
@@ -33,7 +33,7 @@
   }
 
   svg {
-    transition: $transition-base;
+    transition: none;
   }
 
   #sun-icon {
@@ -46,11 +46,13 @@
 }
 
 // Smooth theme transitions
+
+// Instant theme changes without transition lag
 [data-bs-theme] {
-  transition: color $transition-slow, background-color $transition-slow;
+  transition: none;
 
   * {
-    transition: border-color $transition-fast, box-shadow $transition-fast;
+    transition: none;
   }
 }
 
