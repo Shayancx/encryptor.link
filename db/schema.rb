@@ -61,7 +61,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_05_131952) do
     t.integer "file_size", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "compressed", default: false, null: false
     t.index ["encrypted_payload_id"], name: "idx_encrypted_files_payload"
     t.index ["encrypted_payload_id"], name: "index_encrypted_files_on_encrypted_payload_id"
   end
