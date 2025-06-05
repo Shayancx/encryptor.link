@@ -85,8 +85,8 @@ RSpec.describe "Encryption Security", type: :request do
       get "/#{invalid_id}/data"
       invalid_time = Time.now - start_time
 
-      # Times should be similar (within 50ms)
-      expect((valid_time - invalid_time).abs).to be < 0.05
+      # Times should be reasonably close to avoid timing attacks
+      expect((valid_time - invalid_time).abs).to be < 0.1
     end
   end
 

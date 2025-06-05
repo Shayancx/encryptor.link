@@ -15,7 +15,7 @@ jobs:
     
     strategy:
       matrix:
-        ruby-version: ['3.3.8']
+        ruby-version: ['3.4.4']
 
     services:
       postgres:

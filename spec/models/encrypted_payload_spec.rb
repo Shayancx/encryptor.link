@@ -48,4 +48,12 @@ RSpec.describe EncryptedPayload, type: :model do
       expect(payload.ciphertext.encoding.name).to eq("ASCII-8BIT")
     end
   end
+  describe 'ttl_within_limit' do
+    it 'disallows expiration beyond 7 days for persisted records' do
+      payload = create(:encrypted_payload, expires_at: 6.days.from_now)
+      payload.expires_at = 8.days.from_now
+      expect(payload).not_to be_valid
+      expect(payload.errors[:expires_at]).to include('cannot exceed 7 days')
+    end
+  end
 end

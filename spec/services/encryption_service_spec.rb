@@ -3,16 +3,17 @@
 require 'rails_helper'
 
 RSpec.describe EncryptionService do
+  let(:valid_params) do
+    {
+      ciphertext: Base64.strict_encode64('encrypted_data'),
+      nonce: Base64.strict_encode64(SecureRandom.random_bytes(12)),
+      ttl: 3600,
+      views: 1,
+      password_protected: false
+    }
+  end
+
   describe '#create_payload' do
-    let(:valid_params) do
-      {
-        ciphertext: Base64.strict_encode64('encrypted_data'),
-        nonce: Base64.strict_encode64(SecureRandom.random_bytes(12)),
-        ttl: 3600,
-        views: 1,
-        password_protected: false
-      }
-    end
 
     subject { described_class.new(valid_params) }
 
@@ -75,4 +76,46 @@ RSpec.describe EncryptionService do
       end
     end
   end
-end
+
+  context 'parameter validation edge cases' do
+      it 'requires ttl and views' do
+        service = described_class.new(valid_params.except(:ttl))
+        expect { service.create_payload }.to raise_error(EncryptionService::EncryptionError, /TTL and views are required/)
+      end
+
+      it 'rejects oversized ciphertext' do
+        stub_const("#{described_class}::MAX_PAYLOAD_SIZE", 10)
+        big_data = Base64.strict_encode64('a' * 11)
+        service = described_class.new(valid_params.merge(ciphertext: big_data))
+        expect { service.create_payload }.to raise_error(EncryptionService::EncryptionError, /Payload too large/)
+      end
+
+      it 'raises error for invalid password_salt' do
+        service = described_class.new(valid_params.merge(password_protected: true, password_salt: '!!!'))
+        expect { service.create_payload }.to raise_error(EncryptionService::EncryptionError, /Invalid base64/)
+      end
+    end
+
+    context 'file validation edge cases' do
+      it 'requires file name' do
+        file = { data: Base64.strict_encode64('a'), size: 1, type: 'text/plain' }
+        service = described_class.new(valid_params.merge(files: [file]))
+        expect { service.create_payload }.to raise_error(EncryptionService::EncryptionError, /name is required/)
+      end
+
+      it 'requires file data' do
+        file = { name: 'a.txt', size: 1, type: 'text/plain' }
+        service = described_class.new(valid_params.merge(files: [file]))
+        expect { service.create_payload }.to raise_error(EncryptionService::EncryptionError, /data is required/)
+      end
+
+      it 'creates multiple files' do
+        files = [
+          { data: Base64.strict_encode64('a'), name: 'a.txt', size: 1, type: 'text/plain' },
+          { data: Base64.strict_encode64('b'), name: 'b.txt', size: 1, type: 'text/plain' }
+        ]
+        service = described_class.new(valid_params.merge(files: files))
+        expect { service.create_payload }.to change(EncryptedFile, :count).by(2)
+      end
+    end
+  end

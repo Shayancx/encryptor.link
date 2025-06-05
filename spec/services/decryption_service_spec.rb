@@ -61,4 +61,14 @@ RSpec.describe DecryptionService do
       end
     end
   end
+
+  describe '#retrieve_data cleanup' do
+    it 'destroys payload on last view' do
+      payload = create(:encrypted_payload, remaining_views: 1)
+      service = described_class.new(payload.id)
+      expect {
+        service.retrieve_data
+      }.to change { EncryptedPayload.exists?(payload.id) }.from(true).to(false)
+    end
+  end
 end
