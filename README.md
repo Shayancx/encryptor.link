@@ -35,7 +35,6 @@ A zero-knowledge, client-side encrypted message and file sharing service. Send e
 
 - Ruby 3.4.4
 - PostgreSQL
-- Node.js 22.14.0 or later
 
 ### Setup
 
@@ -76,9 +75,9 @@ bin/rubocop
 
 ## Technical Stack
 
-- **Backend**: Ruby 3.4.3, Rails 8.0.2
+- **Backend**: Ruby 3.4.4, Rails 8.0.2
 - **Database**: PostgreSQL
-- **Frontend**: Bootstrap 5.3, JavaScript
+- **Frontend**: Bootstrap 5.3, Sass, Javascript
 - **Encryption**: Web Crypto API (AES-GCM)
 - **Job Processing**: Solid Queue
 
@@ -93,13 +92,3 @@ bin/rubocop
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgements
-
-- [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
-- [Bootstrap](https://getbootstrap.com/)
-- [Ruby on Rails](https://rubyonrails.org/)
-
-## Disclaimer
-
-This software is provided for educational and personal use only. No security system is perfect. Use at your own risk.

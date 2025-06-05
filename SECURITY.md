@@ -2,13 +2,13 @@
 
 ## ⚠️ Heads Up
 
-This project — **encryptor.link** — is something I (@Shayancx) built to sharpen my skills with Ruby and Ruby on Rails. It’s a personal learning project, not a commercial-grade service. I care deeply about privacy and security, but I’m not a professional security researcher. So: use at your own risk, and keep in mind that this is a work-in-progress.
+This project — **encryptor.link** — is something I built to sharpen my skills with Ruby. It’s a personal learning project, not a commercial-grade service. I care deeply about privacy and security, but I’m not a professional security researcher. So: use at your own risk, and keep in mind that this is a work-in-progress.
 
 ---
 
 ## 🔒 Security Basics
 
-**encryptor.link** is meant to be a privacy-respecting, zero-knowledge, end-to-end encrypted messaging tool. Everything you send is encrypted *before* it ever touches the server — that’s the core idea. Still, since I’m learning as I go, it might not be bulletproof.
+**encryptor.link** is meant to be a privacy-respecting, zero-knowledge, end-to-end encrypted messaging tool. Everything you send is encrypted *before* it ever touches the server, that’s the core idea. Still, since I’m learning as I go, it might not be bulletproof.
 
 ---
 
@@ -27,10 +27,10 @@ When you do, please include:
 
 **What I’ll do:**
 
-* I’ll reply within 48 hours
+* I’ll reply within 24 hours
 * I’ll keep you in the loop about progress
 * I’ll fix the issue as soon as I can
-* I’ll credit you (unless you’d rather stay anonymous)
+* I’ll credit you (unless you would rather stay anonymous)
 
 ---
 
@@ -60,14 +60,6 @@ When you do, please include:
 
 ---
 
-## 🧪 Supported Versions
-
-| Version | Supported |
-| ------- | --------- |
-| latest  | ✅ Yes     |
-
----
-
 ## 🛠 How I Handle Security
 
 This is a solo project I work on in my free time, but I do my best to:
@@ -84,4 +76,4 @@ Big thanks to anyone who takes the time to report bugs or suggest improvements. 
 
 ---
 
-*Last updated: 2025-05-24*
+*Last updated: 2025-06-05*
