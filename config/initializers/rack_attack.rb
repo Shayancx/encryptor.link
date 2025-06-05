@@ -13,6 +13,10 @@ class Rack::Attack
     req.ip if req.path.match(/\/[^\/]+\/data/) && req.get?
   end
 
+  throttle("req/ip/payload_info", limit: 60, period: 60.seconds) do |req|
+    req.ip if req.path.match(/\/[^\/]+\/info/) && req.get?
+  end
+
   # Throttle overall requests per IP
   throttle("req/ip", limit: 500, period: 5.minutes) do |req|
     req.ip

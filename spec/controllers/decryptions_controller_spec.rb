@@ -131,3 +131,53 @@ RSpec.describe DecryptionsController, type: :controller do
     end
   end
 end
+
+describe 'GET #info' do
+  let(:payload) { create(:encrypted_payload, remaining_views: 3) }
+
+  context 'with existing payload' do
+    it 'returns payload metadata without decrementing views' do
+      expect {
+        get :info, params: { id: payload.id }, format: :json
+      }.not_to change { payload.reload.remaining_views }
+
+      json_response = JSON.parse(response.body)
+      expect(json_response['exists']).to be true
+      expect(json_response['remaining_views']).to eq(3)
+      expect(json_response['expired']).to be false
+      expect(json_response['password_protected']).to be false
+    end
+
+    it 'includes file information' do
+      create_list(:encrypted_file, 2, encrypted_payload: payload, file_size: 1000)
+
+      get :info, params: { id: payload.id }, format: :json
+
+      json_response = JSON.parse(response.body)
+      expect(json_response['file_count']).to eq(2)
+      expect(json_response['total_size_bytes']).to be > 2000
+    end
+  end
+
+  context 'with non-existent payload' do
+    it 'returns not found' do
+      get :info, params: { id: SecureRandom.uuid }, format: :json
+
+      expect(response).to have_http_status(:not_found)
+      json_response = JSON.parse(response.body)
+      expect(json_response['exists']).to be false
+    end
+  end
+
+  context 'with expired payload' do
+    let(:expired_payload) { create(:encrypted_payload, :expired) }
+
+    it 'indicates expiration in response' do
+      get :info, params: { id: expired_payload.id }, format: :json
+
+      json_response = JSON.parse(response.body)
+      expect(json_response['expired']).to be true
+      expect(json_response['time_remaining']).to eq('Expired')
+    end
+  end
+end
