@@ -1,0 +1,81 @@
+# frozen_string_literal: true
+
+# Service object for handling decryption-related business logic
+class DecryptionService
+  class DecryptionError < StandardError; end
+
+  def initialize(payload_id)
+    @payload_id = payload_id
+  end
+
+  def retrieve_data
+    payload = find_payload
+    return nil unless payload
+
+    # Check if expired
+    return nil if payload.expires_at < Time.current
+
+    payload.with_lock do
+      return nil if payload.remaining_views <= 0
+
+      payload.decrement!(:remaining_views)
+      should_delete = payload.remaining_views <= 0
+
+      data = build_response_data(payload)
+
+      # Schedule deletion if needed
+      schedule_deletion(payload) if should_delete
+
+      data
+    end
+  end
+
+  def payload_info
+    payload = find_payload
+    return { exists: false } unless payload
+
+    {
+      exists: true,
+      password_protected: payload.password_protected,
+      expired: payload.expires_at < Time.current
+    }
+  end
+
+  private
+
+  def find_payload
+    EncryptedPayload.find_by(id: @payload_id)
+  end
+
+  def build_response_data(payload)
+    {
+      ciphertext: encode_base64(payload.ciphertext),
+      nonce: encode_base64(payload.nonce),
+      password_protected: payload.password_protected,
+      password_salt: payload.password_salt.present? ? encode_base64(payload.password_salt) : nil,
+      files: payload.encrypted_files.map { |file| serialize_file(file) }
+    }
+  end
+
+  def encode_base64(data)
+    Base64.strict_encode64(data || "")
+  end
+
+  def serialize_file(file)
+    {
+      id: file.id,
+      data: file.file_data,
+      name: file.file_name,
+      type: file.file_type,
+      size: file.file_size
+    }
+  end
+
+  def schedule_deletion(payload)
+    if Rails.env.test?
+      payload.destroy
+    else
+      CleanupPayloadJob.perform_later(payload.id)
+    end
+  end
+end
