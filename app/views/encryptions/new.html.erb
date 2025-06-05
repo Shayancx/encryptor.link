@@ -164,6 +164,30 @@
         </div>
       </div>
 
+      <!-- QR Code Panel -->
+      <div class="gh-setting-panel">
+        <div class="gh-setting-header">
+          <div class="gh-setting-title-row">
+            <div class="gh-setting-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <rect x="5" y="5" width="3" height="3"></rect>
+                <rect x="16" y="5" width="3" height="3"></rect>
+                <rect x="5" y="16" width="3" height="3"></rect>
+              </svg>
+              Generate QR Code
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="qrToggle">
+              <label class="form-check-label" for="qrToggle"></label>
+            </div>
+          </div>
+          <div class="gh-setting-description">Create a QR code for the encrypted link</div>
+        </div>
+      </div>
+
       <div class="mb-3">
         <label class="form-label">Attach Files (optional, max 1000MB total)</label>
         <div id="dropArea" class="file-upload-area">
@@ -249,17 +273,59 @@
         </div>
         <div class="gh-flash-content">
           <div class="gh-flash-title">Your encrypted link has been generated</div>
-          <div class="input-group mb-2 mt-2">
-            <input type="text" id="encryptedLink" class="form-control" readonly>
-            <button class="btn btn-outline-primary" type="button" id="copyButton">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+
+          <div id="resultTabs" class="nav nav-tabs mt-3" role="tablist">
+            <button class="nav-link active" id="link-tab" data-bs-toggle="tab" data-bs-target="#link-panel" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m7.5 15.5 3.5-3.5m0 0 3.5 3.5m-3.5-3.5v9m0-17.5h9a2 2 0 0 1 2 2v6"></path>
               </svg>
-              Copy
+              Link
+            </button>
+            <button class="nav-link" id="qr-tab" data-bs-toggle="tab" data-bs-target="#qr-panel" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <rect x="5" y="5" width="3" height="3"></rect>
+                <rect x="16" y="5" width="3" height="3"></rect>
+                <rect x="5" y="16" width="3" height="3"></rect>
+              </svg>
+              QR Code
             </button>
           </div>
-          <p class="mb-0 text-muted small" id="resultMessage">This link contains the decryption key. Anyone with this link can view your message or download your files.</p>
+
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="link-panel">
+              <div class="input-group mb-2 mt-3">
+                <input type="text" id="encryptedLink" class="form-control" readonly>
+                <button class="btn btn-outline-primary" type="button" id="copyButton">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="qr-panel">
+              <div class="text-center mt-3">
+                <div id="qrcode" class="d-inline-block p-3 bg-white rounded"></div>
+                <div class="mt-3">
+                  <button class="btn btn-outline-primary btn-sm" id="downloadQRButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download QR Code
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="mb-0 text-muted small mt-3" id="resultMessage">...</p>
         </div>
       </div>
     </div>
@@ -442,6 +508,7 @@
   const passwordContainer = document.getElementById('passwordContainer');
   const passwordInput = document.getElementById('passwordInput');
   const burnToggle = document.getElementById('burnToggle');
+  const qrToggle = document.getElementById('qrToggle');
   const viewsSelect = document.getElementById('viewsSelect');
   const burnWarning = document.getElementById('burnWarning');
 
@@ -759,6 +826,63 @@
       document.body.style.overflow = '';
 
       document.getElementById('encryptedLink').value = link;
+
+      const qrContainer = document.getElementById('qrcode');
+      const qrTab = document.getElementById('qr-tab');
+      const qrPanel = document.getElementById('qr-panel');
+      const tabsContainer = document.getElementById('resultTabs');
+
+      if (qrToggle.checked) {
+        qrTab.style.display = '';
+        qrPanel.style.display = '';
+        tabsContainer.style.display = '';
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, {
+          text: link,
+          width: 256,
+          height: 256,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+
+        document.getElementById('downloadQRButton').addEventListener('click', function() {
+          const canvas = qrContainer.querySelector('canvas');
+          const linkEl = document.createElement('a');
+          linkEl.download = 'encrypted-link-qr.png';
+          linkEl.href = canvas.toDataURL();
+          linkEl.click();
+        });
+
+        if (navigator.share && /mobile/i.test(navigator.userAgent)) {
+          const shareButton = document.createElement('button');
+          shareButton.className = 'btn btn-outline-primary btn-sm ms-2';
+          shareButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path>
+              <polyline points="16 6 12 2 8 6"></polyline>
+              <line x1="12" y1="2" x2="12" y2="15"></line>
+            </svg>
+            Share
+          `;
+          shareButton.onclick = async () => {
+            try {
+              await navigator.share({
+                title: 'Encrypted Message',
+                text: 'Access this encrypted message:',
+                url: link
+              });
+            } catch (err) {
+              console.log('Share failed:', err);
+            }
+          };
+          document.getElementById('downloadQRButton').parentNode.appendChild(shareButton);
+        }
+      } else {
+        qrTab.style.display = 'none';
+        qrPanel.style.display = 'none';
+      }
+
       document.getElementById('resultContainer').classList.remove('d-none');
 
       const resultMessage = document.getElementById('resultMessage');
