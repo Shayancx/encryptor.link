@@ -14,7 +14,11 @@
 
   &:focus-within {
     border-color: var(--gh-accent-color);
-    box-shadow: 0 0 0 3px rgba(var(--gh-accent-color), 0.1);
+    box-shadow: none;
+
+    .rich-editor-toolbar {
+      border-bottom-color: var(--gh-accent-color);
+    }
   }
 
   &.expanded {
@@ -89,14 +93,23 @@
   margin-left: auto;
   color: var(--gh-text-secondary);
   cursor: pointer;
-  padding: 0 8px;
+  width: 32px;
   height: 32px;
+  padding: 0;
   background: transparent;
   border: none;
   border-radius: 6px;
   display: flex;
   align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    stroke: currentColor;
+  }
 
   &:hover {
     background-color: var(--gh-bg-primary);
