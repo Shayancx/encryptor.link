@@ -14,7 +14,6 @@ RSpec.describe EncryptionService do
   end
 
   describe '#create_payload' do
-
     subject { described_class.new(valid_params) }
 
     context 'with valid parameters' do
@@ -99,13 +98,13 @@ RSpec.describe EncryptionService do
     context 'file validation edge cases' do
       it 'requires file name' do
         file = { data: Base64.strict_encode64('a'), size: 1, type: 'text/plain' }
-        service = described_class.new(valid_params.merge(files: [file]))
+        service = described_class.new(valid_params.merge(files: [ file ]))
         expect { service.create_payload }.to raise_error(EncryptionService::EncryptionError, /name is required/)
       end
 
       it 'requires file data' do
         file = { name: 'a.txt', size: 1, type: 'text/plain' }
-        service = described_class.new(valid_params.merge(files: [file]))
+        service = described_class.new(valid_params.merge(files: [ file ]))
         expect { service.create_payload }.to raise_error(EncryptionService::EncryptionError, /data is required/)
       end
 
