@@ -11,7 +11,6 @@ gem "puma"
 gem "bootstrap", "~> 5.3"
 gem "sassc-rails"
 gem "sprockets-rails"
-gem "importmap-rails"
 
 # Reduces boot times through caching
 gem "bootsnap", require: false

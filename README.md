@@ -78,7 +78,7 @@ bin/rubocop
 
 - **Backend**: Ruby 3.4.3, Rails 8.0.2
 - **Database**: PostgreSQL
-- **Frontend**: Bootstrap 5.3, Stimulus, JavaScript
+- **Frontend**: Bootstrap 5.3, JavaScript
 - **Encryption**: Web Crypto API (AES-GCM)
 - **Job Processing**: Solid Queue
 
