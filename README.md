@@ -33,7 +33,7 @@ A zero-knowledge, client-side encrypted message and file sharing service. Send e
 
 ### Prerequisites
 
-- Ruby 3.4.3
+- Ruby 3.4.4
 - PostgreSQL
 - Node.js 22.14.0 or later
 
