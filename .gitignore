@@ -3,6 +3,10 @@
 
 # === Bundler ===
 /.bundle
+/vendor/bundle/
+/vendor/cache/
+/vendor/assets/
+/vendor/ruby/
 
 # === Rails Environment Files ===
 /.env*
@@ -24,6 +28,9 @@
 !/tmp/storage/
 /tmp/storage/.keep
 
+/tmp/cache/
+/tmp/capybara/
+
 # === Development Uploads and Cache ===
 /storage/*
 !/storage/.keep
@@ -32,49 +39,40 @@
 /node_modules
 /yarn-error.log
 
-# === Byebug, Pry, or REPL history ===
+# === REPL and Debug History ===
 .byebug_history
 .irb_history
 .pry_history
+*.log
+*.pid
+*.pid.lock
 
-# === IDEs and Editors ===
+# === Coverage Reports ===
+/coverage/
+
+# === RSpec ===
+.rspec
+/spec/examples.txt
+
+# === Assets ===
+/public/assets/
+/public/packs/
+/public/packs-test/
+
+# === VSCode ===
+.vscode/
+
+# === Backup and autosave files ===
 *.swp
 *.swo
 *~
 *.bak
 *.bak_[0-9]*
-
-# === macOS ===
-.DS_Store
-
-# === Windows ===
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# === Linux ===
-*~
-
-# === RubyMine ===
-.idea
-
-# === VSCode ===
-.vscode/
-
-# === JetBrains ===
-*.iml
-/.idea/
-
-# === Backup and autosave files ===
 *.orig
 *.rej
 
-# === Misc ===
-/coverage/
-/doc/
-/public/assets/
-/public/packs/
-/public/packs-test/
-/spec/examples.txt
-/tmp/pids/
-tmp/cache/
+# === OS-specific ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini

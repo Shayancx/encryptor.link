@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby "3.4.3", prism: true
+ruby "3.3.8", prism: true
 
 # Rails
 gem "rails", "8.0.2"
