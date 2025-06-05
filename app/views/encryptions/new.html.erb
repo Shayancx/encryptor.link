@@ -939,4 +939,22 @@
       this.classList.add('btn-outline-primary');
     }, 2000);
   });
+
+  // Ensure QR tab toggles correctly even if Bootstrap's JS fails to auto bind
+  const qrTabTrigger = document.getElementById('qr-tab');
+  const linkTab = document.getElementById('link-tab');
+  const qrPanel = document.getElementById('qr-panel');
+  const linkPanel = document.getElementById('link-panel');
+  if (qrTabTrigger && qrPanel && linkTab && linkPanel) {
+    qrTabTrigger.addEventListener('click', () => {
+      if (window.bootstrap && bootstrap.Tab) {
+        bootstrap.Tab.getOrCreateInstance(qrTabTrigger).show();
+      } else {
+        linkTab.classList.remove('active');
+        qrTabTrigger.classList.add('active');
+        linkPanel.classList.remove('active', 'show');
+        qrPanel.classList.add('active', 'show');
+      }
+    });
+  }
 </script>
