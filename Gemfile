@@ -31,7 +31,7 @@ end
 
 group :development do
   gem "web-console"
-  gem 'brakeman'
+  gem "brakeman"
   gem "rubocop-rails-omakase", require: false
   gem "rubocop", require: false
 end
