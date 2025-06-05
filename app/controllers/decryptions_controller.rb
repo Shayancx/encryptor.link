@@ -9,9 +9,11 @@ class DecryptionsController < ApplicationController
   end
 
   def data
+    existing_payload = EncryptedPayload.find_by(id: params[:id])
     response_data = decryption_service.retrieve_data
 
     if response_data
+      response_data[:burn_after_reading] = existing_payload&.burn_after_reading || false
       render json: response_data
     else
       session[:payload_expired] = true

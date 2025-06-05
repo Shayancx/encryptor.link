@@ -27,5 +27,10 @@ FactoryBot.define do
     trait :many_views do
       remaining_views { 5 }  # Max allowed by validation
     end
+
+    trait :burn_after_reading do
+      burn_after_reading { true }
+      remaining_views { 1 }
+    end
   end
 end

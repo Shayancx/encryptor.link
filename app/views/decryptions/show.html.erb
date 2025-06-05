@@ -342,6 +342,22 @@
     // Hide loading, show message container
     document.getElementById('loadingContainer').classList.add('d-none');
     document.getElementById('messageContainer').classList.remove('d-none');
+
+    if (payloadData.burn_after_reading) {
+      const burnWarning = document.createElement('div');
+      burnWarning.className = 'gh-flash gh-flash-danger mb-4';
+      burnWarning.innerHTML = `
+        <div class="gh-flash-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+        </div>
+        <div class="gh-flash-content">
+          <div class="gh-flash-title">⚠️ Burn After Reading</div>
+          <p class="mb-0">This message will be permanently deleted as soon as you close this page!</p>
+        </div>`;
+      document.getElementById('messageContainer').prepend(burnWarning);
+    }
   }
 
   // Update files list with GitHub-style file list

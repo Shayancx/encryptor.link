@@ -24,6 +24,7 @@ class EncryptionsController < ApplicationController
 
   def encryption_params
     params.permit(:ciphertext, :nonce, :ttl, :views, :password_protected,
-                  :password_salt, files: [ :data, :name, :type, :size ])
+                  :password_salt, :burn_after_reading,
+                  files: [ :data, :name, :type, :size ])
   end
 end

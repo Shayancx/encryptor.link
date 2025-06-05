@@ -1,5 +1,5 @@
 // Web Crypto API wrapper for encryption
-async function encryptMessage(message, ttl, views, password = '') {
+async function encryptMessage(message, ttl, views, password = '', burnAfterReading = false) {
   try {
     // Generate a random encryption key
     const key = await generateEncryptionKey(password);
@@ -16,7 +16,8 @@ async function encryptMessage(message, ttl, views, password = '') {
       nonce: Base64.encode(iv),
       ttl: ttl,
       views: views,
-      password_protected: !!password
+      password_protected: !!password,
+      burn_after_reading: burnAfterReading
     };
 
     // Add password salt if password is provided
@@ -55,7 +56,7 @@ async function encryptMessage(message, ttl, views, password = '') {
 }
 
 // Encrypt multiple files
-async function encryptFiles(files, message, ttl, views, password = '') {
+async function encryptFiles(files, message, ttl, views, password = '', burnAfterReading = false) {
   try {
     // Generate a random encryption key
     const key = await generateEncryptionKey(password);
@@ -69,6 +70,7 @@ async function encryptFiles(files, message, ttl, views, password = '') {
       ttl: ttl,
       views: views,
       password_protected: !!password,
+      burn_after_reading: burnAfterReading,
       files: []
     };
 

@@ -46,10 +46,15 @@ class EncryptionService
       ciphertext: decode_base64(@params[:ciphertext]) || "",
       nonce: decode_base64(@params[:nonce]),
       expires_at: calculate_expiry,
-      remaining_views: @params[:views].to_i,
+      burn_after_reading: ActiveModel::Type::Boolean.new.cast(@params[:burn_after_reading]) || false,
+      remaining_views: burn_after_reading? ? 1 : @params[:views].to_i,
       password_protected: ActiveModel::Type::Boolean.new.cast(@params[:password_protected]) || false,
       password_salt: decode_base64(@params[:password_salt])
     )
+  end
+
+  def burn_after_reading?
+    ActiveModel::Type::Boolean.new.cast(@params[:burn_after_reading])
   end
 
   def decode_base64(data)

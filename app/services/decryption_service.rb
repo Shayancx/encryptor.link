@@ -11,21 +11,23 @@ class DecryptionService
   def retrieve_data
     payload = find_payload
     return nil unless payload
-
-    # Check if expired
     return nil if payload.expires_at < Time.current
 
     payload.with_lock do
       return nil if payload.remaining_views <= 0
 
+      # For burn after reading, always delete immediately
+      if payload.burn_after_reading
+        data = build_response_data(payload)
+        payload.destroy
+        return data
+      end
+
       payload.decrement!(:remaining_views)
       should_delete = payload.remaining_views <= 0
 
       data = build_response_data(payload)
-
-      # Schedule deletion if needed
       schedule_deletion(payload) if should_delete
-
       data
     end
   end
@@ -37,7 +39,8 @@ class DecryptionService
     {
       exists: true,
       password_protected: payload.password_protected,
-      expired: payload.expires_at < Time.current
+      expired: payload.expires_at < Time.current,
+      burn_after_reading: payload.burn_after_reading
     }
   end
 
