@@ -55,16 +55,44 @@ async function encryptMessage(message, ttl, views, password = '', burnAfterReadi
   }
 }
 
-// Encrypt multiple files
-async function encryptFiles(files, message, ttl, views, password = '', burnAfterReading = false) {
+// Encrypt multiple files with progress reporting and cancellation support
+async function encryptFiles(
+  files,
+  message,
+  ttl,
+  views,
+  password = '',
+  burnAfterReading = false,
+  progressCallback = null,
+  cancelToken = null
+) {
   try {
-    // Generate a random encryption key
+    const totalSteps = files.length + 3; // key generation, message, upload
+    let currentStep = 0;
+    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+    let processedBytes = 0;
+    const startTime = performance.now();
+
+    const updateProgress = (status, details = '') => {
+      currentStep++;
+      const percentage = Math.round((currentStep / totalSteps) * 100);
+      const elapsed = (performance.now() - startTime) / 1000;
+      const speed = elapsed > 0 ? processedBytes / (1024 * 1024 * elapsed) : 0;
+      const remaining = totalSize - processedBytes;
+      const eta = speed > 0 ? remaining / (1024 * 1024 * speed) : 0;
+      if (progressCallback) {
+        progressCallback({ percentage, status, details, speed, eta });
+      }
+      if (cancelToken && cancelToken.canceled) {
+        throw new Error('Encryption cancelled');
+      }
+    };
+
+    updateProgress('Generating encryption key...');
     const key = await generateEncryptionKey(password);
 
-    // Generate a random IV
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
-    // Create API payload
     const payload = {
       nonce: Base64.encode(iv),
       ttl: ttl,
@@ -74,46 +102,38 @@ async function encryptFiles(files, message, ttl, views, password = '', burnAfter
       files: []
     };
 
-    // Add password salt if password is provided
     if (password) {
       payload.password_salt = Base64.encode(key.salt);
     }
 
-    // Encrypt message if present
     if (message && message.trim() !== '') {
+      updateProgress('Encrypting message...');
       const encryptedMessage = await encryptData(message, key.key, iv);
       payload.ciphertext = Base64.encode(encryptedMessage);
     } else {
       payload.ciphertext = '';
     }
 
-    // Process each file
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-
+      updateProgress(`Encrypting file ${i + 1}/${files.length}`, file.name);
       try {
-        // Read the file as an ArrayBuffer
         const fileData = await readFileAsArrayBuffer(file);
-
-        // Encrypt the file data
         const encryptedFile = await encryptData(fileData, key.key, iv);
-
-        // Encode to Base64
         const encodedFile = Base64.encode(encryptedFile);
-
-        // Add the encrypted file to the payload
         payload.files.push({
           data: encodedFile,
           name: file.name,
           type: file.type || 'application/octet-stream',
           size: file.size
         });
+        processedBytes += file.size;
       } catch (fileError) {
         throw new Error(`Failed to process file "${file.name}": ${fileError.message}`);
       }
     }
 
-    // Send the encrypted data to the server with CSRF protection
+    updateProgress('Uploading encrypted data...');
     const response = await CSRFHelper.fetchWithCSRF('/encrypt', {
       method: 'POST',
       body: JSON.stringify(payload)
@@ -121,21 +141,19 @@ async function encryptFiles(files, message, ttl, views, password = '', burnAfter
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to create encrypted message with files: ${response.status} ${response.statusText} - ${errorText}`);
+      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
 
-    // Generate link with the key in the fragment
     let link = window.location.origin + '/' + data.id;
-
-    // For non-password protected content, add the key to the fragment
     if (!password) {
       const exportedKey = await window.crypto.subtle.exportKey('raw', key.key);
       const keyBase64 = Base64.encode(exportedKey);
       link += '#' + keyBase64;
     }
 
+    updateProgress('Complete!');
     return link;
   } catch (error) {
     console.error('File encryption error:', error);

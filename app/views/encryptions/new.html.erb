@@ -206,6 +206,37 @@
           Encrypt & Generate Link
         </button>
       </div>
+      <!-- Progress Modal -->
+      <div id="encryptionProgress" class="modal" tabindex="-1" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Encrypting Your Data</h5>
+              <button type="button" class="btn-close" id="cancelEncryption" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                  <span id="progressStatus">Preparing encryption...</span>
+                  <span id="progressPercentage">0%</span>
+                </div>
+                <div class="progress" style="height: 20px;">
+                  <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span id="progressSpeed" class="text-muted small"></span>
+                <span id="progressETA" class="text-muted small"></span>
+              </div>
+              <div id="progressDetails" class="text-muted small mt-2"></div>
+              <div id="progressFileList" class="mt-3" style="display: none;">
+                <h6>Files:</h6>
+                <ul id="fileProgressList" class="small"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </form>
 
     <div id="resultContainer" class="mt-4 d-none">
@@ -638,60 +669,98 @@
     paginationElement.appendChild(nextItem);
   }
 
-  // Handle form submission
+  // Handle form submission with progress modal
   document.getElementById('encryptForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    // Get message from the rich text editor
     const message = document.getElementById('hidden_message').value;
-
     const ttl = parseInt(document.getElementById('ttlSelect').value);
     const views = parseInt(document.getElementById('viewsSelect').value);
     const usePassword = passwordToggle.checked;
     const password = usePassword ? passwordInput.value : '';
     const burnAfterReading = burnToggle.checked;
 
-    // Check if either message or files are provided
     if ((!message || message.trim() === '') && selectedFiles.length === 0) {
       alert('Please enter a message or select at least one file.');
       return;
     }
 
-    // If password protection is enabled, validate the password
     if (usePassword && (!password || password.length < 1)) {
       alert('Please enter a password.');
       return;
     }
 
     try {
-      // Show loading state
-      const submitBtn = this.querySelector('button[type="submit"]');
-      const originalText = submitBtn.innerHTML;
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+      const progressModal = document.getElementById('encryptionProgress');
+      const progressBar = document.getElementById('progressBar');
+      const progressStatus = document.getElementById('progressStatus');
+      const progressPercentage = document.getElementById('progressPercentage');
+      const progressDetails = document.getElementById('progressDetails');
+      const progressFileList = document.getElementById('progressFileList');
+      const fileProgressList = document.getElementById('fileProgressList');
+      const progressSpeed = document.getElementById('progressSpeed');
+      const progressETA = document.getElementById('progressETA');
+      const cancelBtn = document.getElementById('cancelEncryption');
+
+      progressBar.style.width = '0%';
+      progressPercentage.textContent = '0%';
+      progressStatus.textContent = 'Preparing encryption...';
+      progressDetails.textContent = '';
+      progressSpeed.textContent = '';
+      progressETA.textContent = '';
+      fileProgressList.innerHTML = '';
+      progressFileList.style.display = 'none';
+
+      progressModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
+      const cancelToken = { canceled: false };
+      cancelBtn.addEventListener('click', () => {
+        cancelToken.canceled = true;
+        progressModal.style.display = 'none';
+        document.body.style.overflow = '';
+      }, { once: true });
+
+      const handleProgress = ({ percentage, status, details, speed, eta }) => {
+        progressBar.style.width = percentage + '%';
+        progressPercentage.textContent = percentage + '%';
+        progressStatus.textContent = status;
+        progressDetails.textContent = details || '';
+        progressSpeed.textContent = speed ? speed.toFixed(2) + ' MB/s' : '';
+        progressETA.textContent = eta ? 'ETA: ' + eta.toFixed(1) + 's' : '';
+        if (details && selectedFiles.length > 0) {
+          progressFileList.style.display = 'block';
+          const item = document.createElement('li');
+          item.innerHTML = `<span>${details}</span><span class="file-status">✓</span>`;
+          item.classList.add('completed');
+          fileProgressList.appendChild(item);
+        }
+      };
 
       let link;
-
       if (selectedFiles.length > 0) {
-        // Encrypt files and message
         link = await encryptFiles(
           selectedFiles,
           message,
           ttl,
           views,
           password,
-          burnAfterReading
+          burnAfterReading,
+          handleProgress,
+          cancelToken
         );
       } else {
-        // Encrypt text message only
+        handleProgress({ percentage: 50, status: 'Encrypting message...' });
         link = await encryptMessage(message, ttl, views, password, burnAfterReading);
+        handleProgress({ percentage: 100, status: 'Complete!', speed: 0, eta: 0 });
       }
 
-      // Display the result
+      progressModal.style.display = 'none';
+      document.body.style.overflow = '';
+
       document.getElementById('encryptedLink').value = link;
       document.getElementById('resultContainer').classList.remove('d-none');
 
-      // Update result message based on password protection
       const resultMessage = document.getElementById('resultMessage');
       if (usePassword) {
         resultMessage.textContent = 'This link requires a password to access. Share both the link and password separately for maximum security.';
@@ -699,15 +768,10 @@
         resultMessage.textContent = 'This link contains the decryption key. Anyone with this link can view your message or download your files.';
       }
 
-      // Reset form state
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
       this.reset();
 
-      // Reset editor expansion
       const editorContainer = document.getElementById('richEditorContainer');
       const expandButton = document.getElementById('expandEditor');
-
       if (editorContainer.classList.contains('expanded')) {
         editorContainer.classList.remove('expanded');
         expandButton.innerHTML = `
@@ -718,17 +782,16 @@
         expandButton.title = "Expand editor";
       }
 
-      // Clear the rich text editor
       document.getElementById('richEditor').innerHTML = '';
       document.getElementById('hidden_message').value = '';
-
       selectedFiles = [];
       filesContainer.style.display = 'none';
       passwordContainer.style.display = 'none';
 
-      // Scroll to the result
       document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
+      document.getElementById('encryptionProgress').style.display = 'none';
+      document.body.style.overflow = '';
       alert('Error: ' + error.message);
       console.error(error);
     }
