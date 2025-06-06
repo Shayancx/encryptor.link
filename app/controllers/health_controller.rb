@@ -37,7 +37,7 @@ class HealthController < ApplicationController
 
   def check_recent_integrity
     recent_failures = AuditLog.where(
-      event_type: 'integrity_check_failed',
+      event_type: "integrity_check_failed",
       created_at: 24.hours.ago..Time.current
     ).count
 

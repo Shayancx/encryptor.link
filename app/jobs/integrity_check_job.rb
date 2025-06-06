@@ -11,9 +11,9 @@ class IntegrityCheckJob < ApplicationJob
           corrupted_payloads << payload.id
 
           AuditService.log(
-            event_type: 'integrity_check_failed',
+            event_type: "integrity_check_failed",
             payload_id: payload.id,
-            severity: 'critical',
+            severity: "critical",
             metadata: {
               checksum_mismatch: true,
               expected_checksum: payload.ciphertext_checksum,
@@ -34,8 +34,8 @@ class IntegrityCheckJob < ApplicationJob
 
     if corrupted_payloads.any? || corrupted_files.any?
       SecurityAlertService.send_alert(
-        severity: 'critical',
-        title: 'Data Integrity Check Failed',
+        severity: "critical",
+        title: "Data Integrity Check Failed",
         details: "Found #{corrupted_payloads.count} corrupted payloads and #{corrupted_files.count} corrupted files",
         metadata: {
           corrupted_payload_ids: corrupted_payloads,

@@ -10,10 +10,10 @@ class AdminUser < ApplicationRecord
   end
 
   def can_manage_admins?
-    role == 'super_admin'
+    role == "super_admin"
   end
 
   def can_export_audit_logs?
-    role == 'super_admin'
+    role == "super_admin"
   end
 end

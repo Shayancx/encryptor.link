@@ -39,7 +39,7 @@ class Admin::AuditLogsController < ApplicationController
       request.remote_ip
     )
 
-    render json: { message: 'Export started. You will receive an email when complete.' }
+    render json: { message: "Export started. You will receive an email when complete." }
   end
 
   private
@@ -52,7 +52,7 @@ class Admin::AuditLogsController < ApplicationController
     end
 
     if params[:event_types].present?
-      event_types = params[:event_types].split(',').map(&:strip)
+      event_types = params[:event_types].split(",").map(&:strip)
       logs = logs.where(event_type: event_types)
     end
 
@@ -83,7 +83,7 @@ class Admin::AuditLogsController < ApplicationController
     {
       audit_logs: @audit_logs.map do |log|
         log.as_json.merge(
-          formatted_created_at: log.created_at.strftime('%Y-%m-%d %H:%M:%S UTC'),
+          formatted_created_at: log.created_at.strftime("%Y-%m-%d %H:%M:%S UTC"),
           metadata_summary: summarize_metadata(log.metadata)
         )
       end,
@@ -103,7 +103,7 @@ class Admin::AuditLogsController < ApplicationController
         request: request,
         metadata: { admin_email: current_admin_user.email }
       )
-      raise StandardError, 'Export not authorized'
+      raise StandardError, "Export not authorized"
     end
   end
 
@@ -126,7 +126,7 @@ class Admin::AuditLogsController < ApplicationController
   end
 
   def send_csv_export
-    headers['Content-Disposition'] = "attachment; filename=audit_logs.csv"
+    headers["Content-Disposition"] = "attachment; filename=audit_logs.csv"
     render csv: @audit_logs.to_csv
   end
 end

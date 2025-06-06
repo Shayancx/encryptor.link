@@ -13,7 +13,7 @@ class CreateAuditLogs < ActiveRecord::Migration[8.0]
 
     add_index :audit_logs, :event_type
     add_index :audit_logs, :created_at
-    add_index :audit_logs, [:ip_address, :created_at]
+    add_index :audit_logs, [ :ip_address, :created_at ]
     add_index :audit_logs, :payload_id
   end
 end

@@ -32,8 +32,8 @@ class SecurityAlertService
 
       if recent_failures >= threshold[:count]
         send_alert(
-          severity: 'high',
-          title: 'Brute Force Attack Detected',
+          severity: "high",
+          title: "Brute Force Attack Detected",
           details: "#{recent_failures} failed login attempts from #{ip_address}",
           ip_address: ip_address
         )
@@ -50,8 +50,8 @@ class SecurityAlertService
 
       if hits >= threshold[:count]
         send_alert(
-          severity: 'medium',
-          title: 'Rate Limit Abuse',
+          severity: "medium",
+          title: "Rate Limit Abuse",
           details: "#{hits} rate limit triggers from #{ip_address}",
           ip_address: ip_address
         )
@@ -68,8 +68,8 @@ class SecurityAlertService
 
       if count >= threshold[:count]
         send_alert(
-          severity: 'high',
-          title: 'Payload Enumeration Detected',
+          severity: "high",
+          title: "Payload Enumeration Detected",
           details: "#{count} different payloads accessed from #{ip_address}",
           ip_address: ip_address
         )
@@ -78,8 +78,8 @@ class SecurityAlertService
 
     def send_immediate_alert(ip, metadata)
       send_alert(
-        severity: 'critical',
-        title: 'Suspicious Activity Detected',
+        severity: "critical",
+        title: "Suspicious Activity Detected",
         details: metadata.to_s,
         ip_address: ip
       )
@@ -93,9 +93,9 @@ class SecurityAlertService
         ip_address: ip_address
       ).deliver_now
 
-      if ENV['SLACK_SECURITY_WEBHOOK'].present?
+      if ENV["SLACK_SECURITY_WEBHOOK"].present?
         SlackNotificationJob.perform_later(
-          webhook_url: ENV['SLACK_SECURITY_WEBHOOK'],
+          webhook_url: ENV["SLACK_SECURITY_WEBHOOK"],
           message: "\u1F6A8 #{severity.upcase}: #{title}\n#{details}"
         )
       end
@@ -108,7 +108,7 @@ class SecurityAlertService
           alert_details: details,
           target_ip: ip_address
         },
-        severity: 'warning'
+        severity: "warning"
       )
     end
   end

@@ -3,7 +3,7 @@ module AdminAuthenticable
 
   included do
     before_action :require_admin_authentication
-    before_action :require_audit_permissions, only: [:index, :show]
+    before_action :require_audit_permissions, only: [ :index, :show ]
   end
 
   private
@@ -29,7 +29,7 @@ module AdminAuthenticable
           admin_role: current_admin_user&.role
         }
       )
-      render json: { error: 'Insufficient permissions' }, status: :forbidden
+      render json: { error: "Insufficient permissions" }, status: :forbidden
     end
   end
 

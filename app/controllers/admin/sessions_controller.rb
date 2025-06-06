@@ -19,7 +19,7 @@ class Admin::SessionsController < ApplicationController
         request: request,
         metadata: { attempted_email: params[:email] }
       )
-      flash[:error] = 'Invalid credentials'
+      flash[:error] = "Invalid credentials"
       render :new
     end
   end

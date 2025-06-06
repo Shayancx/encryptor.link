@@ -1,5 +1,5 @@
 class AdminAlertMailer < ApplicationMailer
-  default to: -> { ENV['ADMIN_ALERT_EMAIL'] || 'admin@example.com' }
+  default to: -> { ENV["ADMIN_ALERT_EMAIL"] || "admin@example.com" }
 
   def security_alert(severity:, title:, details:, ip_address: nil)
     @severity = severity

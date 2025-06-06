@@ -9,7 +9,7 @@ module Auditable
   private
 
   def audit_request
-    return if request.path == '/health'
+    return if request.path == "/health"
 
     AuditService.log(
       event_type: "#{controller_name}_#{action_name}",

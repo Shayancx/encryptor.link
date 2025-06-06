@@ -1,44 +1,44 @@
 class AuditService
   EVENTS = {
     # Existing events
-    payload_created: 'payload_created',
-    payload_accessed: 'payload_accessed',
-    payload_expired: 'payload_expired',
-    system_cleanup: 'system_cleanup',
+    payload_created: "payload_created",
+    payload_accessed: "payload_accessed",
+    payload_expired: "payload_expired",
+    system_cleanup: "system_cleanup",
 
     # Authentication events
-    admin_login_success: 'admin_login_success',
-    admin_login_failed: 'admin_login_failed',
-    admin_logout: 'admin_logout',
+    admin_login_success: "admin_login_success",
+    admin_login_failed: "admin_login_failed",
+    admin_logout: "admin_logout",
 
     # Authorization events
-    unauthorized_admin_access: 'unauthorized_admin_access',
-    unauthorized_audit_access: 'unauthorized_audit_access',
-    unauthorized_audit_export: 'unauthorized_audit_export',
+    unauthorized_admin_access: "unauthorized_admin_access",
+    unauthorized_audit_access: "unauthorized_audit_access",
+    unauthorized_audit_export: "unauthorized_audit_export",
 
     # Rate limiting events
-    rate_limit_exceeded: 'rate_limit_exceeded',
-    blocked_request: 'blocked_request',
-    safelisted_request: 'safelisted_request',
+    rate_limit_exceeded: "rate_limit_exceeded",
+    blocked_request: "blocked_request",
+    safelisted_request: "safelisted_request",
 
     # Security events
-    suspicious_activity: 'suspicious_activity',
-    payload_enumeration_attempt: 'payload_enumeration_attempt',
-    invalid_payload_access: 'invalid_payload_access',
-    password_brute_force: 'password_brute_force',
-    malformed_request: 'malformed_request',
+    suspicious_activity: "suspicious_activity",
+    payload_enumeration_attempt: "payload_enumeration_attempt",
+    invalid_payload_access: "invalid_payload_access",
+    password_brute_force: "password_brute_force",
+    malformed_request: "malformed_request",
 
     # Data events
-    audit_log_cleanup: 'audit_log_cleanup',
-    admin_created: 'admin_created',
-    admin_deleted: 'admin_deleted',
-    security_alert_sent: 'security_alert_sent',
-    audit_log_viewed: 'audit_log_viewed'
+    audit_log_cleanup: "audit_log_cleanup",
+    admin_created: "admin_created",
+    admin_deleted: "admin_deleted",
+    security_alert_sent: "security_alert_sent",
+    audit_log_viewed: "audit_log_viewed"
   }.freeze
 
-  def self.log(event_type:, request: nil, payload_id: nil, metadata: {}, severity: 'info')
+  def self.log(event_type:, request: nil, payload_id: nil, metadata: {}, severity: "info")
     if request && suspicious_request?(request, event_type, metadata)
-      severity = 'critical'
+      severity = "critical"
       original = event_type
       event_type = EVENTS[:suspicious_activity]
       metadata[:original_event] = original
@@ -70,9 +70,9 @@ class AuditService
 
     def detect_threat_indicators(request, metadata)
       indicators = []
-      indicators << 'rapid_requests' if rapid_requests?(request.ip)
-      indicators << 'invalid_user_agent' if invalid_user_agent?(request.user_agent)
-      indicators << 'payload_enumeration' if payload_enumeration?(request.ip)
+      indicators << "rapid_requests" if rapid_requests?(request.ip)
+      indicators << "invalid_user_agent" if invalid_user_agent?(request.user_agent)
+      indicators << "payload_enumeration" if payload_enumeration?(request.ip)
       indicators
     end
 
