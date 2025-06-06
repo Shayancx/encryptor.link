@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_07_121000) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_07_122000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -93,8 +93,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_121000) do
     t.integer "file_size", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "file_data_checksum"
     t.index ["encrypted_payload_id"], name: "idx_encrypted_files_payload"
     t.index ["encrypted_payload_id"], name: "index_encrypted_files_on_encrypted_payload_id"
+    t.index ["file_data_checksum"], name: "index_encrypted_files_on_file_data_checksum"
   end
 
   create_table "encrypted_payloads", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -107,7 +109,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_121000) do
     t.boolean "password_protected", default: false, null: false
     t.binary "password_salt"
     t.boolean "burn_after_reading", default: false, null: false
+    t.string "ciphertext_checksum"
+    t.string "nonce_checksum"
     t.index ["burn_after_reading"], name: "index_encrypted_payloads_on_burn_after_reading"
+    t.index ["ciphertext_checksum"], name: "index_encrypted_payloads_on_ciphertext_checksum"
     t.index ["created_at"], name: "idx_payloads_created_at"
     t.index ["expires_at", "remaining_views"], name: "idx_payloads_cleanup"
     t.index ["expires_at"], name: "index_encrypted_payloads_on_expires_at"
