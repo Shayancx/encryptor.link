@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  namespace :admin do
+    resources :audit_logs, only: [:index]
+  end
   # Health check endpoint
   get "/health", to: "health#show"
   post   "/encrypt", to: "encryptions#create"

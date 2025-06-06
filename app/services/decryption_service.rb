@@ -28,6 +28,16 @@ class DecryptionService
 
       data = build_response_data(payload)
       schedule_deletion(payload) if should_delete
+
+      AuditService.log(
+        event_type: AuditService::EVENTS[:payload_accessed],
+        payload_id: @payload_id,
+        metadata: {
+          remaining_views: payload.remaining_views,
+          burn_after_reading: payload.burn_after_reading
+        }
+      )
+
       data
     end
   end
