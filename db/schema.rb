@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_06_193100) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_07_121000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -53,6 +53,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_06_193100) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "admin_users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "email", null: false
+    t.string "password_digest", null: false
+    t.string "role", null: false
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_admin_users_on_email", unique: true
+    t.index ["role"], name: "index_admin_users_on_role"
+  end
+
   create_table "audit_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "event_type", null: false
     t.string "endpoint"
@@ -63,10 +74,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_06_193100) do
     t.string "severity", default: "info"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index "((metadata)::jsonb)", name: "idx_audit_logs_metadata_gin", using: :gin
+    t.index ["created_at"], name: "idx_audit_logs_critical_time", where: "((severity)::text = ANY ((ARRAY['warning'::character varying, 'critical'::character varying])::text[]))"
     t.index ["created_at"], name: "index_audit_logs_on_created_at"
+    t.index ["event_type", "created_at"], name: "idx_audit_logs_event_time"
     t.index ["event_type"], name: "index_audit_logs_on_event_type"
+    t.index ["ip_address", "created_at"], name: "idx_audit_logs_ip_time"
     t.index ["ip_address", "created_at"], name: "index_audit_logs_on_ip_and_time"
     t.index ["payload_id"], name: "index_audit_logs_on_payload_id"
+    t.index ["severity", "created_at"], name: "idx_audit_logs_severity_time"
   end
 
   create_table "encrypted_files", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
