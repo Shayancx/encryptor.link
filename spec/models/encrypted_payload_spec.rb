@@ -48,6 +48,23 @@ RSpec.describe EncryptedPayload, type: :model do
       expect(payload.ciphertext.encoding.name).to eq("ASCII-8BIT")
     end
   end
+
+  describe 'checksums' do
+    it 'calculates checksums before save' do
+      payload = build(:encrypted_payload)
+      expect(payload.ciphertext_checksum).to be_nil
+      payload.save!
+      expect(payload.ciphertext_checksum).to eq(Digest::SHA256.hexdigest(payload.ciphertext))
+      expect(payload.nonce_checksum).to eq(Digest::SHA256.hexdigest(payload.nonce))
+    end
+
+    it 'verifies integrity' do
+      payload = create(:encrypted_payload)
+      expect(payload.send(:verify_integrity)).to be true
+      payload.update_column(:ciphertext, 'corrupt')
+      expect(payload.send(:verify_integrity)).to be false
+    end
+  end
   describe 'ttl_within_limit' do
     it 'disallows expiration beyond 7 days for persisted records' do
       payload = create(:encrypted_payload, expires_at: 6.days.from_now)

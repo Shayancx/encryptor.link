@@ -23,4 +23,20 @@ RSpec.describe EncryptedFile, type: :model do
       expect(file.errors[:file_size]).to include("cannot exceed 1000MB")
     end
   end
+
+  describe 'checksums' do
+    it 'calculates file checksum before save' do
+      file = build(:encrypted_file)
+      expect(file.file_data_checksum).to be_nil
+      file.save!
+      expect(file.file_data_checksum).to eq(Digest::SHA256.hexdigest(file.file_data))
+    end
+
+    it 'verifies integrity' do
+      file = create(:encrypted_file)
+      expect(file.send(:verify_integrity)).to be true
+      file.update_column(:file_data, 'corrupt')
+      expect(file.send(:verify_integrity)).to be false
+    end
+  end
 end
