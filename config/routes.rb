@@ -1,6 +1,16 @@
 Rails.application.routes.draw do
   namespace :admin do
-    resources :audit_logs, only: [:index]
+    get 'login', to: 'sessions#new'
+    post 'login', to: 'sessions#create'
+    delete 'logout', to: 'sessions#destroy'
+
+    resources :audit_logs, only: [:index, :show] do
+      collection do
+        post :export
+        get :stats
+        get :dashboard
+      end
+    end
   end
   # Health check endpoint
   get "/health", to: "health#show"

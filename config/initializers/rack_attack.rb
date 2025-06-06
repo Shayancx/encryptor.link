@@ -47,4 +47,34 @@ class Rack::Attack
     }
     [ 429, headers, [ { error: "Rate limit exceeded. Please try again later." }.to_json ] ]
   end
+
+  # Integrate with audit logging
+  ActiveSupport::Notifications.subscribe(/rack\.attack/) do |name, start, finish, request_id, payload|
+    req = payload[:request]
+
+    if req.env['rack.attack.matched']
+      event_type = case req.env['rack.attack.match_type']
+                   when :throttle
+                     AuditService::EVENTS[:rate_limit_exceeded]
+                   when :blocklist
+                     AuditService::EVENTS[:blocked_request]
+                   when :safelist
+                     AuditService::EVENTS[:safelisted_request]
+                   else
+                     AuditService::EVENTS[:suspicious_activity]
+                   end
+
+      AuditService.log(
+        event_type: event_type,
+        request: req,
+        metadata: {
+          throttle_name: req.env['rack.attack.matched'],
+          match_type: req.env['rack.attack.match_type'],
+          discriminator: req.env['rack.attack.match_discriminator'],
+          match_data: req.env['rack.attack.match_data']
+        },
+        severity: 'warning'
+      )
+    end
+  end
 end
