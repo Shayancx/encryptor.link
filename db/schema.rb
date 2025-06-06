@@ -53,6 +53,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_06_193100) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "audit_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "event_type", null: false
+    t.string "endpoint"
+    t.uuid "payload_id"
+    t.string "ip_address"
+    t.string "user_agent"
+    t.json "metadata"
+    t.string "severity", default: "info"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_audit_logs_on_created_at"
+    t.index ["event_type"], name: "index_audit_logs_on_event_type"
+    t.index ["ip_address", "created_at"], name: "index_audit_logs_on_ip_and_time"
+    t.index ["payload_id"], name: "index_audit_logs_on_payload_id"
+  end
+
   create_table "encrypted_files", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "encrypted_payload_id", null: false
     t.text "file_data", null: false
@@ -79,22 +95,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_06_193100) do
     t.index ["created_at"], name: "idx_payloads_created_at"
     t.index ["expires_at", "remaining_views"], name: "idx_payloads_cleanup"
     t.index ["expires_at"], name: "index_encrypted_payloads_on_expires_at"
-  end
-
-  create_table "audit_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "event_type", null: false
-    t.string "endpoint"
-    t.uuid "payload_id"
-    t.string "ip_address"
-    t.string "user_agent"
-    t.json "metadata"
-    t.string "severity", default: "info"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["created_at"], name: "index_audit_logs_on_created_at"
-    t.index ["event_type"], name: "index_audit_logs_on_event_type"
-    t.index ["ip_address", "created_at"], name: "index_audit_logs_on_ip_and_time"
-    t.index ["payload_id"], name: "index_audit_logs_on_payload_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
