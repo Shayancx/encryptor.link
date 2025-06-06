@@ -5,7 +5,7 @@ class AddAuditLogPerformanceIndexes < ActiveRecord::Migration[8.0]
     add_index :audit_logs, [:severity, :created_at], name: 'idx_audit_logs_severity_time'
 
     if connection.adapter_name.downcase.include?('postgresql')
-      execute "CREATE INDEX idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata)"
+      execute "CREATE INDEX idx_audit_logs_metadata_gin ON audit_logs USING GIN ((metadata::jsonb))"
     end
 
     add_index :audit_logs, :created_at,
