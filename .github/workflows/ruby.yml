@@ -38,6 +38,7 @@ jobs:
       PGHOST: localhost
       PGUSER: postgres
       PGPASSWORD: postgres
+      SECRET_KEY_BASE: test_secret_key_base_for_ci_environment_minimum_64_characters_long_1234567890
 
     steps:
     - name: Checkout code

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_07_123000) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_08_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -75,7 +75,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_123000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index "((metadata)::jsonb)", name: "idx_audit_logs_metadata_gin", using: :gin
-    t.index ["created_at"], name: "idx_audit_logs_critical_time", where: "((severity)::text = ANY ((ARRAY['warning'::character varying, 'critical'::character varying])::text[]))"
+    t.index ["created_at"], name: "idx_audit_logs_critical_time", where: "((severity)::text = ANY (ARRAY[('warning'::character varying)::text, ('critical'::character varying)::text]))"
     t.index ["created_at"], name: "index_audit_logs_on_created_at"
     t.index ["event_type", "created_at"], name: "idx_audit_logs_event_time"
     t.index ["event_type"], name: "index_audit_logs_on_event_type"
@@ -98,6 +98,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_123000) do
     t.index ["certificate_id"], name: "index_destruction_certificates_on_certificate_id", unique: true
     t.index ["created_at"], name: "index_destruction_certificates_on_created_at"
     t.index ["encrypted_payload_id"], name: "index_destruction_certificates_on_encrypted_payload_id"
+    t.check_constraint "length(certificate_data) > 0", name: "check_certificate_data_not_empty"
   end
 
   create_table "encrypted_files", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
