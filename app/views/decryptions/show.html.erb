@@ -358,6 +358,17 @@
         </div>`;
       document.getElementById('messageContainer').prepend(burnWarning);
     }
+
+    if (payloadData.destruction_certificate_id) {
+      const certificateUrl = `/certificates/${payloadData.destruction_certificate_id}.txt`;
+      showDestructionNotice(`
+        <div class="destruction-certificate-notice mb-4">
+          <h4>🔒 Message Permanently Destroyed</h4>
+          <p>This message has been cryptographically destroyed and cannot be recovered.</p>
+          <a href="${certificateUrl}" download class="btn btn-secondary">Download Proof of Destruction Certificate</a>
+        </div>
+      `);
+    }
   }
 
   // Update files list with GitHub-style file list
@@ -519,6 +530,13 @@
     nextItem.className = 'gh-page-item';
     nextItem.appendChild(nextButton);
     paginationElement.appendChild(nextItem);
+  }
+
+  function showDestructionNotice(html) {
+    const container = document.getElementById('messageContainer');
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html.trim();
+    container.prepend(wrapper.firstElementChild);
   }
 
   // Handle copy message button

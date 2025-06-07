@@ -75,5 +75,14 @@ RSpec.describe DecryptionService do
         service.retrieve_data
       }.to change { EncryptedPayload.exists?(payload.id) }.from(true).to(false)
     end
+
+    it 'returns destruction certificate id on last view' do
+      payload = create(:encrypted_payload, remaining_views: 1)
+      service = described_class.new(payload.id)
+      data = service.retrieve_data
+      expect(data[:destruction_certificate_id]).to be_present
+      cert = DestructionCertificate.find_by(certificate_id: data[:destruction_certificate_id])
+      expect(cert).not_to be_nil
+    end
   end
 end

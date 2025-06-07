@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   end
   # Health check endpoint
   get "/health", to: "health#show"
+  get "/certificates/:id", to: "certificates#show", as: :certificate
+  get "/certificates/verify/:hash", to: "certificates#verify", as: :verify_certificate
   post   "/encrypt", to: "encryptions#create"
   get    "/check", to: "payload_infos#new", as: :check_link
   get    "/:id/info", to: "decryptions#info", as: :payload_info

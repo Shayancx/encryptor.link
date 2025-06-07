@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_07_122000) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_07_123000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -83,6 +83,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_122000) do
     t.index ["ip_address", "created_at"], name: "index_audit_logs_on_ip_and_time"
     t.index ["payload_id"], name: "index_audit_logs_on_payload_id"
     t.index ["severity", "created_at"], name: "idx_audit_logs_severity_time"
+  end
+
+  create_table "destruction_certificates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "certificate_id", null: false
+    t.string "certificate_hash", null: false
+    t.text "certificate_data", null: false
+    t.json "payload_metadata"
+    t.string "destruction_reason"
+    t.uuid "encrypted_payload_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["certificate_hash"], name: "index_destruction_certificates_on_certificate_hash", unique: true
+    t.index ["certificate_id"], name: "index_destruction_certificates_on_certificate_id", unique: true
+    t.index ["created_at"], name: "index_destruction_certificates_on_created_at"
+    t.index ["encrypted_payload_id"], name: "index_destruction_certificates_on_encrypted_payload_id"
   end
 
   create_table "encrypted_files", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

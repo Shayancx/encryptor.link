@@ -18,7 +18,9 @@ class DecryptionService
 
       # For burn after reading, always delete immediately
       if payload.burn_after_reading
+        certificate = DestructionCertificateService.generate_for_payload(payload, "burn_after_reading")
         data = build_response_data(payload)
+        data[:destruction_certificate_id] = certificate.certificate_id
         payload.destroy
         return data
       end
@@ -27,7 +29,11 @@ class DecryptionService
       should_delete = payload.remaining_views <= 0
 
       data = build_response_data(payload)
-      schedule_deletion(payload) if should_delete
+      if should_delete
+        certificate = DestructionCertificateService.generate_for_payload(payload, "final_view")
+        data[:destruction_certificate_id] = certificate.certificate_id
+        schedule_deletion(payload)
+      end
 
       AuditService.log(
         event_type: AuditService::EVENTS[:payload_accessed],
