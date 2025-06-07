@@ -1,0 +1,12 @@
+<h1>Complete Registration</h1>
+<p>Decrypt the message below with your PGP private key and enter the code to finish creating your account.</p>
+<div class="mb-3">
+  <textarea class="form-control" rows="10" readonly><%= @encrypted_message %></textarea>
+</div>
+<%= form_with url: verify_pgp_registration_path, local: true do |f| %>
+  <div class="mb-3">
+    <%= f.label :code, "Decrypted Code" %>
+    <%= f.text_field :code, class: "form-control" %>
+  </div>
+  <%= f.submit "Verify", class: "btn btn-primary" %>
+<% end %>

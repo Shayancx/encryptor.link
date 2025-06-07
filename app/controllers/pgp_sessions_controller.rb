@@ -12,7 +12,7 @@ class PgpSessionsController < ApplicationController
     if PgpService.verify_signature(account.pgp_public_key, challenge.nonce, params[:signature])
       challenge.destroy
       rodauth.account_from_id(account.id)
-      rodauth.login('pgp')
+      rodauth.login("pgp")
       render json: { logged_in: true }
     else
       head :unauthorized
