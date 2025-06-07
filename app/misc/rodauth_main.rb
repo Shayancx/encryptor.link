@@ -3,7 +3,8 @@ require "sequel/core"
 class RodauthMain < Rodauth::Rails::Auth
   configure do
     # List of authentication features that are loaded.
-    enable :create_account, :login, :logout, :remember, :close_account
+    enable :create_account, :login, :logout, :remember, :close_account,
+           :verify_account, :reset_password
 
     # See the Rodauth documentation for the list of available config options:
     # http://rodauth.jeremyevans.net/documentation.html
