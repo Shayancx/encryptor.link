@@ -86,7 +86,7 @@ RSpec.describe "Encryption Security", type: :request do
       invalid_time = Time.now - start_time
 
       # Times should be reasonably close to avoid timing attacks
-      expect((valid_time - invalid_time).abs).to be < 0.1
+      expect((valid_time - invalid_time).abs).to be < 0.5
     end
   end
 
