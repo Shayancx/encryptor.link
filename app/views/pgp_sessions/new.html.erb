@@ -17,16 +17,36 @@
 </form>
 <script>
   document.getElementById('fetch-challenge').addEventListener('click', async () => {
-    const resp = await fetch('/pgp_challenges', { method: 'POST', headers: { 'X-CSRF-Token': document.querySelector('meta[name=csrf-token]').content } });
-    const data = await resp.json();
-    document.getElementById('nonce').value = data.nonce;
+    const fingerprint = document.getElementById('fingerprint').value.trim();
+    if (!fingerprint) { alert('Fingerprint required'); return; }
+    const resp = await fetch('/pgp_challenges', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name=csrf-token]').content
+      },
+      body: JSON.stringify({ fingerprint })
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      document.getElementById('nonce').value = data.nonce;
+    } else {
+      alert('Challenge not found');
+    }
   });
 
   document.getElementById('sign-login').addEventListener('click', async () => {
     const nonce = document.getElementById('nonce').value;
     const passphrase = document.getElementById('passphrase').value;
-    const fingerprint = document.getElementById('fingerprint').value;
-    const signature = await PgpAuth.signNonce(nonce, passphrase);
+    const fingerprint = document.getElementById('fingerprint').value.trim();
+    if (!nonce) { alert('Fetch challenge first'); return; }
+    let signature;
+    try {
+      signature = await PgpAuth.signNonce(fingerprint, nonce, passphrase);
+    } catch (e) {
+      alert(e.message);
+      return;
+    }
     const resp = await fetch('/pgp_login', {
       method: 'POST',
       headers: {

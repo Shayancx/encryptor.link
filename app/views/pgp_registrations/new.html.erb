@@ -5,5 +5,24 @@
     <%= f.label :pgp_public_key, "PGP Public Key" %>
     <%= f.text_area :pgp_public_key, rows: 10, value: @public_key, class: "form-control" %>
   </div>
+  <div class="mb-3">
+    <button type="button" id="generate-key" class="btn btn-secondary">Generate Key</button>
+  </div>
   <%= f.submit "Register", class: "btn btn-primary" %>
 <% end %>
+
+<script>
+  document.getElementById('generate-key').addEventListener('click', async () => {
+    const name = prompt('Name for the key', 'user') || 'user';
+    const email = prompt('Email (optional)') || undefined;
+    const passphrase = prompt('Passphrase to protect private key');
+    if (!passphrase) { alert('Passphrase required'); return; }
+    try {
+      const { publicKey, fingerprint } = await PgpAuth.generateKey(name, email, passphrase);
+      document.querySelector('textarea[name="pgp_public_key"]').value = publicKey;
+      alert('Key generated and stored locally. Fingerprint: ' + fingerprint);
+    } catch (e) {
+      alert(e.message);
+    }
+  });
+</script>
