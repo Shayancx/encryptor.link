@@ -75,7 +75,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_08_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index "((metadata)::jsonb)", name: "idx_audit_logs_metadata_gin", using: :gin
-    t.index ["created_at"], name: "idx_audit_logs_critical_time", where: "((severity)::text = ANY (ARRAY[('warning'::character varying)::text, ('critical'::character varying)::text]))"
+    t.index ["created_at"], name: "idx_audit_logs_critical_time", where: "((severity)::text = ANY ((ARRAY['warning'::character varying, 'critical'::character varying])::text[]))"
     t.index ["created_at"], name: "index_audit_logs_on_created_at"
     t.index ["event_type", "created_at"], name: "idx_audit_logs_event_time"
     t.index ["event_type"], name: "index_audit_logs_on_event_type"

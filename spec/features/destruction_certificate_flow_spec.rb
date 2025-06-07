@@ -1,7 +1,7 @@
 require 'rails_helper'
 
-RSpec.feature "Destruction Certificate Flow", type: :feature, js: true do
-  scenario "Certificate is generated when message is destroyed" do
+RSpec.feature "Destruction Certificate Flow", type: :feature do
+  scenario "Certificate is generated when message is destroyed", js: true do
     payload = create(:encrypted_payload, remaining_views: 1)
 
     visit "/#{payload.id}#testkey"
@@ -13,7 +13,7 @@ RSpec.feature "Destruction Certificate Flow", type: :feature, js: true do
     expect(certificate.destruction_reason).to eq("final_view")
   end
 
-  scenario "Burn after reading generates immediate certificate" do
+  scenario "Burn after reading generates immediate certificate", js: true do
     payload = create(:encrypted_payload, burn_after_reading: true)
 
     visit "/#{payload.id}#testkey"
