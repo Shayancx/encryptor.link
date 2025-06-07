@@ -14,6 +14,11 @@ Rails.application.routes.draw do
   end
   mount RodauthApp, at: "/auth"
 
+  get  "/register", to: "pgp_registrations#new", as: :register
+  post "/register", to: "pgp_registrations#create"
+  get  "/pgp_login", to: "pgp_sessions#new", as: :pgp_login_form
+  post "/pgp_login", to: "pgp_sessions#create", as: :pgp_login
+
   resources :pgp_challenges, only: [:create] do
     collection do
       post :verify

@@ -1,0 +1,9 @@
+<h1>Register with PGP</h1>
+
+<%= form_with url: register_path, local: true do |f| %>
+  <div class="mb-3">
+    <%= f.label :pgp_public_key, "PGP Public Key" %>
+    <%= f.text_area :pgp_public_key, rows: 10, value: @public_key, class: "form-control" %>
+  </div>
+  <%= f.submit "Register", class: "btn btn-primary" %>
+<% end %>

@@ -1,0 +1,44 @@
+<h1>PGP Login</h1>
+<form id="pgp-login-form" action="javascript:void(0)">
+  <div class="mb-3">
+    <label for="fingerprint" class="form-label">PGP Fingerprint</label>
+    <input id="fingerprint" class="form-control" />
+  </div>
+  <div class="mb-3">
+    <button type="button" id="fetch-challenge" class="btn btn-secondary">Get Challenge</button>
+  </div>
+  <div class="mb-3">
+    <textarea id="nonce" class="form-control" readonly></textarea>
+  </div>
+  <div class="mb-3">
+    <input type="password" id="passphrase" placeholder="Passphrase" class="form-control" />
+  </div>
+  <button type="button" id="sign-login" class="btn btn-primary">Sign & Login</button>
+</form>
+<script>
+  document.getElementById('fetch-challenge').addEventListener('click', async () => {
+    const resp = await fetch('/pgp_challenges', { method: 'POST', headers: { 'X-CSRF-Token': document.querySelector('meta[name=csrf-token]').content } });
+    const data = await resp.json();
+    document.getElementById('nonce').value = data.nonce;
+  });
+
+  document.getElementById('sign-login').addEventListener('click', async () => {
+    const nonce = document.getElementById('nonce').value;
+    const passphrase = document.getElementById('passphrase').value;
+    const fingerprint = document.getElementById('fingerprint').value;
+    const signature = await PgpAuth.signNonce(nonce, passphrase);
+    const resp = await fetch('/pgp_login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name=csrf-token]').content
+      },
+      body: JSON.stringify({ fingerprint, nonce, signature })
+    });
+    if (resp.ok) {
+      window.location = '/';
+    } else {
+      alert('Login failed');
+    }
+  });
+</script>

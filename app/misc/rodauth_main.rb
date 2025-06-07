@@ -3,10 +3,7 @@ require "sequel/core"
 class RodauthMain < Rodauth::Rails::Auth
   configure do
     # List of authentication features that are loaded.
-    enable :create_account, :verify_account, :verify_account_grace_period,
-      :login, :logout, :remember,
-      :reset_password, :change_password, :change_login, :verify_login_change,
-      :close_account
+    enable :create_account, :login, :logout, :remember, :close_account
 
     # See the Rodauth documentation for the list of available config options:
     # http://rodauth.jeremyevans.net/documentation.html
@@ -41,14 +38,11 @@ class RodauthMain < Rodauth::Rails::Auth
     account_status_column :status
 
     # Store password hash in a column instead of a separate table.
-    account_password_hash_column :password_hash
+    account_password_hash_column nil
 
-    # Set password when creating account instead of when verifying.
-    verify_account_set_password? false
 
     # Change some default param keys.
-    login_param "email"
-    login_confirm_param "email-confirm"
+    login_param "pgp_fingerprint"
     # password_confirm_param "confirm_password"
 
     # Redirect back to originally requested location after authentication.

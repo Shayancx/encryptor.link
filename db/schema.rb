@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_08_000002) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_08_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -50,10 +50,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_08_000002) do
 
   create_table "accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.integer "status", default: 1, null: false
-    t.citext "email", null: false
+    t.citext "email"
     t.string "password_hash"
     t.text "pgp_public_key"
-    t.index ["email"], name: "index_accounts_on_email", unique: true, where: "(status = ANY (ARRAY[1, 2]))"
+    t.string "pgp_fingerprint"
+    t.index ["email"], name: "index_accounts_on_email", unique: true, where: "((email IS NOT NULL) AND (status = ANY (ARRAY[1, 2])))"
+    t.index ["pgp_fingerprint"], name: "index_accounts_on_pgp_fingerprint", unique: true
     t.check_constraint "email ~ '^[^,;@ \r\n]+@[^,@; \r\n]+.[^,@; \r\n]+$'::citext", name: "valid_email"
   end
 

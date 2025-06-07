@@ -19,4 +19,13 @@ class PgpService
     Rails.logger.error("PGP signature verify error: #{e.message}")
     false
   end
+
+  def self.fingerprint(ascii_key)
+    ctx = GPGME::Ctx.new
+    result = ctx.import(ascii_key)
+    result.imports.first&.fpr
+  rescue GPGME::Error => e
+    Rails.logger.error("PGP fingerprint error: #{e.message}")
+    nil
+  end
 end
