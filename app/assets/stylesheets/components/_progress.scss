@@ -46,3 +46,15 @@
   font-size: $font-size-lg;
   line-height: 1;
 }
+
+// Progress indicator inside action buttons
+.btn-progress {
+  position: relative;
+  pointer-events: none;
+}
+
+.btn-progress .dots::after {
+  content: '.';
+  margin-left: 2px;
+  animation: dotAnimation 1s infinite steps(1, end);
+}
