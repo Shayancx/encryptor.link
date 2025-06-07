@@ -8,6 +8,8 @@ A zero-knowledge, client-side encrypted message and file sharing service. Send e
 
 - 🔒 **Zero-knowledge encryption**: All encryption and decryption happens in your browser
 - 💥 **Self-destructing messages**: Messages expire after viewing or a set time period
+- 🔑 **PGP-secured accounts with 2FA**: Optional account system uses Rodauth with
+  PGP-based challenge response. Private keys never leave your browser.
 - 📁 **File sharing**: Send encrypted files up to 1000MB
 - 🔑 **Client-side security**: The server never sees your unencrypted data
 - 🌓 **Dark/light mode**: Toggle between themes for comfortable viewing
@@ -47,6 +49,7 @@ cd encryptor.link
 2. Install dependencies
 ```bash
 bundle install
+sudo apt-get install -y libgpgme-dev # required for PGP operations
 ```
 
 3. Setup the database
@@ -60,6 +63,9 @@ bin/dev
 ```
 
 5. Visit http://localhost:3000 in your browser
+
+### PGP Authentication
+Client-side PGP operations use [OpenPGP.js](https://github.com/openpgpjs/openpgpjs) shipped with the app. When creating an account you either paste an existing public key or generate one in the browser. The private key never leaves your machine. During login, the server issues a nonce which must be signed with your private key using the bundled JavaScript helpers.
 
 ### Testing
 

@@ -8,6 +8,8 @@ gem "pg"
 gem "puma"
 gem "bcrypt", "~> 3.1"
 gem "csv"
+gem "rodauth-rails"
+gem "gpgme"
 
 # Assets
 gem "bootstrap", "~> 5.3"
@@ -44,3 +46,9 @@ gem "rack-attack"
 group :test do
   gem "rails-controller-testing"
 end
+# Enables Sequel to use Active Record's database connection
+gem "sequel-activerecord_connection", "~> 2.0", require: false
+# Used by Rodauth for password hashing
+gem "bcrypt", "~> 3.1", require: false
+# Used by Rodauth for rendering built-in view and email templates
+gem "tilt", "~> 2.4", require: false

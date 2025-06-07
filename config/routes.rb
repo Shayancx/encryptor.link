@@ -12,6 +12,13 @@ Rails.application.routes.draw do
       end
     end
   end
+  mount RodauthApp, at: "/auth"
+
+  resources :pgp_challenges, only: [:create] do
+    collection do
+      post :verify
+    end
+  end
   # Health check endpoint
   get "/health", to: "health#show"
   get "/certificates/:id", to: "certificates#show", as: :certificate
