@@ -104,8 +104,12 @@ RSpec.describe DecryptionsController, type: :controller do
 
     context 'concurrent access' do
       it 'handles race conditions safely' do
-        # Skip this test as it's complex to test properly
-        skip "Concurrent access testing requires more complex setup"
+        payload = create(:encrypted_payload, remaining_views: 2)
+
+        2.times { DecryptionService.new(payload.id).retrieve_data }
+        reloaded = EncryptedPayload.find_by(id: payload.id)
+        remaining = reloaded&.remaining_views || 0
+        expect(remaining).to eq(0)
       end
     end
   end
