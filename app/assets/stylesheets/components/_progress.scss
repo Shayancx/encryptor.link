@@ -1,53 +1,48 @@
-// Progress modal styles
-.modal {
+// Bottom status progress indicator
+.encryption-status {
   position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1050;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background-color: rgba(0, 0, 0, 0.5);
+  bottom: spacer(4);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background-color: var(--gh-card-bg);
+  color: var(--gh-text-primary);
+  padding: spacer(2) spacer(3);
+  border-radius: $border-radius-base;
+  box-shadow: var(--gh-shadow-small);
+  font-style: italic;
+  font-weight: $font-weight-medium;
   display: flex;
   align-items: center;
-  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity $transition-base, transform $transition-base;
+  z-index: 1080;
 }
 
-.modal-content {
-  background-color: var(--gh-card-bg);
-  border: 1px solid var(--gh-border-color);
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+.encryption-status.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
-.progress {
-  background-color: var(--gh-bg-secondary);
-  border-radius: 4px;
-  overflow: hidden;
+.encryption-status .dots::after {
+  content: '.';
+  margin-left: 2px;
+  animation: dotAnimation 1s infinite steps(1, end);
 }
 
-.progress-bar {
-  background-color: var(--gh-accent-color);
-  transition: width 0.3s ease;
+@keyframes dotAnimation {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
 }
 
-#fileProgressList {
-  max-height: 150px;
-  overflow-y: auto;
-  list-style: none;
-  padding-left: 0;
-  
-  li {
-    padding: 4px 0;
-    display: flex;
-    justify-content: space-between;
-    
-    .file-status {
-      color: var(--gh-text-secondary);
-    }
-    
-    &.completed .file-status {
-      color: var(--gh-success-color);
-    }
-  }
+.status-cancel {
+  background: none;
+  border: none;
+  color: inherit;
+  margin-left: spacer(2);
+  cursor: pointer;
+  font-size: $font-size-lg;
+  line-height: 1;
 }
