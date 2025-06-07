@@ -10,14 +10,20 @@ RSpec.describe IntegrityCheckJob, type: :job do
       file.update_column(:file_data, 'bad')
 
       called = nil
+      original = SecurityAlertService.method(:send_alert)
       SecurityAlertService.singleton_class.class_eval do
         public :send_alert
         define_method(:send_alert) { |**args| called = args }
       end
 
-      expect { described_class.new.perform }.not_to raise_error
-      expect(called[:severity]).to eq('critical')
-      expect(called[:title]).to eq('Data Integrity Check Failed')
+      begin
+        expect { described_class.new.perform }.not_to raise_error
+        expect(called[:severity]).to eq('critical')
+        expect(called[:title]).to eq('Data Integrity Check Failed')
+      ensure
+        SecurityAlertService.singleton_class.send(:define_method, :send_alert, original)
+        SecurityAlertService.singleton_class.send(:private, :send_alert)
+      end
     end
   end
 end
