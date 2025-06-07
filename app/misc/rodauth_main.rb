@@ -46,6 +46,9 @@ class RodauthMain < Rodauth::Rails::Auth
     login_param "pgp_fingerprint"
     # password_confirm_param "confirm_password"
 
+    # Logins do not use email addresses
+    require_email_address_logins? false
+
     # Redirect back to originally requested location after authentication.
     # login_return_to_requested_location? true
     # two_factor_auth_return_to_requested_location? true # if using MFA
