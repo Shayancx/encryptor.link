@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
   connect() {
-    this.originalFetch = window.fetch;
+    this.originalFetch = window.fetch.bind(window);
     window.fetch = async (...args) => {
       const response = await this.originalFetch(...args);
       if (response.status === 429) {

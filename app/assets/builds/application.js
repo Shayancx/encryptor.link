@@ -3106,7 +3106,7 @@ var init_rate_limit_controller = __esm({
     init_stimulus();
     rate_limit_controller_default = class extends Controller {
       connect() {
-        this.originalFetch = window.fetch;
+        this.originalFetch = window.fetch.bind(window);
         window.fetch = async (...args) => {
           const response = await this.originalFetch(...args);
           if (response.status === 429) {
