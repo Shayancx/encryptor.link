@@ -25,9 +25,9 @@
         <a href="/" class="app-brand">encryptor.link</a>
         <a href="/check" class="ms-3 link-secondary">Check Link Status</a>
 
-        <div class="theme-switch-container">
-          <button type="button" class="theme-switch-btn" id="themeToggle" aria-label="Toggle theme">
-            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="theme-switch-container" data-controller="theme">
+          <button type="button" class="theme-switch-btn" id="themeToggle" aria-label="Toggle theme" data-action="click->theme#toggle" data-theme-target="button">
+            <svg id="sun-icon" data-theme-target="sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="4"></circle>
               <path d="m12 2 0 2"></path>
               <path d="m12 20 0 2"></path>
@@ -38,7 +38,7 @@
               <path d="m6.34 17.66-1.41 1.41"></path>
               <path d="m19.07 4.93-1.41 1.41"></path>
             </svg>
-            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg id="moon-icon" data-theme-target="moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
             </svg>
           </button>
@@ -60,50 +60,6 @@
     </div>
   </footer>
 
-  <script>
-    // Theme toggle functionality
-    document.addEventListener('DOMContentLoaded', () => {
-      const themeToggle = document.getElementById('themeToggle');
-      const htmlElement = document.documentElement;
-      const sunIcon = document.getElementById('sun-icon');
-      const moonIcon = document.getElementById('moon-icon');
-
-      // Check user preference
-      const userPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const savedTheme = localStorage.getItem('theme');
-
-      // Function to update icon visibility
-      function updateThemeIcons(isDark) {
-        if (isDark) {
-          moonIcon.style.display = 'block';
-          sunIcon.style.display = 'none';
-        } else {
-          sunIcon.style.display = 'block';
-          moonIcon.style.display = 'none';
-        }
-      }
-
-      // Set initial theme
-      let currentTheme;
-      if (savedTheme) {
-        currentTheme = savedTheme;
-      } else {
-        currentTheme = userPrefersDark ? 'dark' : 'light';
-      }
-
-      htmlElement.setAttribute('data-bs-theme', currentTheme);
-      updateThemeIcons(currentTheme === 'dark');
-
-      // Toggle theme when button is clicked
-      themeToggle.addEventListener('click', () => {
-        const currentTheme = htmlElement.getAttribute('data-bs-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-        htmlElement.setAttribute('data-bs-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeIcons(newTheme === 'dark');
-      });
-    });
-  </script>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
 </body>
 </html>
