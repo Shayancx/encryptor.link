@@ -2,8 +2,8 @@
   <div class="gh-card-header">
     <h3>Create Encrypted Message</h3>
   </div>
-  <div class="gh-card-body">
-    <form id="encryptForm" data-controller="encryption rich-editor" data-action="submit->encryption#encrypt">
+  <div class="gh-card-body" data-controller="encryption rich-editor">
+    <form id="encryptForm" data-action="submit->encryption#encrypt">
       <div class="mb-3">
         <label for="richEditor" class="form-label">Message</label>
 
