@@ -181,7 +181,8 @@
   async function loadAndDecrypt() {
     try {
       // Get the pathId (UUID) from the window location
-      const pathId = window.location.pathname.substring(1);
+      // Normalize the path by removing any trailing slash
+      const pathId = window.location.pathname.replace(/\/+$/, '').substring(1);
       console.log("Using path ID (UUID):", pathId);
 
       // Get the encryption key from the URL fragment

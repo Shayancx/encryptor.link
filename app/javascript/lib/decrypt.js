@@ -128,7 +128,10 @@ async function getDecryptionKey(keyBase64, password, passwordSaltBase64) {
   else {
     if (!keyBase64) {
       // Try to extract key from URL path if it's not in the fragment
-      const pathParts = window.location.pathname.substring(1).split('/');
+      const pathParts = window.location.pathname
+        .replace(/\/+$/, '')
+        .substring(1)
+        .split('/');
       if (pathParts.length > 1) {
         keyBase64 = pathParts[1];
       }
@@ -141,7 +144,7 @@ async function getDecryptionKey(keyBase64, password, passwordSaltBase64) {
 
       // Last attempt - check if the key is appended to the ID with a dot
       if (!keyBase64) {
-        const pathId = window.location.pathname.substring(1);
+        const pathId = window.location.pathname.replace(/\/+$/, '').substring(1);
         const parts = pathId.split('.');
         if (parts.length > 1) {
           keyBase64 = parts[1];

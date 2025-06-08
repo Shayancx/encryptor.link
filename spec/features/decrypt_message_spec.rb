@@ -48,4 +48,15 @@ RSpec.feature "Decrypt Message", type: :feature, js: true do
 
     expect(page).to have_content('Cannot access this message')
   end
+
+  scenario "Link with trailing slash works" do
+    payload = create(:encrypted_payload)
+
+    visit "/#{payload.id}/#invalidkey"
+
+    sleep 2
+
+    expect(page).to have_selector('#errorContainer', visible: true)
+    expect(page).to have_content('Cannot access this message')
+  end
 end
