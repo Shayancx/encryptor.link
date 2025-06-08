@@ -2709,30 +2709,73 @@ var init_encrypt = __esm({
   }
 });
 
+// app/javascript/services/cryptography_service.js
+var CryptographyService;
+var init_cryptography_service = __esm({
+  "app/javascript/services/cryptography_service.js"() {
+    init_encrypt();
+    CryptographyService = class {
+      static encryptMessage(...args) {
+        return encryptMessage(...args);
+      }
+      static encryptFiles(...args) {
+        return encryptFiles(...args);
+      }
+    };
+  }
+});
+
+// app/javascript/services/validation_service.js
+var ValidationService;
+var init_validation_service = __esm({
+  "app/javascript/services/validation_service.js"() {
+    ValidationService = class {
+      static validate({ message = "", ttl = 0, views = 0 }) {
+        if (ttl <= 0) return "Invalid expiration time";
+        if (views <= 0) return "Invalid view limit";
+        return null;
+      }
+    };
+  }
+});
+
+// app/javascript/services/error_service.js
+var ErrorService;
+var init_error_service = __esm({
+  "app/javascript/services/error_service.js"() {
+    ErrorService = class {
+      static handle(error2) {
+        console.error(error2);
+        alert("Error: " + error2.message);
+      }
+    };
+  }
+});
+
 // app/javascript/controllers/encryption_controller.js
 var encryption_controller_default;
 var init_encryption_controller = __esm({
   "app/javascript/controllers/encryption_controller.js"() {
     init_stimulus();
-    init_encrypt();
+    init_cryptography_service();
+    init_validation_service();
+    init_error_service();
     encryption_controller_default = class extends Controller {
       connect() {
         this.selectedFiles = [];
-        this.fileInput = document.getElementById("fileInput");
-        if (this.fileInput) {
-          this.fileInput.addEventListener("change", (e) => this.handleFiles(e.target.files));
+        if (this.hasFileInputTarget) {
+          this.fileInputTarget.addEventListener("change", (e) => this.handleFiles(e.target.files));
         }
-        const dropArea = document.getElementById("dropArea");
-        if (dropArea) {
-          dropArea.addEventListener("click", () => this.fileInput.click());
-          dropArea.addEventListener("dragover", (e) => {
+        if (this.hasDropAreaTarget) {
+          this.dropAreaTarget.addEventListener("click", () => this.fileInputTarget.click());
+          this.dropAreaTarget.addEventListener("dragover", (e) => {
             e.preventDefault();
-            dropArea.classList.add("dragover");
+            this.dropAreaTarget.classList.add("dragover");
           });
-          dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
-          dropArea.addEventListener("drop", (e) => {
+          this.dropAreaTarget.addEventListener("dragleave", () => this.dropAreaTarget.classList.remove("dragover"));
+          this.dropAreaTarget.addEventListener("drop", (e) => {
             e.preventDefault();
-            dropArea.classList.remove("dragover");
+            this.dropAreaTarget.classList.remove("dragover");
             this.handleFiles(e.dataTransfer.files);
           });
         }
@@ -2773,10 +2816,19 @@ var init_encryption_controller = __esm({
       }
       async encrypt(event) {
         event.preventDefault();
-        const message = document.getElementById("hidden_message").value;
-        const ttl = parseInt(document.getElementById("ttlSelect").value, 10);
-        const views = parseInt(document.getElementById("viewsSelect").value, 10);
-        const burnAfterReading = document.getElementById("burnAfterReadingToggle").checked;
+        const message = this.hasMessageInputTarget ? this.messageInputTarget.value : "";
+        const ttl = this.hasTtlSelectTarget ? parseInt(this.ttlSelectTarget.value, 10) : 0;
+        const views = this.hasViewsSelectTarget ? parseInt(this.viewsSelectTarget.value, 10) : 0;
+        const burnAfterReading = this.hasBurnToggleTarget ? this.burnToggleTarget.checked : false;
+        const validationError = ValidationService.validate({ message, ttl, views });
+        if (validationError) {
+          ErrorService.handle(new Error(validationError));
+          return;
+        }
+        if (typeof CryptographyService.encryptMessage !== "function" || typeof CryptographyService.encryptFiles !== "function") {
+          ErrorService.handle(new Error("Encryption module failed to load."));
+          return;
+        }
         const usePassword = this.passwordToggleTarget.checked;
         const password = usePassword ? this.passwordInputTarget.value : "";
         this.encryptButtonTarget.classList.add("loading", "btn-progress");
@@ -2794,7 +2846,7 @@ var init_encryption_controller = __esm({
           };
           let link;
           if (this.selectedFiles.length > 0) {
-            link = await encryptFiles(
+            link = await CryptographyService.encryptFiles(
               this.selectedFiles,
               message,
               ttl,
@@ -2805,7 +2857,7 @@ var init_encryption_controller = __esm({
             );
           } else {
             update({ percentage: 50, status: "Encrypting message..." });
-            link = await encryptMessage(message, ttl, views, password, burnAfterReading);
+            link = await CryptographyService.encryptMessage(message, ttl, views, password, burnAfterReading);
             update({ percentage: 100, status: "Complete!", speed: 0, eta: 0 });
           }
           this.encryptButtonTarget.classList.remove("loading", "btn-progress");
@@ -2839,8 +2891,10 @@ var init_encryption_controller = __esm({
             }
           }
           this.element.reset();
-          document.getElementById("richEditor").innerHTML = "";
-          document.getElementById("hidden_message").value = "";
+          if (document.getElementById("richEditor")) {
+            document.getElementById("richEditor").innerHTML = "";
+          }
+          if (this.hasMessageInputTarget) this.messageInputTarget.value = "";
           this.selectedFiles = [];
           this.renderFiles();
           this.resultContainerTarget.scrollIntoView({ behavior: "smooth" });
@@ -2849,8 +2903,7 @@ var init_encryption_controller = __esm({
           this.encryptButtonTarget.disabled = false;
           this.encryptButtonTextTarget.textContent = originalText;
           this.progressDotsTarget.classList.add("d-none");
-          alert("Error: " + error2.message);
-          console.error(error2);
+          ErrorService.handle(error2);
         }
       }
       copy() {
@@ -2873,6 +2926,12 @@ var init_encryption_controller = __esm({
       "passwordToggle",
       "passwordInput",
       "passwordContainer",
+      "messageInput",
+      "ttlSelect",
+      "viewsSelect",
+      "burnToggle",
+      "fileInput",
+      "dropArea",
       "filesContainer",
       "filesListBody",
       "encryptButton",

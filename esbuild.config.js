@@ -2,9 +2,7 @@ const esbuild = require('esbuild');
 
 esbuild.build({
   entryPoints: [
-    'app/javascript/application.js',
-    'app/javascript/lib/encrypt.js',
-    'app/javascript/lib/decrypt.js'
+    'app/javascript/application.js'
   ],
   bundle: true,
   outdir: 'app/assets/builds',

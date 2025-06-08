@@ -60,7 +60,7 @@
               </button>
           </div>
           <div id="richEditor" class="rich-editor-content" contenteditable="true" placeholder="Enter your message here..." data-rich-editor-target="editor"></div>
-          <input type="hidden" id="hidden_message" name="message" data-rich-editor-target="hiddenInput">
+          <input type="hidden" id="hidden_message" name="message" data-rich-editor-target="hiddenInput" data-encryption-target="messageInput">
         </div>
       </div>
 
@@ -105,7 +105,7 @@
             <div class="gh-setting-description">Message expires automatically after</div>
           </div>
           <div class="gh-setting-controls">
-            <select class="form-select" id="ttlSelect">
+            <select class="form-select" id="ttlSelect" data-encryption-target="ttlSelect">
               <option value="3600">1 hour</option>
               <option value="86400" selected>1 day</option>
               <option value="604800">1 week</option>
@@ -126,7 +126,7 @@
             <div class="gh-setting-description">Self-destruct after this many views</div>
           </div>
         <div class="gh-setting-controls">
-          <select class="form-select" id="viewsSelect">
+          <select class="form-select" id="viewsSelect" data-encryption-target="viewsSelect">
             <option value="1" selected>1 view</option>
             <option value="2">2 views</option>
             <option value="3">3 views</option>
@@ -147,7 +147,7 @@
                 Burn After Reading
               </div>
               <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="burnToggle">
+                <input class="form-check-input" type="checkbox" id="burnToggle" data-encryption-target="burnToggle">
                 <label class="form-check-label" for="burnToggle"></label>
               </div>
             </div>
@@ -190,7 +190,7 @@
 
       <div class="mb-3">
         <label class="form-label">Attach Files (optional, max 1000MB total)</label>
-        <div id="dropArea" class="file-upload-area">
+        <div id="dropArea" class="file-upload-area" data-encryption-target="dropArea">
           <div id="dropAreaDefault">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -200,7 +200,7 @@
             <p class="mb-1">Drag & drop files here, or click to select</p>
             <small class="text-muted">Files are encrypted in your browser before uploading</small>
           </div>
-          <input type="file" id="fileInput" style="display:none;" multiple>
+          <input type="file" id="fileInput" style="display:none;" multiple data-encryption-target="fileInput">
         </div>
       </div>
 

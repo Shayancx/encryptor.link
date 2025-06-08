@@ -1,11 +1,19 @@
 import { Controller } from "@hotwired/stimulus";
-import { encryptMessage, encryptFiles } from "../lib/encrypt";
+import CryptographyService from "../services/cryptography_service";
+import ValidationService from "../services/validation_service";
+import ErrorService from "../services/error_service";
 
 export default class extends Controller {
   static targets = [
     "passwordToggle",
     "passwordInput",
     "passwordContainer",
+    "messageInput",
+    "ttlSelect",
+    "viewsSelect",
+    "burnToggle",
+    "fileInput",
+    "dropArea",
     "filesContainer",
     "filesListBody",
     "encryptButton",
@@ -24,16 +32,14 @@ export default class extends Controller {
 
   connect() {
     this.selectedFiles = [];
-    this.fileInput = document.getElementById('fileInput');
-    if (this.fileInput) {
-      this.fileInput.addEventListener('change', (e) => this.handleFiles(e.target.files));
+    if (this.hasFileInputTarget) {
+      this.fileInputTarget.addEventListener('change', (e) => this.handleFiles(e.target.files));
     }
-    const dropArea = document.getElementById('dropArea');
-    if (dropArea) {
-      dropArea.addEventListener('click', () => this.fileInput.click());
-      dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('dragover'); });
-      dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
-      dropArea.addEventListener('drop', (e) => { e.preventDefault(); dropArea.classList.remove('dragover'); this.handleFiles(e.dataTransfer.files); });
+    if (this.hasDropAreaTarget) {
+      this.dropAreaTarget.addEventListener('click', () => this.fileInputTarget.click());
+      this.dropAreaTarget.addEventListener('dragover', (e) => { e.preventDefault(); this.dropAreaTarget.classList.add('dragover'); });
+      this.dropAreaTarget.addEventListener('dragleave', () => this.dropAreaTarget.classList.remove('dragover'));
+      this.dropAreaTarget.addEventListener('drop', (e) => { e.preventDefault(); this.dropAreaTarget.classList.remove('dragover'); this.handleFiles(e.dataTransfer.files); });
     }
 
     if (this.hasPasswordToggleTarget && this.hasPasswordContainerTarget) {
@@ -76,10 +82,22 @@ export default class extends Controller {
 
   async encrypt(event) {
     event.preventDefault();
-    const message = document.getElementById('hidden_message').value;
-    const ttl = parseInt(document.getElementById('ttlSelect').value, 10);
-    const views = parseInt(document.getElementById('viewsSelect').value, 10);
-    const burnAfterReading = document.getElementById('burnAfterReadingToggle').checked;
+    const message = this.hasMessageInputTarget ? this.messageInputTarget.value : '';
+    const ttl = this.hasTtlSelectTarget ? parseInt(this.ttlSelectTarget.value, 10) : 0;
+    const views = this.hasViewsSelectTarget ? parseInt(this.viewsSelectTarget.value, 10) : 0;
+    const burnAfterReading = this.hasBurnToggleTarget ? this.burnToggleTarget.checked : false;
+
+    const validationError = ValidationService.validate({ message, ttl, views });
+    if (validationError) {
+      ErrorService.handle(new Error(validationError));
+      return;
+    }
+
+    if (typeof CryptographyService.encryptMessage !== 'function' ||
+        typeof CryptographyService.encryptFiles !== 'function') {
+      ErrorService.handle(new Error('Encryption module failed to load.'));
+      return;
+    }
     const usePassword = this.passwordToggleTarget.checked;
     const password = usePassword ? this.passwordInputTarget.value : '';
 
@@ -100,7 +118,7 @@ export default class extends Controller {
 
       let link;
       if (this.selectedFiles.length > 0) {
-        link = await encryptFiles(
+        link = await CryptographyService.encryptFiles(
           this.selectedFiles,
           message,
           ttl,
@@ -111,7 +129,7 @@ export default class extends Controller {
         );
       } else {
         update({ percentage: 50, status: 'Encrypting message...' });
-        link = await encryptMessage(message, ttl, views, password, burnAfterReading);
+        link = await CryptographyService.encryptMessage(message, ttl, views, password, burnAfterReading);
         update({ percentage: 100, status: 'Complete!', speed: 0, eta: 0 });
       }
 
@@ -150,8 +168,10 @@ export default class extends Controller {
       }
 
       this.element.reset();
-      document.getElementById('richEditor').innerHTML = '';
-      document.getElementById('hidden_message').value = '';
+      if (document.getElementById('richEditor')) {
+        document.getElementById('richEditor').innerHTML = '';
+      }
+      if (this.hasMessageInputTarget) this.messageInputTarget.value = '';
       this.selectedFiles = [];
       this.renderFiles();
       this.resultContainerTarget.scrollIntoView({ behavior: 'smooth' });
@@ -160,8 +180,7 @@ export default class extends Controller {
       this.encryptButtonTarget.disabled = false;
       this.encryptButtonTextTarget.textContent = originalText;
       this.progressDotsTarget.classList.add('d-none');
-      alert('Error: ' + error.message);
-      console.error(error);
+      ErrorService.handle(error);
     }
   }
 
