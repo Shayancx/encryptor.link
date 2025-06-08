@@ -3160,7 +3160,8 @@ var require_csrf_helper = __commonJS({
       }
       static async fetchWithCSRF(url, options = {}) {
         const defaultOptions = {
-          headers: this.getHeaders(options.headers || {})
+          headers: this.getHeaders(options.headers || {}),
+          credentials: "same-origin"
         };
         const mergedOptions = {
           ...defaultOptions,
@@ -3168,7 +3169,8 @@ var require_csrf_helper = __commonJS({
           headers: {
             ...defaultOptions.headers,
             ...options.headers || {}
-          }
+          },
+          credentials: options.credentials || defaultOptions.credentials
         };
         return fetch(url, mergedOptions);
       }

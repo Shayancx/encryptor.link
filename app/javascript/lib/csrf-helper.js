@@ -22,7 +22,8 @@ class CSRFHelper {
 
   static async fetchWithCSRF(url, options = {}) {
     const defaultOptions = {
-      headers: this.getHeaders(options.headers || {})
+      headers: this.getHeaders(options.headers || {}),
+      credentials: 'same-origin'
     };
 
     const mergedOptions = {
@@ -31,7 +32,8 @@ class CSRFHelper {
       headers: {
         ...defaultOptions.headers,
         ...(options.headers || {})
-      }
+      },
+      credentials: options.credentials || defaultOptions.credentials
     };
 
     return fetch(url, mergedOptions);
