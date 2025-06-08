@@ -2890,7 +2890,9 @@ var init_encryption_controller = __esm({
               this.resultMessageTarget.textContent = "This link contains the decryption key. Anyone with this link can view your message or download your files.";
             }
           }
-          this.element.reset();
+          if (this.hasFormTarget) {
+            this.formTarget.reset();
+          }
           if (document.getElementById("richEditor")) {
             document.getElementById("richEditor").innerHTML = "";
           }
@@ -2923,6 +2925,7 @@ var init_encryption_controller = __esm({
       }
     };
     __publicField(encryption_controller_default, "targets", [
+      "form",
       "passwordToggle",
       "passwordInput",
       "passwordContainer",

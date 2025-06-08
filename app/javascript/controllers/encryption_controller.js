@@ -5,6 +5,7 @@ import ErrorService from "../services/error_service";
 
 export default class extends Controller {
   static targets = [
+    "form",
     "passwordToggle",
     "passwordInput",
     "passwordContainer",
@@ -167,7 +168,9 @@ export default class extends Controller {
         }
       }
 
-      this.element.reset();
+      if (this.hasFormTarget) {
+        this.formTarget.reset();
+      }
       if (document.getElementById('richEditor')) {
         document.getElementById('richEditor').innerHTML = '';
       }
