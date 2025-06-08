@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
-import { encryptMessage, encryptFiles } from "/encrypt.js";
+import { encryptMessage, encryptFiles } from "../lib/encrypt";
 
 export default class extends Controller {
   static targets = [

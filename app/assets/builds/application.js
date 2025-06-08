@@ -1,5 +1,9 @@
+var __create = Object.create;
 var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
@@ -7,6 +11,22 @@ var __esm = (fn, res) => function __init() {
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // node_modules/@hotwired/stimulus/dist/stimulus.js
@@ -97,13 +117,13 @@ function typecast(value) {
   }
 }
 function add(map, key, value) {
-  fetch(map, key).add(value);
+  fetch2(map, key).add(value);
 }
 function del(map, key, value) {
-  fetch(map, key).delete(value);
+  fetch2(map, key).delete(value);
   prune(map, key);
 }
-function fetch(map, key) {
+function fetch2(map, key) {
   let values = map.get(key);
   if (!values) {
     values = /* @__PURE__ */ new Set();
@@ -2462,12 +2482,239 @@ var init_stimulus = __esm({
   }
 });
 
+// app/javascript/lib/encrypt.js
+async function encryptMessage(message, ttl, views, password = "", burnAfterReading = false) {
+  try {
+    const key = await generateEncryptionKey(password);
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await encryptData(message, key.key, iv);
+    const payload = {
+      ciphertext: Base64.encode(encrypted),
+      nonce: Base64.encode(iv),
+      ttl,
+      views,
+      password_protected: !!password,
+      burn_after_reading: burnAfterReading
+    };
+    if (password) {
+      payload.password_salt = Base64.encode(key.salt);
+    }
+    const response = await CSRFHelper.fetchWithCSRF("/encrypt", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create encrypted message: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    let link = window.location.origin + "/" + data.id;
+    if (!password) {
+      const exportedKey = await window.crypto.subtle.exportKey("raw", key.key);
+      const keyBase64 = Base64.encode(exportedKey);
+      link += "#" + keyBase64;
+    }
+    return link;
+  } catch (error2) {
+    console.error("Encryption error:", error2);
+    throw error2;
+  }
+}
+async function encryptFiles(files, message, ttl, views, password = "", burnAfterReading = false, progressCallback = null, cancelToken = null) {
+  try {
+    const totalSteps = files.length + 3;
+    let currentStep = 0;
+    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+    let processedBytes = 0;
+    const startTime = performance.now();
+    const updateProgress = (status, details = "") => {
+      currentStep++;
+      const percentage = Math.round(currentStep / totalSteps * 100);
+      const elapsed = (performance.now() - startTime) / 1e3;
+      const speed = elapsed > 0 ? processedBytes / (1024 * 1024 * elapsed) : 0;
+      const remaining = totalSize - processedBytes;
+      const eta = speed > 0 ? remaining / (1024 * 1024 * speed) : 0;
+      if (progressCallback) {
+        progressCallback({ percentage, status, details, speed, eta });
+      }
+      if (cancelToken && cancelToken.canceled) {
+        throw new Error("Encryption cancelled");
+      }
+    };
+    updateProgress("Generating encryption key...");
+    const key = await generateEncryptionKey(password);
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const payload = {
+      nonce: Base64.encode(iv),
+      ttl,
+      views,
+      password_protected: !!password,
+      burn_after_reading: burnAfterReading,
+      files: []
+    };
+    if (password) {
+      payload.password_salt = Base64.encode(key.salt);
+    }
+    if (message && message.trim() !== "") {
+      updateProgress("Encrypting message...");
+      const encryptedMessage = await encryptData(message, key.key, iv);
+      payload.ciphertext = Base64.encode(encryptedMessage);
+    } else {
+      payload.ciphertext = "";
+    }
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      updateProgress(`Encrypting file ${i + 1}/${files.length}`, file.name);
+      try {
+        const fileData = await readFileAsArrayBuffer(file);
+        const encryptedFile = await encryptData(fileData, key.key, iv);
+        const encodedFile = Base64.encode(encryptedFile);
+        payload.files.push({
+          data: encodedFile,
+          name: file.name,
+          type: file.type || "application/octet-stream",
+          size: file.size
+        });
+        processedBytes += file.size;
+      } catch (fileError) {
+        throw new Error(`Failed to process file "${file.name}": ${fileError.message}`);
+      }
+    }
+    updateProgress("Uploading encrypted data...");
+    const response = await CSRFHelper.fetchWithCSRF("/encrypt", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+    }
+    const data = await response.json();
+    let link = window.location.origin + "/" + data.id;
+    if (!password) {
+      const exportedKey = await window.crypto.subtle.exportKey("raw", key.key);
+      const keyBase64 = Base64.encode(exportedKey);
+      link += "#" + keyBase64;
+    }
+    updateProgress("Complete!");
+    return link;
+  } catch (error2) {
+    console.error("File encryption error:", error2);
+    throw error2;
+  }
+}
+async function generateEncryptionKey(password = "") {
+  try {
+    if (password) {
+      const salt = window.crypto.getRandomValues(new Uint8Array(16));
+      const passwordKey = await window.crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(password),
+        { name: "PBKDF2" },
+        false,
+        ["deriveKey"]
+      );
+      const key = await window.crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt,
+          iterations: 1e5,
+          hash: "SHA-256"
+        },
+        passwordKey,
+        { name: "AES-GCM", length: 256 },
+        true,
+        ["encrypt"]
+      );
+      return { key, salt };
+    } else {
+      const key = await window.crypto.subtle.generateKey(
+        { name: "AES-GCM", length: 256 },
+        true,
+        ["encrypt"]
+      );
+      return { key };
+    }
+  } catch (error2) {
+    throw error2;
+  }
+}
+async function encryptData(data, key, iv) {
+  try {
+    let dataBuffer;
+    if (typeof data === "string") {
+      dataBuffer = new TextEncoder().encode(data);
+    } else {
+      dataBuffer = new Uint8Array(data);
+    }
+    const encrypted = await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      key,
+      dataBuffer
+    );
+    return encrypted;
+  } catch (error2) {
+    throw error2;
+  }
+}
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(reader.result);
+    };
+    reader.onerror = () => {
+      const errorMsg = `Failed to read file: ${file.name}`;
+      reject(new Error(errorMsg));
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+var Base64;
+var init_encrypt = __esm({
+  "app/javascript/lib/encrypt.js"() {
+    Base64 = {
+      encode: function(arrayBuffer) {
+        try {
+          const bytes = new Uint8Array(arrayBuffer);
+          const chunkSize = 32768;
+          if (bytes.length <= chunkSize) {
+            const result2 = btoa(String.fromCharCode.apply(null, bytes));
+            return result2;
+          }
+          let result = "";
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            result += String.fromCharCode.apply(null, chunk);
+          }
+          const encodedResult = btoa(result);
+          return encodedResult;
+        } catch (error2) {
+          throw new Error(`Base64 encoding failed: ${error2.message}`);
+        }
+      },
+      decode: function(base64) {
+        try {
+          const binaryString = atob(base64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          return bytes.buffer;
+        } catch (error2) {
+          throw new Error(`Base64 decoding failed: ${error2.message}`);
+        }
+      }
+    };
+  }
+});
+
 // app/javascript/controllers/encryption_controller.js
-import { encryptMessage, encryptFiles } from "/encrypt.js";
 var encryption_controller_default;
 var init_encryption_controller = __esm({
   "app/javascript/controllers/encryption_controller.js"() {
     init_stimulus();
+    init_encrypt();
     encryption_controller_default = class extends Controller {
       connect() {
         this.selectedFiles = [];
@@ -2793,6 +3040,85 @@ var init_rich_editor_controller = __esm({
   }
 });
 
+// app/javascript/controllers/rate_limit_controller.js
+var rate_limit_controller_default;
+var init_rate_limit_controller = __esm({
+  "app/javascript/controllers/rate_limit_controller.js"() {
+    init_stimulus();
+    rate_limit_controller_default = class extends Controller {
+      connect() {
+        this.originalFetch = window.fetch;
+        window.fetch = async (...args) => {
+          const response = await this.originalFetch(...args);
+          if (response.status === 429) {
+            const retryAfter = response.headers.get("Retry-After") || 60;
+            this.showRateLimitError(retryAfter);
+          }
+          return response;
+        };
+      }
+      disconnect() {
+        if (this.originalFetch) {
+          window.fetch = this.originalFetch;
+        }
+      }
+      showRateLimitError(retryAfter) {
+        const alert2 = document.createElement("div");
+        alert2.className = "alert alert-danger";
+        alert2.role = "alert";
+        alert2.innerHTML = `
+      <h4 class="alert-heading">Rate limit exceeded</h4>
+      <p>You've made too many requests. Please try again after ${retryAfter} seconds.</p>
+    `;
+        document.body.insertBefore(alert2, document.body.firstChild);
+        setTimeout(() => alert2.remove(), 5e3);
+      }
+    };
+  }
+});
+
+// app/javascript/lib/csrf-helper.js
+var require_csrf_helper = __commonJS({
+  "app/javascript/lib/csrf-helper.js"(exports, module) {
+    var CSRFHelper2 = class {
+      static getToken() {
+        const tokenElement = document.querySelector('meta[name="csrf-token"]');
+        return tokenElement ? tokenElement.getAttribute("content") : null;
+      }
+      static getHeaders(additionalHeaders = {}) {
+        const token = this.getToken();
+        const headers = {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          ...additionalHeaders
+        };
+        if (token) {
+          headers["X-CSRF-Token"] = token;
+        }
+        return headers;
+      }
+      static async fetchWithCSRF(url, options = {}) {
+        const defaultOptions = {
+          headers: this.getHeaders(options.headers || {})
+        };
+        const mergedOptions = {
+          ...defaultOptions,
+          ...options,
+          headers: {
+            ...defaultOptions.headers,
+            ...options.headers || {}
+          }
+        };
+        return fetch(url, mergedOptions);
+      }
+    };
+    window.CSRFHelper = CSRFHelper2;
+    if (typeof module !== "undefined" && module.exports) {
+      module.exports = CSRFHelper2;
+    }
+  }
+});
+
 // app/javascript/application.js
 var require_application = __commonJS({
   "app/javascript/application.js"() {
@@ -2800,10 +3126,13 @@ var require_application = __commonJS({
     init_encryption_controller();
     init_theme_controller();
     init_rich_editor_controller();
+    init_rate_limit_controller();
+    var import_csrf_helper = __toESM(require_csrf_helper());
     window.Stimulus = Application.start();
     Stimulus.register("encryption", encryption_controller_default);
     Stimulus.register("theme", theme_controller_default);
     Stimulus.register("rich-editor", rich_editor_controller_default);
+    Stimulus.register("rate-limit", rate_limit_controller_default);
   }
 });
 export default require_application();
