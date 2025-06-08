@@ -13,7 +13,6 @@ RSpec.describe DecryptionService do
         expect(data[:ciphertext]).to be_present
         expect(data[:nonce]).to be_present
       end
-
       it 'decrements remaining views' do
         expect { subject.retrieve_data }.to change { payload.reload.remaining_views }.by(-1)
       end
@@ -24,9 +23,7 @@ RSpec.describe DecryptionService do
         expect(data[:files]).to be_present
         expect(data[:files].first[:name]).to be_present
       end
-
     end
-
     context 'with expired payload' do
       let(:expired_payload) { create(:encrypted_payload, expires_at: 1.hour.ago) }
       subject { described_class.new(expired_payload.id) }

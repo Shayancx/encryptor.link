@@ -24,14 +24,14 @@ class DestructionCertificate < ApplicationRecord
   end
 
   def build_certificate_payload
-      {
-        certificate_id: certificate_id,
-        payload_id: encrypted_payload.id,
-        payload_checksum: encrypted_payload.ciphertext_checksum,
-        destroyed_at: Time.current.iso8601,
-        destruction_reason: destruction_reason,
-        version: "1.0"
-      }
+    {
+      certificate_id: certificate_id,
+      payload_id: encrypted_payload.id,
+      payload_checksum: Digest::SHA256.hexdigest(encrypted_payload.ciphertext),
+      destroyed_at: Time.current.iso8601,
+      destruction_reason: destruction_reason,
+      version: "1.0"
+    }
   end
 
   def calculate_certificate_hash(data)

@@ -33,5 +33,4 @@ class HealthController < ApplicationController
   rescue
     true
   end
-
 end

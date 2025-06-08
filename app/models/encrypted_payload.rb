@@ -16,5 +16,4 @@ class EncryptedPayload < ApplicationRecord
       errors.add(:expires_at, "cannot exceed 7 days")
     end
   end
-
 end

@@ -17,9 +17,8 @@ class DestructionCertificateService
         raise CertificateError, "Failed to create certificate: #{certificate.errors.full_messages.join(', ')}"
       end
 
-
-        certificate
-      end
+      certificate
+    end
   rescue => e
     Rails.logger.error "Certificate generation failed: #{e.message}"
     raise CertificateError, "Failed to generate destruction certificate"
