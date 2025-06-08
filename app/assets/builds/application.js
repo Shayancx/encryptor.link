@@ -2520,6 +2520,40 @@ async function encryptMessage(message, ttl, views, password = "", burnAfterReadi
     throw error2;
   }
 }
+async function encryptFileChunked(file, key, iv, progressCallback = null) {
+  const chunks = [];
+  const reader = file.stream().getReader();
+  const encoder = new TextEncoder();
+  let offset = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const encryptedChunk = await window.crypto.subtle.encrypt(
+        {
+          name: "AES-GCM",
+          iv,
+          additionalData: encoder.encode(String(offset))
+        },
+        key,
+        value
+      );
+      chunks.push({ offset, data: encryptedChunk, size: value.byteLength });
+      offset += value.byteLength;
+      if (progressCallback) {
+        progressCallback({
+          file: file.name,
+          bytesProcessed: offset,
+          totalBytes: file.size,
+          percentage: Math.round(offset / file.size * 100)
+        });
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return chunks;
+}
 async function encryptFiles(files, message, ttl, views, password = "", burnAfterReading = false, progressCallback = null, cancelToken = null) {
   try {
     const totalSteps = files.length + 3;
@@ -2550,7 +2584,9 @@ async function encryptFiles(files, message, ttl, views, password = "", burnAfter
       views,
       password_protected: !!password,
       burn_after_reading: burnAfterReading,
-      files: []
+      files: [],
+      chunked_files: [],
+      session_id: crypto.randomUUID()
     };
     if (password) {
       payload.password_salt = Base64.encode(key.salt);
@@ -2562,26 +2598,62 @@ async function encryptFiles(files, message, ttl, views, password = "", burnAfter
     } else {
       payload.ciphertext = "";
     }
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      updateProgress(`Encrypting file ${i + 1}/${files.length}`, file.name);
+    for (const file of files) {
+      updateProgress(`Encrypting file`, file.name);
       try {
-        const fileData = await readFileAsArrayBuffer(file);
-        const encryptedFile = await encryptData(fileData, key.key, iv);
-        const encodedFile = Base64.encode(encryptedFile);
-        payload.files.push({
-          data: encodedFile,
-          name: file.name,
-          type: file.type || "application/octet-stream",
-          size: file.size
-        });
-        processedBytes += file.size;
+        if (file.size <= CHUNK_SIZE) {
+          const fileData = await readFileAsArrayBuffer(file);
+          const encryptedFile = await encryptData(fileData, key.key, iv);
+          const encodedFile = Base64.encode(encryptedFile);
+          payload.files.push({
+            data: encodedFile,
+            name: file.name,
+            type: file.type || "application/octet-stream",
+            size: file.size
+          });
+          processedBytes += file.size;
+        } else {
+          const fileMetadata = {
+            name: file.name,
+            type: file.type || "application/octet-stream",
+            size: file.size,
+            chunks: []
+          };
+          const encryptedChunks = await encryptFileChunked(
+            file,
+            key.key,
+            iv,
+            (progress) => {
+              if (progressCallback) {
+                progressCallback({
+                  status: `Encrypting ${file.name}`,
+                  fileProgress: progress.percentage,
+                  details: `${Math.round(progress.bytesProcessed / 1024 / 1024)}MB / ${Math.round(progress.totalBytes / 1024 / 1024)}MB`
+                });
+              }
+            }
+          );
+          for await (const encodedChunk of Base64.encodeChunked(encryptedChunks)) {
+            const chunkResponse = await CSRFHelper.fetchWithCSRF("/encrypt/chunk", {
+              method: "POST",
+              body: JSON.stringify({
+                session_id: payload.session_id || crypto.randomUUID(),
+                chunk: encodedChunk
+              })
+            });
+            if (!chunkResponse.ok) throw new Error("Chunk upload failed");
+            const chunkData = await chunkResponse.json();
+            fileMetadata.chunks.push(chunkData.chunk_id);
+            processedBytes += encodedChunk.originalSize;
+          }
+          payload.chunked_files.push(fileMetadata);
+        }
       } catch (fileError) {
         throw new Error(`Failed to process file "${file.name}": ${fileError.message}`);
       }
     }
     updateProgress("Uploading encrypted data...");
-    const response = await CSRFHelper.fetchWithCSRF("/encrypt", {
+    const response = await CSRFHelper.fetchWithCSRF("/encrypt/finalize", {
       method: "POST",
       body: JSON.stringify(payload)
     });
@@ -2670,9 +2742,11 @@ function readFileAsArrayBuffer(file) {
     reader.readAsArrayBuffer(file);
   });
 }
-var Base64;
+var CHUNK_SIZE, UPLOAD_CHUNK_SIZE, Base64;
 var init_encrypt = __esm({
   "app/javascript/lib/encrypt.js"() {
+    CHUNK_SIZE = 5 * 1024 * 1024;
+    UPLOAD_CHUNK_SIZE = 10 * 1024 * 1024;
     Base64 = {
       encode: function(arrayBuffer) {
         try {
@@ -2691,6 +2765,22 @@ var init_encrypt = __esm({
           return encodedResult;
         } catch (error2) {
           throw new Error(`Base64 encoding failed: ${error2.message}`);
+        }
+      },
+      async *encodeChunked(chunks) {
+        for (const chunk of chunks) {
+          const bytes = new Uint8Array(chunk.data);
+          const chunkSize = 32768;
+          let result = "";
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            const slice = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+            result += btoa(String.fromCharCode.apply(null, slice));
+          }
+          yield {
+            offset: chunk.offset,
+            data: result,
+            originalSize: chunk.size
+          };
         }
       },
       decode: function(base64) {

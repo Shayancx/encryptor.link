@@ -17,6 +17,8 @@ Rails.application.routes.draw do
   get "/certificates/:id", to: "certificates#show", as: :certificate
   get "/certificates/verify/:hash", to: "certificates#verify", as: :verify_certificate
   post   "/encrypt", to: "encryptions#create"
+  post   "/encrypt/chunk", to: "chunks#create"
+  post   "/encrypt/finalize", to: "chunks#finalize"
   get    "/check", to: "payload_infos#new", as: :check_link
   get    "/:id/info", to: "decryptions#info", as: :payload_info
   get    "/:id",     to: "decryptions#show",  as: :decrypt

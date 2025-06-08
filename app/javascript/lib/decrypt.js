@@ -48,6 +48,48 @@ async function decryptFile(fileDataBase64, ivBase64, keyBase64 = null, password 
   }
 }
 
+// Decrypt a file that was uploaded in chunks
+async function decryptFileChunked(chunks, key, iv, progressCallback = null) {
+  const decryptedChunks = [];
+  let processedBytes = 0;
+  const totalBytes = chunks.reduce((sum, chunk) => sum + chunk.size, 0);
+
+  for (const chunk of chunks) {
+    const encryptedData = Base64.decode(chunk.data);
+
+    const decrypted = await window.crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv,
+        additionalData: new TextEncoder().encode(String(chunk.offset))
+      },
+      key,
+      encryptedData
+    );
+
+    decryptedChunks.push(new Uint8Array(decrypted));
+    processedBytes += chunk.size;
+
+    if (progressCallback) {
+      progressCallback({
+        percentage: Math.round((processedBytes / totalBytes) * 100),
+        bytesProcessed: processedBytes,
+        totalBytes: totalBytes
+      });
+    }
+  }
+
+  const totalLength = decryptedChunks.reduce((sum, c) => sum + c.length, 0);
+  const combined = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of decryptedChunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return combined.buffer;
+}
+
 // Get decryption key - either from URL or derive from password
 async function getDecryptionKey(keyBase64, password, passwordSaltBase64) {
   // For password-protected content
@@ -160,4 +202,4 @@ const Base64 = {
 };
 
 // Export the functions
-export { decryptMessage, decryptFile };
+export { decryptMessage, decryptFile, decryptFileChunked };
