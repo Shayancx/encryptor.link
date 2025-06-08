@@ -25,10 +25,6 @@ RSpec.describe DecryptionService do
         expect(data[:files].first[:name]).to be_present
       end
 
-      it 'logs payload access' do
-        expect(AuditService).to receive(:log).with(hash_including(event_type: AuditService::EVENTS[:payload_accessed]))
-        subject.retrieve_data
-      end
     end
 
     context 'with expired payload' do

@@ -6,8 +6,7 @@ class HealthController < ApplicationController
   def show
     checks = {
       database: check_database,
-      disk_space: check_disk_space,
-      data_integrity: check_recent_integrity
+      disk_space: check_disk_space
     }
 
     status = checks[:database] && checks[:disk_space] ? :ok : :service_unavailable
@@ -35,14 +34,4 @@ class HealthController < ApplicationController
     true
   end
 
-  def check_recent_integrity
-    recent_failures = AuditLog.where(
-      event_type: "integrity_check_failed",
-      created_at: 24.hours.ago..Time.current
-    ).count
-
-    recent_failures == 0
-  rescue
-    false
-  end
 end

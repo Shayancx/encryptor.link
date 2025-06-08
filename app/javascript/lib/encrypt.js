@@ -1,8 +1,5 @@
 // Web Crypto API wrapper for encryption
 
-// Chunk constants for streaming processing
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for processing
-const UPLOAD_CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks for uploading
 async function encryptMessage(message, ttl, views, password = '', burnAfterReading = false) {
   try {
     // Generate a random encryption key
@@ -59,46 +56,6 @@ async function encryptMessage(message, ttl, views, password = '', burnAfterReadi
   }
 }
 
-// Encrypt a file in chunks using streaming readers
-async function encryptFileChunked(file, key, iv, progressCallback = null) {
-  const chunks = [];
-  const reader = file.stream().getReader();
-  const encoder = new TextEncoder();
-  let offset = 0;
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const encryptedChunk = await window.crypto.subtle.encrypt(
-        {
-          name: 'AES-GCM',
-          iv: iv,
-          additionalData: encoder.encode(String(offset))
-        },
-        key,
-        value
-      );
-
-      chunks.push({ offset: offset, data: encryptedChunk, size: value.byteLength });
-      offset += value.byteLength;
-
-      if (progressCallback) {
-        progressCallback({
-          file: file.name,
-          bytesProcessed: offset,
-          totalBytes: file.size,
-          percentage: Math.round((offset / file.size) * 100)
-        });
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
-
-  return chunks;
-}
 
 // Encrypt multiple files with progress reporting and cancellation support
 async function encryptFiles(
@@ -144,9 +101,7 @@ async function encryptFiles(
       views: views,
       password_protected: !!password,
       burn_after_reading: burnAfterReading,
-      files: [],
-      chunked_files: [],
-      session_id: crypto.randomUUID()
+      files: []
     };
 
     if (password) {
@@ -164,58 +119,16 @@ async function encryptFiles(
     for (const file of files) {
       updateProgress(`Encrypting file`, file.name);
       try {
-        if (file.size <= CHUNK_SIZE) {
-          const fileData = await readFileAsArrayBuffer(file);
-          const encryptedFile = await encryptData(fileData, key.key, iv);
-          const encodedFile = Base64.encode(encryptedFile);
-          payload.files.push({
-            data: encodedFile,
-            name: file.name,
-            type: file.type || 'application/octet-stream',
-            size: file.size
-          });
-          processedBytes += file.size;
-        } else {
-          const fileMetadata = {
-            name: file.name,
-            type: file.type || 'application/octet-stream',
-            size: file.size,
-            chunks: []
-          };
-
-          const encryptedChunks = await encryptFileChunked(
-            file,
-            key.key,
-            iv,
-            (progress) => {
-              if (progressCallback) {
-                progressCallback({
-                  status: `Encrypting ${file.name}`,
-                  fileProgress: progress.percentage,
-                  details: `${Math.round(progress.bytesProcessed / 1024 / 1024)}MB / ${Math.round(progress.totalBytes / 1024 / 1024)}MB`
-                });
-              }
-            }
-          );
-
-          for await (const encodedChunk of Base64.encodeChunked(encryptedChunks)) {
-            const chunkResponse = await CSRFHelper.fetchWithCSRF('/encrypt/chunk', {
-              method: 'POST',
-              body: JSON.stringify({
-                session_id: payload.session_id || crypto.randomUUID(),
-                chunk: encodedChunk
-              })
-            });
-
-            if (!chunkResponse.ok) throw new Error('Chunk upload failed');
-
-            const chunkData = await chunkResponse.json();
-            fileMetadata.chunks.push(chunkData.chunk_id);
-            processedBytes += encodedChunk.originalSize;
-          }
-
-          payload.chunked_files.push(fileMetadata);
-        }
+        const fileData = await readFileAsArrayBuffer(file);
+        const encryptedFile = await encryptData(fileData, key.key, iv);
+        const encodedFile = Base64.encode(encryptedFile);
+        payload.files.push({
+          data: encodedFile,
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          size: file.size
+        });
+        processedBytes += file.size;
       } catch (fileError) {
         throw new Error(`Failed to process file "${file.name}": ${fileError.message}`);
       }
@@ -365,24 +278,6 @@ const Base64 = {
     }
   },
 
-  async *encodeChunked(chunks) {
-    for (const chunk of chunks) {
-      const bytes = new Uint8Array(chunk.data);
-      const chunkSize = 0x8000; // 32KB chunks for base64 encoding
-
-      let result = '';
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        const slice = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
-        result += btoa(String.fromCharCode.apply(null, slice));
-      }
-
-      yield {
-        offset: chunk.offset,
-        data: result,
-        originalSize: chunk.size
-      };
-    }
-  },
 
   decode: function(base64) {
     try {

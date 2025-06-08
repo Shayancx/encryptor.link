@@ -17,17 +17,9 @@ class DestructionCertificateService
         raise CertificateError, "Failed to create certificate: #{certificate.errors.full_messages.join(', ')}"
       end
 
-      AuditService.log(
-        event_type: "destruction_certificate_generated",
-        payload_id: payload.id,
-        metadata: {
-          certificate_id: certificate.certificate_id,
-          reason: reason
-        }
-      )
 
-      certificate
-    end
+        certificate
+      end
   rescue => e
     Rails.logger.error "Certificate generation failed: #{e.message}"
     raise CertificateError, "Failed to generate destruction certificate"
@@ -41,13 +33,6 @@ class DestructionCertificateService
 
     expected_hash = Digest::SHA256.hexdigest(certificate.certificate_data)
 
-    AuditService.log(
-      event_type: "destruction_certificate_verified",
-      metadata: {
-        certificate_id: certificate.certificate_id,
-        valid: expected_hash == certificate.certificate_hash
-      }
-    )
 
     {
       valid: expected_hash == certificate.certificate_hash,
@@ -78,7 +63,6 @@ class DestructionCertificateService
       Reason: #{certificate.destruction_reason&.humanize}
 
       Payload Checksum: #{data['payload_checksum']}
-      Server Signature: #{data['server_signature']}
       Certificate Version: #{data['version']}
 
       Certificate Hash: #{certificate.certificate_hash}

@@ -1,9 +1,0 @@
-production:
-  expired_payloads_cleanup:
-    class: CleanupExpiredPayloadsJob
-    queue: default
-    schedule: every 1 hour
-  integrity_check:
-    class: IntegrityCheckJob
-    queue: low_priority
-    schedule: every 6 hours

@@ -6,8 +6,6 @@ ruby "3.4.4", prism: true
 gem "rails", "8.0.2"
 gem "pg"
 gem "puma"
-gem "bcrypt", "~> 3.1"
-gem "csv"
 
 # Assets
 gem "bootstrap", "~> 5.3"

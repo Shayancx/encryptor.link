@@ -1,6 +1,5 @@
 @import "abstracts/variables";
 @import "abstracts/mixins";
-@import "abstracts/functions";
 
 @import "bootstrap";
 
@@ -18,15 +17,12 @@
 @import "components/sections";
 @import "components/forms";
 @import "components/alerts";
-@import "components/tables";
-@import "components/pagination";
 @import "components/file-upload";
 @import "components/file_upload";
 @import "components/rich-text-editor";
 @import "components/settings_panel";
 @import "components/theme-switch";
 @import "components/flash";
-@import "components/trix";
 @import "components/progress";
 @import "components/qrcode";
 
