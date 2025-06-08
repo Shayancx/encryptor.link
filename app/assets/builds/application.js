@@ -2580,7 +2580,7 @@ async function encryptFiles(files, message, ttl, views, password = "", burnAfter
       }
     }
     updateProgress("Uploading encrypted data...");
-    const response = await CSRFHelper.fetchWithCSRF("/encrypt/finalize", {
+    const response = await CSRFHelper.fetchWithCSRF("/encrypt", {
       method: "POST",
       body: JSON.stringify(payload)
     });
