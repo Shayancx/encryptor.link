@@ -4,7 +4,8 @@ const isWatchMode = process.argv.includes('--watch');
 
 const config = {
   entryPoints: [
-    'app/javascript/application.js'
+    'app/javascript/application.js',
+    'app/javascript/lib/decrypt.js'
   ],
   bundle: true,
   outdir: 'app/assets/builds',
