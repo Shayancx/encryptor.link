@@ -58,6 +58,7 @@
 /public/assets/
 /public/packs/
 /public/packs-test/
+/app/assets/builds/
 
 # === VSCode ===
 .vscode/

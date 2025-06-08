@@ -1,6 +1,8 @@
 const esbuild = require('esbuild');
 
-esbuild.build({
+const isWatchMode = process.argv.includes('--watch');
+
+const config = {
   entryPoints: [
     'app/javascript/application.js'
   ],
@@ -10,4 +12,13 @@ esbuild.build({
   sourcemap: true,
   format: 'esm',
   target: 'es2020'
-}).catch(() => process.exit(1));
+};
+
+if (isWatchMode) {
+  esbuild.context(config).then(context => {
+    context.watch();
+    console.log('Watching for changes...');
+  }).catch(() => process.exit(1));
+} else {
+  esbuild.build(config).catch(() => process.exit(1));
+}

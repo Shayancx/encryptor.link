@@ -1,2 +1,23 @@
 #!/usr/bin/env ruby
-exec "./bin/rails", "server", *ARGV
+
+require "fileutils"
+
+# Check if foreman is available
+if system("which foreman > /dev/null 2>&1")
+  # Use foreman if available
+  exec "foreman start -f Procfile.dev"
+else
+  # Fallback: start both processes in background
+  puts "Starting development servers..."
+
+  # Start JavaScript build in background
+  js_pid = spawn("npm run build:watch")
+
+  # Start Rails server in foreground
+  begin
+    exec "./bin/rails", "server", *ARGV
+  ensure
+    # Kill the JavaScript process when Rails server stops
+    Process.kill("TERM", js_pid) rescue nil
+  end
+end
