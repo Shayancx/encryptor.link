@@ -42,7 +42,7 @@ export default class extends BaseController {
   }
 
   private applyTheme(): void {
-    document.documentElement.setAttribute('data-theme', this.currentTheme);
+    document.documentElement.classList.toggle('dark', this.currentTheme === 'dark');
   }
 
   private updateIcons(): void {
