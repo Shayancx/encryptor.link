@@ -1,0 +1,15 @@
+# vite_ruby configuration
+require "vite_ruby"
+
+# Use ViteRuby here, not Vite
+ViteRuby.configure do |config|
+  # Configure host
+  config.host = 'localhost'
+  # Configure port - this MUST match the port vite is running on
+  config.port = 3036
+  config.public_output_dir = "vite-dev"
+  # Configure entrypoints dir
+  config.entrypoints_dir = 'entrypoints'
+  # Configure source code dir
+  config.source_code_dir = 'app/javascript'
+end

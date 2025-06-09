@@ -1,14 +1,10 @@
-const animate = require("tailwindcss-animate")
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
   content: [
-    './app/views/**/*.html.erb',
-    './app/helpers/**/*.rb',
-    './app/javascript/**/*.{js,ts,jsx,tsx}',
+    './app/views/**/*.{html,html.erb,erb}',
+    './app/javascript/**/*.{js,jsx,ts,tsx}',
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
@@ -60,12 +56,12 @@ module.exports = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: "0" },
+          from: { height: 0 },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+          to: { height: 0 },
         },
       },
       animation: {
@@ -74,5 +70,5 @@ module.exports = {
       },
     },
   },
-  plugins: [animate],
+  plugins: [require("tailwindcss-animate")],
 }

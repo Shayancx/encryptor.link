@@ -9,8 +9,13 @@
     <!-- Load Vite development client (only in development) -->
     <%= vite_client_tag %>
     
-    <!-- Load Vite entry point (explicitly using 'entrypoints/application.js') -->
-    <%= vite_javascript_tag 'entrypoints/application' %>
+    <!-- Load Vite entry point -->
+    <%= vite_javascript_tag 'application' %>
+    
+    <!-- Optional: Load CSS directly if not imported in JS -->
+    <% if Vite.instance.dev_server_running? %>
+      <%= vite_stylesheet_tag 'application' %>
+    <% end %>
   </head>
 
   <body>

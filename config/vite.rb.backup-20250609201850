@@ -1,0 +1,21 @@
+# vite_rails provides a load_path method
+require "vite_rails"
+
+ViteRuby.configure do |config|
+  # Configure the entrypoints directory
+  config.entrypoints_dir = 'entrypoints'
+  # The source code directory path
+  config.source_code_dir = 'app/javascript'
+  # The public directory
+  config.public_dir = Rails.public_path.join('vite')
+  # Public output dir for assets
+  config.public_output_dir = 'vite-dev'
+  # Cache directory for the Vite dev server
+  config.build_cache_dir = 'tmp/vite-build-cache'
+  # The host the Vite development server will use
+  config.host = 'localhost'
+  # The port the Vite development server will use
+  config.port = 3036
+  # Customize extensions watched by Vite
+  config.extensions = %w[js jsx ts tsx vue css scss sass]
+end

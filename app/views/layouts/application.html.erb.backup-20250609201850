@@ -6,11 +6,9 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     
-    <!-- Load Vite development client (only in development) -->
     <%= vite_client_tag %>
-    
-    <!-- Load Vite entry point (explicitly using 'entrypoints/application.js') -->
-    <%= vite_javascript_tag 'entrypoints/application' %>
+    <%= vite_javascript_tag 'application' %>
+    <%= yield :head %>
   </head>
 
   <body>
