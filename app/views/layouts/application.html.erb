@@ -16,43 +16,15 @@
 
 </head>
 <body data-controller="rate-limit">
-  <div id="root"></div>
+  <!-- React app will mount here -->
+  <div id="react-root"></div>
 
-  <header class="bg-gray-800 text-white border-b sticky top-0">
-    <div class="max-w-4xl mx-auto flex items-center justify-between gap-4 p-4">
-      <a href="/" class="text-xl font-semibold">encryptor.link</a>
-      <a href="/check" class="text-sm text-gray-400 hover:text-white">Check Link Status</a>
-
-      <div data-controller="theme">
-        <button type="button" id="themeToggle" aria-label="Toggle theme" class="p-2" data-action="click->theme#toggle" data-theme-target="button">
-            <svg id="sun-icon" data-theme-target="sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="4"></circle>
-              <path d="m12 2 0 2"></path>
-              <path d="m12 20 0 2"></path>
-              <path d="m4.93 4.93 1.41 1.41"></path>
-              <path d="m17.66 17.66 1.41 1.41"></path>
-              <path d="m2 12 2 0"></path>
-              <path d="m20 12 2 0"></path>
-              <path d="m6.34 17.66-1.41 1.41"></path>
-              <path d="m19.07 4.93-1.41 1.41"></path>
-            </svg>
-            <svg id="moon-icon" data-theme-target="moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
+  <!-- Fallback for users without JavaScript -->
+  <noscript>
+    <div style="padding: 2rem; text-align: center; background: #fee; border: 1px solid #fcc;">
+      <h1>JavaScript Required</h1>
+      <p>This application requires JavaScript to function properly. Please enable JavaScript in your browser.</p>
     </div>
-  </header>
-
-  <main class="max-w-4xl mx-auto p-4">
-    <%= yield %>
-  </main>
-
-  <footer class="border-t py-4 text-center text-xs text-gray-500">
-    <p>Zero-knowledge, client-side encrypted messages</p>
-    <p>All encryption and decryption happens in your browser. The server never sees your plaintext data.</p>
-  </footer>
-
+  </noscript>
 </body>
 </html>

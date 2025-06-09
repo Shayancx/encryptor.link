@@ -1,15 +1,29 @@
 Rails.application.routes.draw do
   # Health check endpoint
   get "/health", to: "health#show"
+  
+  # Certificate routes
   get "/certificates/:id", to: "certificates#show", as: :certificate
   get "/certificates/verify/:hash", to: "certificates#verify", as: :verify_certificate
+  
+  # API routes for React app
   post   "/encrypt", to: "encryptions#create"
-  get    "/check", to: "payload_infos#new", as: :check_link
   get    "/:id/info", to: "decryptions#info", as: :payload_info
-  get    "/:id",     to: "decryptions#show",  as: :decrypt
   get    "/:id/data", to: "decryptions#data",  as: :decrypt_data
-  root   "encryptions#new"
-
+  
+  # Test route for shadcn components
   get "/shadcn-test", to: "shadcn_test#index"
+  
+  # Serve React app for all main routes
+  root   "application#react_app"
+  get    "/check", to: "application#react_app"
+  get    "/:id", to: "application#react_app", constraints: { id: /[0-9a-f-]+/ }
+  
+  # Catch-all for other routes
+  get "*path", to: "application#react_app", constraints: lambda { |req|
+    !req.path.start_with?('/rails/') && 
+    !req.path.start_with?('/assets/') && 
+    !req.path.start_with?('/vite/') &&
+    !req.path.start_with?('/@vite/')
+  }
 end
-
