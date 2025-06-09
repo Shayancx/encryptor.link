@@ -1,10 +1,11 @@
 const esbuild = require('esbuild');
+const { typescript } = require('esbuild-plugin-tsc');
 
 const isWatchMode = process.argv.includes('--watch');
 
 const config = {
   entryPoints: [
-    'app/javascript/application.js',
+    'app/javascript/application.ts',
     'app/javascript/lib/decrypt.js'
   ],
   bundle: true,
@@ -12,7 +13,12 @@ const config = {
   entryNames: '[name]',
   sourcemap: true,
   format: 'esm',
-  target: 'es2020'
+  target: 'es2020',
+  plugins: [
+    typescript({
+      tsconfigPath: './tsconfig.json'
+    })
+  ]
 };
 
 if (isWatchMode) {

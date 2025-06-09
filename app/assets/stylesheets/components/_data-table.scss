@@ -1,0 +1,163 @@
+// GitHub-style data tables
+.gh-table-container {
+  background-color: var(--gh-card-bg);
+  border: 1px solid var(--gh-border-color);
+  border-radius: $border-radius-base;
+  overflow: hidden;
+}
+
+.gh-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+  
+  thead {
+    background-color: var(--gh-bg-secondary);
+    border-bottom: 1px solid var(--gh-border-color);
+  }
+  
+  th {
+    padding: $table-cell-padding;
+    text-align: left;
+    font-weight: $font-weight-medium;
+    color: var(--gh-text-primary);
+    white-space: nowrap;
+    
+    &.sortable {
+      cursor: pointer;
+      user-select: none;
+      
+      &:hover {
+        background-color: var(--gh-bg-primary);
+      }
+      
+      .sort-indicator {
+        display: inline-block;
+        margin-left: 4px;
+        opacity: 0.4;
+        
+        &.active {
+          opacity: 1;
+          color: var(--gh-accent-color);
+        }
+      }
+    }
+  }
+  
+  tbody tr {
+    border-bottom: 1px solid var(--gh-border-muted);
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &:hover {
+      background-color: var(--gh-bg-secondary);
+    }
+  }
+  
+  td {
+    padding: $table-cell-padding;
+    color: var(--gh-text-primary);
+    
+    &.text-muted {
+      color: var(--gh-text-secondary);
+    }
+    
+    &.actions {
+      text-align: right;
+      white-space: nowrap;
+    }
+  }
+}
+
+// Responsive table
+@include media-breakpoint-down(md) {
+  .gh-table-responsive {
+    .gh-table {
+      display: block;
+      
+      thead {
+        display: none;
+      }
+      
+      tbody, tr, td {
+        display: block;
+      }
+      
+      tr {
+        padding: $spacer-3 0;
+        
+        &:not(:last-child) {
+          border-bottom: 1px solid var(--gh-border-color);
+        }
+      }
+      
+      td {
+        padding: $spacer-1 0;
+        text-align: left !important;
+        
+        &:before {
+          content: attr(data-label);
+          font-weight: $font-weight-medium;
+          color: var(--gh-text-secondary);
+          display: inline-block;
+          width: 40%;
+          margin-right: $spacer-2;
+        }
+      }
+    }
+  }
+}
+
+// Pagination styles
+.gh-pagination {
+  display: flex;
+  gap: 4px;
+  margin-top: 16px;
+  
+  .gh-page-item {
+    display: inline-block;
+  }
+  
+  .gh-page-link {
+    display: block;
+    padding: 4px 12px;
+    text-decoration: none;
+    color: var(--gh-text-primary);
+    border: 1px solid var(--gh-border-color);
+    border-radius: $border-radius-base;
+    font-size: $font-size-sm;
+    transition: all 0.2s;
+    
+    &:hover:not(.disabled):not(.active) {
+      background-color: var(--gh-bg-secondary);
+      border-color: var(--gh-accent-color);
+    }
+    
+    &.active {
+      background-color: var(--gh-accent-color);
+      color: white;
+      border-color: var(--gh-accent-color);
+    }
+    
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+}
+
+// Search input for tables
+.gh-table-search {
+  margin-bottom: 16px;
+  
+  input {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+// Table cell padding variable
+$table-cell-padding: 8px 16px !default;

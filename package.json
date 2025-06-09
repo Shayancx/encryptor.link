@@ -16,7 +16,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@hotwired/stimulus": "^3.2.2",
     "esbuild": "^0.25.5"
+  },
+  "devDependencies": {
+    "@hotwired/stimulus": "^3.2.2",
+    "@types/node": "^22.15.30",
+    "@types/qrcode": "^1.5.5",
+    "esbuild-plugin-tsc": "^0.5.0",
+    "typescript": "^5.8.3"
   }
 }
