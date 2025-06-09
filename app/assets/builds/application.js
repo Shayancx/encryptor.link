@@ -4,7 +4,6 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -27,7 +26,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // node_modules/@hotwired/stimulus/dist/stimulus.js
 function extendEvent(event) {
@@ -2482,6 +2480,101 @@ var init_stimulus = __esm({
   }
 });
 
+// app/javascript/controllers/base/BaseController.ts
+var BaseController;
+var init_BaseController = __esm({
+  "app/javascript/controllers/base/BaseController.ts"() {
+    "use strict";
+    init_stimulus();
+    BaseController = class extends Controller {
+      constructor() {
+        super(...arguments);
+        this.cleanupFunctions = [];
+        this.activeRequests = /* @__PURE__ */ new Map();
+      }
+      safeQuerySelector(selector, parent = document) {
+        try {
+          return parent.querySelector(selector);
+        } catch (error2) {
+          console.error(`Failed to query selector: ${selector}`, error2);
+          return null;
+        }
+      }
+      safeQuerySelectorAll(selector, parent = document) {
+        try {
+          return parent.querySelectorAll(selector);
+        } catch (error2) {
+          console.error(`Failed to query selector: ${selector}`, error2);
+          return document.querySelectorAll("never-match");
+        }
+      }
+      addManagedEventListener(element, event, handler, options) {
+        if (!element) return;
+        element.addEventListener(event, handler, options);
+        this.cleanupFunctions.push(
+          () => element.removeEventListener(event, handler, options)
+        );
+      }
+      async makeRequest(key, requestFn) {
+        this.cancelRequest(key);
+        const abortController = new AbortController();
+        this.activeRequests.set(key, abortController);
+        try {
+          const response = await requestFn();
+          return response;
+        } finally {
+          this.activeRequests.delete(key);
+        }
+      }
+      cancelRequest(key) {
+        const controller = this.activeRequests.get(key);
+        if (controller) {
+          controller.abort();
+          this.activeRequests.delete(key);
+        }
+      }
+      cancelAllRequests() {
+        this.activeRequests.forEach((controller) => controller.abort());
+        this.activeRequests.clear();
+      }
+      hasTargetElement(name) {
+        const targetName = `has${name.charAt(0).toUpperCase() + name.slice(1)}Target`;
+        return this[targetName] || false;
+      }
+      getTargetElement(name) {
+        if (!this.hasTargetElement(name)) return null;
+        const targetName = `${name}Target`;
+        return this[targetName];
+      }
+      getTargetElements(name) {
+        const targetName = `${name}Targets`;
+        return this[targetName] || [];
+      }
+      validateState() {
+        return true;
+      }
+      showError(message) {
+        console.error(`[${this.constructor.name}] ${message}`);
+        this.dispatch("error", { detail: { message } });
+      }
+      disconnect() {
+        this.cancelAllRequests();
+        this.cleanupFunctions.forEach((cleanup) => {
+          try {
+            cleanup();
+          } catch (error2) {
+            console.error("Cleanup function error:", error2);
+          }
+        });
+        this.cleanupFunctions = [];
+        if (super.disconnect) {
+          super.disconnect();
+        }
+      }
+    };
+  }
+});
+
 // app/javascript/lib/encrypt.js
 async function encryptMessage(message, ttl, views, password = "", burnAfterReading = false) {
   try {
@@ -2672,6 +2765,7 @@ function readFileAsArrayBuffer(file) {
 var Base64;
 var init_encrypt = __esm({
   "app/javascript/lib/encrypt.js"() {
+    "use strict";
     Base64 = {
       encode: function(arrayBuffer) {
         try {
@@ -2708,222 +2802,437 @@ var init_encrypt = __esm({
   }
 });
 
-// app/javascript/services/cryptography_service.js
-var CryptographyService;
-var init_cryptography_service = __esm({
-  "app/javascript/services/cryptography_service.js"() {
+// app/javascript/services/CryptographyService.ts
+var CryptographyService, CryptographyService_default;
+var init_CryptographyService = __esm({
+  "app/javascript/services/CryptographyService.ts"() {
+    "use strict";
     init_encrypt();
     CryptographyService = class {
-      static encryptMessage(...args) {
-        return encryptMessage(...args);
+      static async encryptMessage(message, ttl, views, password = "", burnAfterReading = false) {
+        try {
+          return await encryptMessage(message, ttl, views, password, burnAfterReading);
+        } catch (error2) {
+          console.error("Encryption failed:", error2);
+          throw new Error(`Encryption failed: ${error2 instanceof Error ? error2.message : "Unknown error"}`);
+        }
       }
-      static encryptFiles(...args) {
-        return encryptFiles(...args);
+      static async encryptFiles(files, message, ttl, views, password = "", burnAfterReading = false, progressCallback, cancelToken) {
+        try {
+          return await encryptFiles(
+            files,
+            message,
+            ttl,
+            views,
+            password,
+            burnAfterReading,
+            progressCallback,
+            cancelToken
+          );
+        } catch (error2) {
+          console.error("File encryption failed:", error2);
+          throw new Error(`File encryption failed: ${error2 instanceof Error ? error2.message : "Unknown error"}`);
+        }
       }
     };
+    CryptographyService_default = CryptographyService;
   }
 });
 
-// app/javascript/services/validation_service.js
-var ValidationService;
-var init_validation_service = __esm({
-  "app/javascript/services/validation_service.js"() {
+// app/javascript/services/ValidationService.ts
+var ValidationService, ValidationService_default;
+var init_ValidationService = __esm({
+  "app/javascript/services/ValidationService.ts"() {
+    "use strict";
     ValidationService = class {
-      static validate({ message = "", ttl = 0, views = 0 }) {
-        if (ttl <= 0) return "Invalid expiration time";
-        if (views <= 0) return "Invalid view limit";
+      static validate(input) {
+        const { message = "", files = [], ttl = 0, views = 0 } = input;
+        if (!message.trim() && files.length === 0) {
+          return "Please enter a message or select at least one file";
+        }
+        if (ttl <= 0) {
+          return "Invalid expiration time";
+        }
+        if (ttl > 7 * 24 * 60 * 60) {
+          return "Expiration time cannot exceed 7 days";
+        }
+        if (views <= 0) {
+          return "Invalid view limit";
+        }
+        if (views > 5) {
+          return "View limit cannot exceed 5";
+        }
+        if (files.length > 0) {
+          const maxFileSize = 1e3 * 1024 * 1024;
+          const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+          if (totalSize > maxFileSize) {
+            return `Total file size cannot exceed 1000MB. Current: ${(totalSize / (1024 * 1024)).toFixed(2)}MB`;
+          }
+          for (const file of files) {
+            if (file.size === 0) {
+              return `File "${file.name}" is empty`;
+            }
+          }
+        }
         return null;
       }
-    };
-  }
-});
-
-// app/javascript/services/error_service.js
-var ErrorService;
-var init_error_service = __esm({
-  "app/javascript/services/error_service.js"() {
-    ErrorService = class {
-      static handle(error2) {
-        console.error(error2);
-        alert("Error: " + error2.message);
+      static validatePassword(password) {
+        if (password.length < 8) {
+          return "Password must be at least 8 characters long";
+        }
+        return null;
+      }
+      static sanitizeInput(input) {
+        return input.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;").replace(/\//g, "&#x2F;");
       }
     };
+    ValidationService_default = ValidationService;
   }
 });
 
-// app/javascript/controllers/encryption_controller.js
+// app/javascript/services/ErrorService.ts
+var ErrorService, ErrorService_default;
+var init_ErrorService = __esm({
+  "app/javascript/services/ErrorService.ts"() {
+    "use strict";
+    ErrorService = class {
+      static handle(error2, details) {
+        const errorObj = typeof error2 === "string" ? new Error(error2) : error2;
+        console.error("Error:", errorObj, details);
+        this.errorHandlers.forEach((handler) => {
+          try {
+            handler(errorObj, details);
+          } catch (handlerError) {
+            console.error("Error handler failed:", handlerError);
+          }
+        });
+        this.showUserError(errorObj.message);
+      }
+      static showUserError(message) {
+        alert(`Error: ${message}`);
+      }
+      static registerErrorHandler(handler) {
+        this.errorHandlers.push(handler);
+      }
+      static unregisterErrorHandler(handler) {
+        const index = this.errorHandlers.indexOf(handler);
+        if (index !== -1) {
+          this.errorHandlers.splice(index, 1);
+        }
+      }
+      static isNetworkError(error2) {
+        return error2.name === "NetworkError" || error2.message.toLowerCase().includes("network") || error2.message.toLowerCase().includes("fetch");
+      }
+      static isAbortError(error2) {
+        return error2.name === "AbortError";
+      }
+    };
+    ErrorService.errorHandlers = [];
+    ErrorService_default = ErrorService;
+  }
+});
+
+// app/javascript/controllers/encryption_controller.ts
 var encryption_controller_default;
 var init_encryption_controller = __esm({
-  "app/javascript/controllers/encryption_controller.js"() {
-    init_stimulus();
-    init_cryptography_service();
-    init_validation_service();
-    init_error_service();
-    encryption_controller_default = class extends Controller {
-      connect() {
+  "app/javascript/controllers/encryption_controller.ts"() {
+    "use strict";
+    init_BaseController();
+    init_CryptographyService();
+    init_ValidationService();
+    init_ErrorService();
+    encryption_controller_default = class extends BaseController {
+      constructor() {
+        super(...arguments);
         this.selectedFiles = [];
+        this.isEncrypting = false;
+      }
+      connect() {
+        this.setupFileHandling();
+        this.setupPasswordToggle();
+        this.setupBurnAfterReading();
+      }
+      setupFileHandling() {
         if (this.hasFileInputTarget) {
-          this.fileInputTarget.addEventListener("change", (e) => this.handleFiles(e.target.files));
+          this.addManagedEventListener(this.fileInputTarget, "change", (e) => {
+            const target = e.target;
+            if (target.files) {
+              this.handleFiles(target.files);
+            }
+          });
         }
         if (this.hasDropAreaTarget) {
-          this.dropAreaTarget.addEventListener("click", () => this.fileInputTarget.click());
-          this.dropAreaTarget.addEventListener("dragover", (e) => {
+          this.addManagedEventListener(this.dropAreaTarget, "click", () => {
+            if (this.hasFileInputTarget) {
+              this.fileInputTarget.click();
+            }
+          });
+          this.addManagedEventListener(this.dropAreaTarget, "dragover", (e) => {
             e.preventDefault();
             this.dropAreaTarget.classList.add("dragover");
           });
-          this.dropAreaTarget.addEventListener("dragleave", () => this.dropAreaTarget.classList.remove("dragover"));
-          this.dropAreaTarget.addEventListener("drop", (e) => {
+          this.addManagedEventListener(this.dropAreaTarget, "dragleave", () => {
+            this.dropAreaTarget.classList.remove("dragover");
+          });
+          this.addManagedEventListener(this.dropAreaTarget, "drop", (e) => {
             e.preventDefault();
             this.dropAreaTarget.classList.remove("dragover");
-            this.handleFiles(e.dataTransfer.files);
-          });
-        }
-        if (this.hasPasswordToggleTarget && this.hasPasswordContainerTarget) {
-          this.passwordContainerTarget.style.display = this.passwordToggleTarget.checked ? "block" : "none";
-          this.passwordToggleTarget.addEventListener("change", () => {
-            this.passwordContainerTarget.style.display = this.passwordToggleTarget.checked ? "block" : "none";
-            if (!this.passwordToggleTarget.checked) this.passwordInputTarget.value = "";
+            const dt = e.dataTransfer;
+            if (dt?.files) {
+              this.handleFiles(dt.files);
+            }
           });
         }
       }
+      setupPasswordToggle() {
+        if (!this.hasPasswordToggleTarget || !this.hasPasswordContainerTarget) return;
+        this.passwordContainerTarget.style.display = this.passwordToggleTarget.checked ? "block" : "none";
+        this.addManagedEventListener(this.passwordToggleTarget, "change", () => {
+          const isChecked = this.passwordToggleTarget.checked;
+          this.passwordContainerTarget.style.display = isChecked ? "block" : "none";
+          if (!isChecked && this.hasPasswordInputTarget) {
+            this.passwordInputTarget.value = "";
+          }
+        });
+      }
+      setupBurnAfterReading() {
+        if (!this.hasBurnToggleTarget) return;
+        this.addManagedEventListener(this.burnToggleTarget, "change", () => {
+          if (this.hasViewsSelectTarget) {
+            this.viewsSelectTarget.disabled = this.burnToggleTarget.checked;
+            if (this.burnToggleTarget.checked) {
+              this.viewsSelectTarget.value = "1";
+            }
+          }
+          const burnWarning = document.getElementById("burnWarning");
+          if (burnWarning) {
+            burnWarning.classList.toggle("d-none", !this.burnToggleTarget.checked);
+          }
+        });
+      }
       handleFiles(files) {
-        for (const file of files) {
-          this.selectedFiles.push(file);
-        }
+        Array.from(files).forEach((file) => {
+          this.selectedFiles.push({
+            file,
+            id: Math.random().toString(36).substr(2, 9)
+          });
+        });
         this.renderFiles();
       }
       renderFiles() {
-        if (!this.hasFilesContainerTarget) return;
-        const body = this.filesListBodyTarget;
-        body.innerHTML = "";
-        this.selectedFiles.forEach((file, index) => {
+        if (!this.hasFilesContainerTarget || !this.hasFilesListBodyTarget) return;
+        this.filesListBodyTarget.innerHTML = "";
+        let totalSize = 0;
+        this.selectedFiles.forEach((fileItem, index) => {
+          totalSize += fileItem.file.size;
           const item = document.createElement("div");
           item.className = "gh-file-item";
-          item.innerHTML = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+          item.innerHTML = `
+        <div class="file-info">
+          <span class="file-name">${this.escapeHtml(fileItem.file.name)}</span>
+          <span class="file-size">(${(fileItem.file.size / 1024 / 1024).toFixed(2)} MB)</span>
+        </div>
+      `;
           const removeBtn = document.createElement("button");
           removeBtn.type = "button";
           removeBtn.className = "btn btn-sm btn-outline-danger ms-2";
           removeBtn.textContent = "Remove";
-          removeBtn.addEventListener("click", () => {
+          this.addManagedEventListener(removeBtn, "click", () => {
             this.selectedFiles.splice(index, 1);
             this.renderFiles();
           });
           item.appendChild(removeBtn);
-          body.appendChild(item);
+          this.filesListBodyTarget.appendChild(item);
         });
-        this.filesContainerTarget.style.display = this.selectedFiles.length ? "" : "none";
+        const totalSizeElement = document.getElementById("totalSize");
+        if (totalSizeElement) {
+          totalSizeElement.textContent = `Total: ${(totalSize / 1024 / 1024).toFixed(2)} MB`;
+        }
+        this.filesContainerTarget.style.display = this.selectedFiles.length > 0 ? "" : "none";
       }
       async encrypt(event) {
         event.preventDefault();
-        const message = this.hasMessageInputTarget ? this.messageInputTarget.value : "";
-        const ttl = this.hasTtlSelectTarget ? parseInt(this.ttlSelectTarget.value, 10) : 0;
-        const views = this.hasViewsSelectTarget ? parseInt(this.viewsSelectTarget.value, 10) : 0;
-        const burnAfterReading = this.hasBurnToggleTarget ? this.burnToggleTarget.checked : false;
-        const validationError = ValidationService.validate({ message, ttl, views });
-        if (validationError) {
-          ErrorService.handle(new Error(validationError));
-          return;
-        }
-        if (typeof CryptographyService.encryptMessage !== "function" || typeof CryptographyService.encryptFiles !== "function") {
-          ErrorService.handle(new Error("Encryption module failed to load."));
-          return;
-        }
-        const usePassword = this.passwordToggleTarget.checked;
-        const password = usePassword ? this.passwordInputTarget.value : "";
-        this.encryptButtonTarget.classList.add("loading", "btn-progress");
-        this.encryptButtonTarget.disabled = true;
-        this.progressDotsTarget.classList.remove("d-none");
-        const originalText = this.encryptButtonTextTarget.textContent;
+        if (this.isEncrypting) return;
         try {
-          const update = (p) => {
-            let text = p.status;
-            if (p.details) text += ` ${p.details}`;
-            if (p.percentage !== void 0) text += ` (${p.percentage}%)`;
-            if (p.speed) text += ` ${p.speed.toFixed(2)} MB/s`;
-            if (p.eta) text += ` ETA: ${p.eta.toFixed(1)}s`;
+          this.isEncrypting = true;
+          const message = this.getRichEditorContent();
+          const ttl = this.hasTtlSelectTarget ? parseInt(this.ttlSelectTarget.value, 10) : 86400;
+          const views = this.hasViewsSelectTarget ? parseInt(this.viewsSelectTarget.value, 10) : 1;
+          const burnAfterReading = this.hasBurnToggleTarget ? this.burnToggleTarget.checked : false;
+          const usePassword = this.hasPasswordToggleTarget ? this.passwordToggleTarget.checked : false;
+          const password = usePassword && this.hasPasswordInputTarget ? this.passwordInputTarget.value : "";
+          const files = this.selectedFiles.map((item) => item.file);
+          const validationError = ValidationService_default.validate({ message, files, ttl, views });
+          if (validationError) {
+            ErrorService_default.handle(validationError);
+            return;
+          }
+          if (usePassword && password) {
+            const passwordError = ValidationService_default.validatePassword(password);
+            if (passwordError) {
+              ErrorService_default.handle(passwordError);
+              return;
+            }
+          }
+          if (typeof CryptographyService_default.encryptMessage !== "function" || typeof CryptographyService_default.encryptFiles !== "function") {
+            ErrorService_default.handle(new Error("Encryption module failed to load. Please refresh the page."));
+            return;
+          }
+          this.setEncryptionUI(true);
+          const progressCallback = (progress) => {
+            if (!this.hasEncryptButtonTextTarget) return;
+            let text = progress.status;
+            if (progress.details) text += ` ${progress.details}`;
+            if (progress.percentage !== void 0) text += ` (${progress.percentage}%)`;
+            if (progress.speed !== void 0) text += ` ${progress.speed.toFixed(2)} MB/s`;
+            if (progress.eta !== void 0) text += ` ETA: ${progress.eta.toFixed(1)}s`;
             this.encryptButtonTextTarget.textContent = text;
           };
           let link;
-          if (this.selectedFiles.length > 0) {
-            link = await CryptographyService.encryptFiles(
-              this.selectedFiles,
+          if (files.length > 0) {
+            link = await CryptographyService_default.encryptFiles(
+              files,
               message,
               ttl,
               views,
               password,
               burnAfterReading,
-              update
+              progressCallback
             );
           } else {
-            update({ percentage: 50, status: "Encrypting message..." });
-            link = await CryptographyService.encryptMessage(message, ttl, views, password, burnAfterReading);
-            update({ percentage: 100, status: "Complete!", speed: 0, eta: 0 });
+            progressCallback({ percentage: 50, status: "Encrypting message..." });
+            link = await CryptographyService_default.encryptMessage(message, ttl, views, password, burnAfterReading);
+            progressCallback({ percentage: 100, status: "Complete!" });
           }
-          this.encryptButtonTarget.classList.remove("loading", "btn-progress");
-          this.encryptButtonTarget.disabled = false;
-          this.encryptButtonTextTarget.textContent = originalText;
-          this.progressDotsTarget.classList.add("d-none");
-          this.encryptedLinkTarget.value = link;
-          if (this.hasQrToggleTarget && this.qrToggleTarget.checked) {
-            this.qrTabTarget.style.display = "";
-            this.qrPanelTarget.style.display = "";
-            this.resultTabsTarget.style.display = "";
-            this.qrContainerTarget.innerHTML = "";
-            new QRCode(this.qrContainerTarget, {
-              text: link,
-              width: 256,
-              height: 256,
-              colorDark: "#000000",
-              colorLight: "#ffffff",
-              correctLevel: QRCode.CorrectLevel.H
-            });
-          } else {
-            if (this.hasQrTabTarget) this.qrTabTarget.style.display = "none";
-            if (this.hasQrPanelTarget) this.qrPanelTarget.style.display = "none";
-          }
-          this.resultContainerTarget.classList.remove("d-none");
-          if (this.resultMessageTarget) {
-            if (usePassword) {
-              this.resultMessageTarget.textContent = "This link requires a password to access. Share both the link and password separately for maximum security.";
-            } else {
-              this.resultMessageTarget.textContent = "This link contains the decryption key. Anyone with this link can view your message or download your files.";
-            }
-          }
-          if (this.hasFormTarget) {
-            this.formTarget.reset();
-          }
-          if (document.getElementById("richEditor")) {
-            document.getElementById("richEditor").innerHTML = "";
-          }
-          if (this.hasMessageInputTarget) this.messageInputTarget.value = "";
-          this.selectedFiles = [];
-          this.renderFiles();
-          this.resultContainerTarget.scrollIntoView({ behavior: "smooth" });
+          this.showResults(link, usePassword);
+          this.resetForm();
         } catch (error2) {
-          this.encryptButtonTarget.classList.remove("loading", "btn-progress");
-          this.encryptButtonTarget.disabled = false;
-          this.encryptButtonTextTarget.textContent = originalText;
-          this.progressDotsTarget.classList.add("d-none");
-          ErrorService.handle(error2);
+          ErrorService_default.handle(error2);
+        } finally {
+          this.isEncrypting = false;
+          this.setEncryptionUI(false);
+        }
+      }
+      getRichEditorContent() {
+        const richEditor = document.getElementById("richEditor");
+        const hiddenInput = document.getElementById("hidden_message");
+        if (richEditor) {
+          return richEditor.innerHTML;
+        } else if (hiddenInput) {
+          return hiddenInput.value;
+        } else if (this.hasMessageInputTarget) {
+          return this.messageInputTarget.value;
+        }
+        return "";
+      }
+      setEncryptionUI(encrypting) {
+        if (this.hasEncryptButtonTarget) {
+          this.encryptButtonTarget.classList.toggle("loading", encrypting);
+          this.encryptButtonTarget.classList.toggle("btn-progress", encrypting);
+          this.encryptButtonTarget.disabled = encrypting;
+        }
+        if (this.hasProgressDotsTarget) {
+          this.progressDotsTarget.classList.toggle("d-none", !encrypting);
+        }
+        if (!encrypting && this.hasEncryptButtonTextTarget) {
+          this.encryptButtonTextTarget.textContent = "Encrypt & Generate Link";
+        }
+      }
+      showResults(link, usePassword) {
+        if (this.hasEncryptedLinkTarget) {
+          this.encryptedLinkTarget.value = link;
+        }
+        if (this.hasQrToggleTarget && this.qrToggleTarget.checked) {
+          this.generateQRCode(link);
+        }
+        if (this.hasResultContainerTarget) {
+          this.resultContainerTarget.classList.remove("d-none");
+        }
+        if (this.hasResultMessageTarget) {
+          if (usePassword) {
+            this.resultMessageTarget.textContent = "This link requires a password to access. Share both the link and password separately for maximum security.";
+          } else {
+            this.resultMessageTarget.textContent = "This link contains the decryption key. Anyone with this link can view your message or download your files.";
+          }
+        }
+        if (this.hasResultContainerTarget) {
+          this.resultContainerTarget.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+      generateQRCode(link) {
+        if (!this.hasQrContainerTarget || typeof window.QRCode === "undefined") return;
+        if (this.hasQrTabTarget) {
+          this.qrTabTarget.style.display = "";
+        }
+        if (this.hasQrPanelTarget) {
+          this.qrPanelTarget.style.display = "";
+        }
+        if (this.hasResultTabsTarget) {
+          this.resultTabsTarget.style.display = "";
+        }
+        this.qrContainerTarget.innerHTML = "";
+        new window.QRCode(this.qrContainerTarget, {
+          text: link,
+          width: 256,
+          height: 256,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: window.QRCode.CorrectLevel.H
+        });
+      }
+      resetForm() {
+        if (this.hasFormTarget) {
+          this.formTarget.reset();
+        }
+        const richEditor = document.getElementById("richEditor");
+        if (richEditor) {
+          richEditor.innerHTML = "";
+        }
+        const hiddenInput = document.getElementById("hidden_message");
+        if (hiddenInput) {
+          hiddenInput.value = "";
+        }
+        if (this.hasMessageInputTarget) {
+          this.messageInputTarget.value = "";
+        }
+        this.selectedFiles = [];
+        this.renderFiles();
+        if (this.hasPasswordToggleTarget && this.hasPasswordContainerTarget) {
+          this.passwordToggleTarget.checked = false;
+          this.passwordContainerTarget.style.display = "none";
+          if (this.hasPasswordInputTarget) {
+            this.passwordInputTarget.value = "";
+          }
         }
       }
       copy() {
         if (!this.hasEncryptedLinkTarget || !this.hasCopyButtonTarget) return;
-        const linkInput = this.encryptedLinkTarget;
-        linkInput.select();
-        document.execCommand("copy");
-        const originalText = this.copyButtonTarget.innerHTML;
-        this.copyButtonTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M20 6 9 17l-5-5"/></svg> Copied!';
-        this.copyButtonTarget.classList.add("btn-success");
-        this.copyButtonTarget.classList.remove("btn-outline-primary");
-        setTimeout(() => {
-          this.copyButtonTarget.innerHTML = originalText;
-          this.copyButtonTarget.classList.remove("btn-success");
-          this.copyButtonTarget.classList.add("btn-outline-primary");
-        }, 2e3);
+        try {
+          this.encryptedLinkTarget.select();
+          document.execCommand("copy");
+          const originalHTML = this.copyButtonTarget.innerHTML;
+          this.copyButtonTarget.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M20 6 9 17l-5-5"/></svg> Copied!';
+          this.copyButtonTarget.classList.add("btn-success", "copied");
+          this.copyButtonTarget.classList.remove("btn-outline-primary");
+          setTimeout(() => {
+            this.copyButtonTarget.innerHTML = originalHTML;
+            this.copyButtonTarget.classList.remove("btn-success", "copied");
+            this.copyButtonTarget.classList.add("btn-outline-primary");
+          }, 2e3);
+        } catch (error2) {
+          ErrorService_default.handle(new Error("Failed to copy to clipboard"));
+        }
+      }
+      escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+      validateState() {
+        return this.hasFormTarget && this.hasEncryptButtonTarget && (this.hasMessageInputTarget || !!document.getElementById("richEditor"));
       }
     };
-    __publicField(encryption_controller_default, "targets", [
+    encryption_controller_default.targets = [
       "form",
       "passwordToggle",
       "passwordInput",
@@ -2948,28 +3257,45 @@ var init_encryption_controller = __esm({
       "qrTab",
       "qrPanel",
       "resultTabs"
-    ]);
+    ];
   }
 });
 
-// app/javascript/controllers/theme_controller.js
+// app/javascript/controllers/theme_controller.ts
 var theme_controller_default;
 var init_theme_controller = __esm({
-  "app/javascript/controllers/theme_controller.js"() {
-    init_stimulus();
-    theme_controller_default = class extends Controller {
+  "app/javascript/controllers/theme_controller.ts"() {
+    "use strict";
+    init_BaseController();
+    theme_controller_default = class extends BaseController {
+      constructor() {
+        super(...arguments);
+        this.currentTheme = "light";
+      }
       connect() {
         const userPrefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
         const savedTheme = localStorage.getItem("theme");
         this.currentTheme = savedTheme || (userPrefersDark ? "dark" : "light");
-        document.documentElement.setAttribute("data-bs-theme", this.currentTheme);
+        this.applyTheme();
         this.updateIcons();
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        this.addManagedEventListener(mediaQuery, "change", (e) => {
+          if (!localStorage.getItem("theme")) {
+            this.currentTheme = e.matches ? "dark" : "light";
+            this.applyTheme();
+            this.updateIcons();
+          }
+        });
       }
       toggle() {
         this.currentTheme = this.currentTheme === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-bs-theme", this.currentTheme);
+        this.applyTheme();
         localStorage.setItem("theme", this.currentTheme);
         this.updateIcons();
+        this.dispatch("theme-changed", { detail: { theme: this.currentTheme } });
+      }
+      applyTheme() {
+        document.documentElement.setAttribute("data-bs-theme", this.currentTheme);
       }
       updateIcons() {
         if (!this.hasSunTarget || !this.hasMoonTarget) return;
@@ -2982,49 +3308,70 @@ var init_theme_controller = __esm({
         }
       }
     };
-    __publicField(theme_controller_default, "targets", ["sun", "moon"]);
+    theme_controller_default.targets = ["sun", "moon"];
   }
 });
 
-// app/javascript/controllers/rich_editor_controller.js
+// app/javascript/controllers/rich_editor_controller.ts
 var rich_editor_controller_default;
 var init_rich_editor_controller = __esm({
-  "app/javascript/controllers/rich_editor_controller.js"() {
-    init_stimulus();
-    rich_editor_controller_default = class extends Controller {
+  "app/javascript/controllers/rich_editor_controller.ts"() {
+    "use strict";
+    init_BaseController();
+    rich_editor_controller_default = class extends BaseController {
+      constructor() {
+        super(...arguments);
+        this.isExpanded = false;
+      }
       connect() {
-        if (this.hasEditorTarget && this.hasHiddenInputTarget) {
-          const buttons = this.toolbarTarget.querySelectorAll(".rich-editor-button");
-          buttons.forEach((button) => {
-            button.addEventListener("click", (e) => {
-              e.preventDefault();
-              const command = button.getAttribute("data-command");
-              const value = button.getAttribute("data-value") || null;
-              if (command === "createLink") {
-                const url = prompt("Enter the link URL:");
-                if (url) {
-                  document.execCommand(command, false, url);
-                }
-              } else if (command === "formatBlock") {
-                document.execCommand(command, false, value);
-              } else if (command === "toggleCode") {
-                this.toggleCode();
-              } else {
-                document.execCommand(command, false, null);
-              }
-              this.updateButtonStates();
-              this.updateHiddenInput();
-              this.editorTarget.focus();
-            });
+        if (!this.hasEditorTarget || !this.hasHiddenInputTarget) {
+          this.showError("Rich editor targets not found");
+          return;
+        }
+        this.setupToolbar();
+        this.setupEditor();
+        this.setupExpandButton();
+      }
+      setupToolbar() {
+        if (!this.hasToolbarTarget) return;
+        const buttons = this.toolbarTarget.querySelectorAll(".rich-editor-button");
+        buttons.forEach((button) => {
+          this.addManagedEventListener(button, "click", (e) => {
+            e.preventDefault();
+            const cmd = button.getAttribute("data-command");
+            const value = button.getAttribute("data-value");
+            if (cmd) {
+              this.executeCommand({ command: cmd, value });
+            }
           });
-          this.editorTarget.addEventListener("input", () => this.updateHiddenInput());
-          this.editorTarget.addEventListener("keyup", () => this.updateButtonStates());
-          this.editorTarget.addEventListener("mouseup", () => this.updateButtonStates());
-          setTimeout(() => this.editorTarget.focus(), 100);
+        });
+      }
+      setupEditor() {
+        this.addManagedEventListener(this.editorTarget, "input", () => this.updateHiddenInput());
+        this.addManagedEventListener(this.editorTarget, "keyup", () => this.updateButtonStates());
+        this.addManagedEventListener(this.editorTarget, "mouseup", () => this.updateButtonStates());
+        setTimeout(() => this.editorTarget.focus(), 100);
+      }
+      setupExpandButton() {
+        if (!this.hasExpandButtonTarget || !this.hasContainerTarget) return;
+        this.addManagedEventListener(this.expandButtonTarget, "click", () => this.toggleExpand());
+      }
+      executeCommand(cmd) {
+        if (cmd.command === "createLink") {
+          const url = prompt("Enter the link URL:");
+          if (url) {
+            document.execCommand(cmd.command, false, url);
+          }
+        } else if (cmd.command === "formatBlock" && cmd.value) {
+          document.execCommand(cmd.command, false, cmd.value);
+        } else if (cmd.command === "toggleCode") {
+          this.toggleCode();
+        } else {
+          document.execCommand(cmd.command, false, cmd.value || "");
         }
-        if (this.hasExpandButtonTarget && this.hasContainerTarget) {
-          this.expandButtonTarget.addEventListener("click", () => this.toggleExpand());
-        }
+        this.updateButtonStates();
+        this.updateHiddenInput();
+        this.editorTarget.focus();
       }
       updateHiddenInput() {
         if (this.hasHiddenInputTarget && this.hasEditorTarget) {
@@ -3032,38 +3379,45 @@ var init_rich_editor_controller = __esm({
         }
       }
       updateButtonStates() {
+        if (!this.hasToolbarTarget) return;
         const buttons = this.toolbarTarget.querySelectorAll(".rich-editor-button");
         buttons.forEach((button) => {
           const command = button.getAttribute("data-command");
+          if (!command) return;
           if (command === "formatBlock") {
             const value = button.getAttribute("data-value");
             const formatBlock = document.queryCommandValue("formatBlock");
             button.classList.toggle("active", formatBlock.toLowerCase() === value);
           } else if (command === "toggleCode") {
-            let node = document.getSelection().anchorNode;
-            let isCode = false;
-            while (node && node !== this.editorTarget) {
-              if (node.nodeName === "CODE") {
-                isCode = true;
-                break;
-              }
-              node = node.parentNode;
-            }
+            const isCode = this.isInsideCode();
             button.classList.toggle("active", isCode);
           } else {
-            button.classList.toggle("active", document.queryCommandState(command));
+            try {
+              button.classList.toggle("active", document.queryCommandState(command));
+            } catch (e) {
+            }
           }
         });
       }
+      isInsideCode() {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return false;
+        let node = selection.anchorNode;
+        while (node && node !== this.editorTarget) {
+          if (node.nodeName === "CODE") return true;
+          node = node.parentNode;
+        }
+        return false;
+      }
       toggleCode() {
         const selection = window.getSelection();
-        if (!selection.rangeCount) return;
+        if (!selection || selection.rangeCount === 0) return;
         const range = selection.getRangeAt(0);
         let node = selection.anchorNode;
         while (node && node !== this.editorTarget) {
           if (node.nodeName === "CODE") {
-            const text = document.createTextNode(node.textContent);
-            node.parentNode.replaceChild(text, node);
+            const text = document.createTextNode(node.textContent || "");
+            node.parentNode?.replaceChild(text, node);
             range.selectNodeContents(text);
             selection.removeAllRanges();
             selection.addRange(range);
@@ -3087,45 +3441,55 @@ var init_rich_editor_controller = __esm({
         }
       }
       toggleExpand() {
-        this.containerTarget.classList.toggle("expanded");
-        if (this.containerTarget.classList.contains("expanded")) {
-          this.expandButtonTarget.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M10.75 1a.75.75 0 0 1 .75.75v2.5c0 .138.112.25.25.25h2.5a.75.75 0 0 1 0 1.5h-2.5A1.75 1.75 0 0 1 10 4.25v-2.5a.75.75 0 0 1 .75-.75Zm-5.5 0a.75.75 0 0 1 .75.75v2.5A1.75 1.75 0 0 1 4.25 6h-2.5a.75.75 0 0 1 0-1.5h2.5a.25.25 0 0 0 .25-.25v-2.5A.75.75 0 0 1 5.25 1ZM1 10.75a.75.75 0 0 1 .75-.75h2.5c.966 0 1.75.784 1.75 1.75v2.5a.75.75 0 0 1-1.5 0v-2.5a.25.25 0 0 0-.25-.25h-2.5a.75.75 0 0 1-.75-.75Zm9 1c0-.966.784-1.75 1.75-1.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.25.25 0 0 0-.25.25v2.5a.75.75 0 0 1-1.5 0Z"/></svg>`;
-          this.expandButtonTarget.title = "Collapse editor";
-        } else {
-          this.expandButtonTarget.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M1.75 10a.75.75 0 0 1 .75.75v2.5c0 .138.112.25.25.25h2.5a.75.75 0 0 1 0 1.5h-2.5A1.75 1.75 0 0 1 1 13.25v-2.5a.75.75 0 0 1 .75-.75Zm12.5 0a.75.75 0 0 1 .75.75v2.5A1.75 1.75 0 0 1 13.25 15h-2.5a.75.75 0 0 1 0-1.5h2.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 .75-.75ZM2.75 2.5a.25.25 0 0 0-.25.25v2.5a.75.75 0 0 1-1.5 0v-2.5C1 1.784 1.784 1 2.75 1h2.5a.75.75 0 0 1 0 1.5ZM10 1.75a.75.75 0 0 1 .75-.75h2.5c.966 0 1.75.784 1.75 1.75v2.5a.75.75 0 0 1-1.5 0v-2.5a.25.25 0 0 0-.25-.25h-2.5a.75.75 0 0 1-.75-.75Z"/></svg>`;
-          this.expandButtonTarget.title = "Expand editor";
-        }
+        this.isExpanded = !this.isExpanded;
+        this.containerTarget.classList.toggle("expanded", this.isExpanded);
+        const expandIcon = this.isExpanded ? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M10.75 1a.75.75 0 0 1 .75.75v2.5c0 .138.112.25.25.25h2.5a.75.75 0 0 1 0 1.5h-2.5A1.75 1.75 0 0 1 10 4.25v-2.5a.75.75 0 0 1 .75-.75Zm-5.5 0a.75.75 0 0 1 .75.75v2.5A1.75 1.75 0 0 1 4.25 6h-2.5a.75.75 0 0 1 0-1.5h2.5a.25.25 0 0 0 .25-.25v-2.5A.75.75 0 0 1 5.25 1ZM1 10.75a.75.75 0 0 1 .75-.75h2.5c.966 0 1.75.784 1.75 1.75v2.5a.75.75 0 0 1-1.5 0v-2.5a.25.25 0 0 0-.25-.25h-2.5a.75.75 0 0 1-.75-.75Zm9 1c0-.966.784-1.75 1.75-1.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.25.25 0 0 0-.25.25v2.5a.75.75 0 0 1-1.5 0Z"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M1.75 10a.75.75 0 0 1 .75.75v2.5c0 .138.112.25.25.25h2.5a.75.75 0 0 1 0 1.5h-2.5A1.75 1.75 0 0 1 1 13.25v-2.5a.75.75 0 0 1 .75-.75Zm12.5 0a.75.75 0 0 1 .75.75v2.5A1.75 1.75 0 0 1 13.25 15h-2.5a.75.75 0 0 1 0-1.5h2.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 .75-.75ZM2.75 2.5a.25.25 0 0 0-.25.25v2.5a.75.75 0 0 1-1.5 0v-2.5C1 1.784 1.784 1 2.75 1h2.5a.75.75 0 0 1 0 1.5ZM10 1.75a.75.75 0 0 1 .75-.75h2.5c.966 0 1.75.784 1.75 1.75v2.5a.75.75 0 0 1-1.5 0v-2.5a.25.25 0 0 0-.25-.25h-2.5a.75.75 0 0 1-.75-.75Z"/></svg>`;
+        this.expandButtonTarget.innerHTML = expandIcon;
+        this.expandButtonTarget.title = this.isExpanded ? "Collapse editor" : "Expand editor";
       }
     };
-    __publicField(rich_editor_controller_default, "targets", ["editor", "hiddenInput", "toolbar", "expandButton", "container"]);
+    rich_editor_controller_default.targets = ["editor", "hiddenInput", "toolbar", "expandButton", "container"];
   }
 });
 
-// app/javascript/controllers/rate_limit_controller.js
+// app/javascript/controllers/rate_limit_controller.ts
 var rate_limit_controller_default;
 var init_rate_limit_controller = __esm({
-  "app/javascript/controllers/rate_limit_controller.js"() {
-    init_stimulus();
-    rate_limit_controller_default = class extends Controller {
+  "app/javascript/controllers/rate_limit_controller.ts"() {
+    "use strict";
+    init_BaseController();
+    rate_limit_controller_default = class extends BaseController {
+      constructor() {
+        super(...arguments);
+        this.originalFetch = null;
+      }
       connect() {
         this.originalFetch = window.fetch.bind(window);
-        window.fetch = async (...args) => {
-          const response = await this.originalFetch(...args);
-          if (response.status === 429) {
-            const retryAfter = response.headers.get("Retry-After") || 60;
-            this.showRateLimitError(retryAfter);
-          }
-          return response;
-        };
+        window.fetch = this.interceptedFetch.bind(this);
       }
       disconnect() {
         if (this.originalFetch) {
           window.fetch = this.originalFetch;
         }
+        super.disconnect();
+      }
+      async interceptedFetch(...args) {
+        if (!this.originalFetch) {
+          throw new Error("Original fetch not available");
+        }
+        const response = await this.originalFetch(...args);
+        if (response.status === 429) {
+          const retryAfter = response.headers.get("Retry-After") || "60";
+          this.showRateLimitError(retryAfter);
+        }
+        return response;
       }
       showRateLimitError(retryAfter) {
+        if (document.querySelector(".rate-limit-alert")) {
+          return;
+        }
         const alert2 = document.createElement("div");
-        alert2.className = "alert alert-danger";
+        alert2.className = "alert alert-danger rate-limit-alert";
         alert2.role = "alert";
         alert2.innerHTML = `
       <h4 class="alert-heading">Rate limit exceeded</h4>
@@ -3138,9 +3502,202 @@ var init_rate_limit_controller = __esm({
   }
 });
 
+// app/javascript/controllers/data_table_controller.ts
+var data_table_controller_default;
+var init_data_table_controller = __esm({
+  "app/javascript/controllers/data_table_controller.ts"() {
+    "use strict";
+    init_BaseController();
+    data_table_controller_default = class extends BaseController {
+      constructor() {
+        super(...arguments);
+        this.currentPage = 1;
+        this.sortColumn = null;
+        this.sortDirection = "asc";
+        this.filteredData = [];
+      }
+      connect() {
+        this.filteredData = [...this.dataValue];
+        this.render();
+        this.setupEventListeners();
+      }
+      setupEventListeners() {
+        if (this.hasSearchInputTarget && this.optionsValue.searchable) {
+          this.addManagedEventListener(
+            this.searchInputTarget,
+            "input",
+            this.debounce(() => this.handleSearch(), 300)
+          );
+        }
+      }
+      render() {
+        this.renderTable();
+        this.renderPagination();
+      }
+      renderTable() {
+        if (!this.hasTableTarget) return;
+        const thead = this.tableTarget.querySelector("thead") || document.createElement("thead");
+        thead.innerHTML = this.renderHeader();
+        if (!this.tableTarget.querySelector("thead")) {
+          this.tableTarget.appendChild(thead);
+        }
+        thead.querySelectorAll("th.sortable").forEach((th) => {
+          this.addManagedEventListener(th, "click", () => {
+            const column = th.getAttribute("data-column");
+            if (column) this.handleSort(column);
+          });
+        });
+        if (this.hasTbodyTarget) {
+          this.tbodyTarget.innerHTML = this.renderBody();
+        }
+      }
+      renderHeader() {
+        return `
+      <tr>
+        ${this.columnsValue.map((col) => `
+          <th class="${col.sortable ? "sortable" : ""}" data-column="${col.key}">
+            ${col.label}
+            ${col.sortable ? this.renderSortIcon(col.key) : ""}
+          </th>
+        `).join("")}
+      </tr>
+    `;
+      }
+      renderSortIcon(column) {
+        const isActive = this.sortColumn === column;
+        const direction = isActive ? this.sortDirection : "none";
+        return `
+      <span class="sort-indicator ${isActive ? "active" : ""}">
+        ${direction === "asc" ? "\u25B2" : direction === "desc" ? "\u25BC" : "\u21C5"}
+      </span>
+    `;
+      }
+      renderBody() {
+        const data = this.getPaginatedData();
+        if (data.length === 0) {
+          return `
+        <tr>
+          <td colspan="${this.columnsValue.length}" class="text-center text-muted">
+            No data available
+          </td>
+        </tr>
+      `;
+        }
+        return data.map((row) => `
+      <tr>
+        ${this.columnsValue.map((col) => {
+          const value = row[col.key];
+          const formatted = col.formatter ? col.formatter(value, row) : value;
+          return `<td data-label="${col.label}">${formatted}</td>`;
+        }).join("")}
+      </tr>
+    `).join("");
+      }
+      renderPagination() {
+        if (!this.hasPaginationTarget || !this.optionsValue.paginated) return;
+        const totalPages = Math.ceil(this.filteredData.length / (this.optionsValue.itemsPerPage || 10));
+        if (totalPages <= 1) {
+          this.paginationTarget.innerHTML = "";
+          return;
+        }
+        let html = "";
+        html += `
+      <div class="gh-page-item">
+        <a href="#" class="gh-page-link ${this.currentPage === 1 ? "disabled" : ""}" 
+           data-page="${this.currentPage - 1}">&laquo;</a>
+      </div>
+    `;
+        for (let i = 1; i <= totalPages; i++) {
+          html += `
+        <div class="gh-page-item">
+          <a href="#" class="gh-page-link ${i === this.currentPage ? "active" : ""}" 
+             data-page="${i}">${i}</a>
+        </div>
+      `;
+        }
+        html += `
+      <div class="gh-page-item">
+        <a href="#" class="gh-page-link ${this.currentPage === totalPages ? "disabled" : ""}" 
+           data-page="${this.currentPage + 1}">&raquo;</a>
+      </div>
+    `;
+        this.paginationTarget.innerHTML = html;
+        this.paginationTarget.querySelectorAll(".gh-page-link").forEach((link) => {
+          this.addManagedEventListener(link, "click", (e) => {
+            e.preventDefault();
+            const page = parseInt(link.getAttribute("data-page") || "1");
+            if (!link.classList.contains("disabled")) {
+              this.changePage(page);
+            }
+          });
+        });
+      }
+      handleSearch() {
+        const query = this.searchInputTarget.value.toLowerCase();
+        if (!query) {
+          this.filteredData = [...this.dataValue];
+        } else {
+          this.filteredData = this.dataValue.filter((row) => {
+            return this.columnsValue.some((col) => {
+              const value = String(row[col.key] || "").toLowerCase();
+              return value.includes(query);
+            });
+          });
+        }
+        this.currentPage = 1;
+        this.render();
+      }
+      handleSort(column) {
+        if (this.sortColumn === column) {
+          this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
+        } else {
+          this.sortColumn = column;
+          this.sortDirection = "asc";
+        }
+        this.filteredData.sort((a, b) => {
+          const aVal = a[column];
+          const bVal = b[column];
+          let comparison = 0;
+          if (aVal < bVal) comparison = -1;
+          if (aVal > bVal) comparison = 1;
+          return this.sortDirection === "asc" ? comparison : -comparison;
+        });
+        this.render();
+      }
+      changePage(page) {
+        this.currentPage = page;
+        this.render();
+      }
+      getPaginatedData() {
+        if (!this.optionsValue.paginated) {
+          return this.filteredData;
+        }
+        const itemsPerPage = this.optionsValue.itemsPerPage || 10;
+        const start = (this.currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        return this.filteredData.slice(start, end);
+      }
+      debounce(func, wait) {
+        let timeout;
+        return (...args) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+      }
+    };
+    data_table_controller_default.targets = ["table", "searchInput", "tbody", "pagination"];
+    data_table_controller_default.values = {
+      columns: Array,
+      data: Array,
+      options: Object
+    };
+  }
+});
+
 // app/javascript/lib/csrf-helper.js
 var require_csrf_helper = __commonJS({
   "app/javascript/lib/csrf-helper.js"(exports, module) {
+    "use strict";
     var CSRFHelper2 = class {
       static getToken() {
         const tokenElement = document.querySelector('meta[name="csrf-token"]');
@@ -3182,20 +3739,22 @@ var require_csrf_helper = __commonJS({
   }
 });
 
-// app/javascript/application.js
+// app/javascript/application.ts
 var require_application = __commonJS({
-  "app/javascript/application.js"() {
+  "app/javascript/application.ts"() {
     init_stimulus();
     init_encryption_controller();
     init_theme_controller();
     init_rich_editor_controller();
     init_rate_limit_controller();
+    init_data_table_controller();
     var import_csrf_helper = __toESM(require_csrf_helper());
     window.Stimulus = Application.start();
-    Stimulus.register("encryption", encryption_controller_default);
-    Stimulus.register("theme", theme_controller_default);
-    Stimulus.register("rich-editor", rich_editor_controller_default);
-    Stimulus.register("rate-limit", rate_limit_controller_default);
+    window.Stimulus.register("encryption", encryption_controller_default);
+    window.Stimulus.register("theme", theme_controller_default);
+    window.Stimulus.register("rich-editor", rich_editor_controller_default);
+    window.Stimulus.register("rate-limit", rate_limit_controller_default);
+    window.Stimulus.register("data-table", data_table_controller_default);
   }
 });
 export default require_application();

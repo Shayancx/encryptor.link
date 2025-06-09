@@ -1,5 +1,5 @@
 const esbuild = require('esbuild');
-const { typescript } = require('esbuild-plugin-tsc');
+const esbuildPluginTsc = require('esbuild-plugin-tsc');
 
 const isWatchMode = process.argv.includes('--watch');
 
@@ -15,7 +15,7 @@ const config = {
   format: 'esm',
   target: 'es2020',
   plugins: [
-    typescript({
+    esbuildPluginTsc({
       tsconfigPath: './tsconfig.json'
     })
   ]
