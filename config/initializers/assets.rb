@@ -5,4 +5,4 @@ Rails.application.config.assets.paths << Rails.root.join("app/assets/fonts")
 Rails.application.config.assets.paths << Rails.root.join("app/assets/builds")
 
 # Precompile additional assets.
-Rails.application.config.assets.precompile += %w[ application.js application.bootstrap.scss ]
+Rails.application.config.assets.precompile += %w[ application.js application.scss ]

@@ -1,3 +1,3 @@
 //= link_directory ../stylesheets .css
-//= link application.bootstrap.scss
+//= link application.scss
 //= link_tree ../builds

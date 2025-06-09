@@ -21,7 +21,6 @@
   },
   "include": [
     "app/javascript/**/*",
-    "esbuild.config.ts",
     "app/assets/config/**/*.ts"
   ],
   "exclude": ["node_modules", "public", "vendor"]

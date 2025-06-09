@@ -10,8 +10,8 @@ else
   # Fallback: start both processes in background
   puts "Starting development servers..."
 
-  # Start JavaScript build in background
-  js_pid = spawn("npm run build:watch")
+  # Start Vite dev server in background
+  js_pid = spawn("bin/vite dev")
 
   # Start Rails server in foreground
   begin

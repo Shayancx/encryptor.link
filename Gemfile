@@ -8,9 +8,9 @@ gem "pg"
 gem "puma"
 
 # Assets
-gem "bootstrap", "~> 5.3"
 gem "sassc-rails"
 gem "sprockets-rails"
+gem "vite_rails"
 
 # Reduces boot times through caching
 gem "bootsnap", require: false

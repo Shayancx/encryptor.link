@@ -47,6 +47,7 @@ cd encryptor.link
 2. Install dependencies
 ```bash
 bundle install
+npm install
 ```
 
 3. Setup the database
@@ -77,7 +78,7 @@ bin/rubocop
 
 - **Backend**: Ruby 3.4.4, Rails 8.0.2
 - **Database**: PostgreSQL
-- **Frontend**: Bootstrap 5.3, Sass, Javascript
+- **Frontend**: Vite, Sass, Javascript
 - **Encryption**: Web Crypto API (AES-GCM)
 - **Job Processing**: Solid Queue
 
