@@ -11,8 +11,8 @@ Rails.application.routes.draw do
   get    "/:id/info", to: "decryptions#info", as: :payload_info
   get    "/:id/data", to: "decryptions#data",  as: :decrypt_data
   
-  # Test route for shadcn components
-  get "/shadcn-test", to: "shadcn_test#index"
+  # Test route for development
+  get "/test", to: proc { |env| [200, { "Content-Type" => "text/plain" }, ["Vite + React is working!"]] }
   
   # Serve React app for all main routes
   root   "application#react_app"
@@ -24,6 +24,8 @@ Rails.application.routes.draw do
     !req.path.start_with?('/rails/') && 
     !req.path.start_with?('/assets/') && 
     !req.path.start_with?('/vite/') &&
-    !req.path.start_with?('/@vite/')
+    !req.path.start_with?('/@vite/') &&
+    !req.path.start_with?('/@id/') &&
+    !req.path.start_with?('/@fs/')
   }
 end

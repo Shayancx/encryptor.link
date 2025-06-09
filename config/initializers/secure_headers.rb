@@ -1,6 +1,14 @@
-Rails.application.config.action_dispatch.default_headers = {
-  "X-Frame-Options" => "DENY",
-  "X-Content-Type-Options" => "nosniff",
-  "X-XSS-Protection" => "1; mode=block",
-  "Content-Security-Policy" => "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:3036 ws://localhost:3036; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://localhost:3036 ws://localhost:3036; font-src 'self';"
-}
+if Rails.env.development?
+  Rails.application.config.action_dispatch.default_headers = {
+    "X-Frame-Options" => "DENY",
+    "X-Content-Type-Options" => "nosniff",
+    "X-XSS-Protection" => "0"
+  }
+else
+  Rails.application.config.action_dispatch.default_headers = {
+    "X-Frame-Options" => "DENY",
+    "X-Content-Type-Options" => "nosniff",
+    "X-XSS-Protection" => "0",
+    "Content-Security-Policy" => "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self';"
+  }
+end

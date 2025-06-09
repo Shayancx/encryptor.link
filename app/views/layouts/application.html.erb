@@ -3,62 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>encryptor.link - Debug Mode</title>
+  <title>encryptor.link</title>
   <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
   
-  <% if Rails.env.development? %>
-    <!-- Development: Direct Vite URLs -->
-    <script type="module" src="http://localhost:3036/vite-dev/@vite/client"></script>
-    <script type="module" src="http://localhost:3036/vite-dev/entrypoints/application.tsx"></script>
-  <% else %>
-    <!-- Production: Use vite_rails helpers -->
-    <%= vite_client_tag %>
-    <%= vite_stylesheet_tag 'application' %>
-    <%= vite_javascript_tag 'application', type: 'module' %>
-  <% end %>
+  <%= vite_client_tag %>
+  <%= vite_javascript_tag 'application' %>
+  <%= vite_stylesheet_tag 'application' %>
 </head>
-<body style="margin: 0; font-family: system-ui, sans-serif;">
-  <!-- React root element -->
+<body>
   <div id="react-root">
-    <!-- Fallback content while React loads -->
-    <div style="padding: 20px; background: #333; color: white; min-height: 100vh;">
-      <h1>⏳ Loading React...</h1>
-      <p>If this message persists, check the browser console for errors.</p>
-      <div style="margin-top: 10px; font-size: 12px; opacity: 0.7;">
-        Debug: Loading from Vite server at localhost:3036
+    <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f3f4f6;">
+      <div style="text-align: center;">
+        <div style="margin-bottom: 1rem;">
+          <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        <p style="color: #6b7280;">Loading encryptor.link...</p>
       </div>
     </div>
   </div>
-
-  <!-- Debug info -->
-  <script>
-    console.log("📄 HTML loaded")
-    console.log("🎯 React root element exists:", !!document.getElementById('react-root'))
-    console.log("🔗 Environment:", "<%= Rails.env %>")
-    
-    // Wait a bit and check if React mounted
-    setTimeout(() => {
-      const rootEl = document.getElementById('react-root')
-      const content = rootEl ? rootEl.innerHTML : ''
-      if (content.includes('Loading React')) {
-        console.error("❌ React failed to mount - fallback content still visible")
-        console.log("📊 Checking Vite server...")
-        fetch('http://localhost:3036/vite-dev/entrypoints/application.tsx')
-          .then(response => {
-            console.log("Vite response status:", response.status)
-            console.log("Vite response content-type:", response.headers.get('content-type'))
-            return response.text()
-          })
-          .then(text => {
-            console.log("Vite file content (first 200 chars):", text.substring(0, 200))
-          })
-          .catch(error => {
-            console.error("❌ Cannot reach Vite server:", error)
-          })
-      } else {
-        console.log("✅ React appears to have mounted successfully")
-      }
-    }, 3000)
-  </script>
 </body>
 </html>
