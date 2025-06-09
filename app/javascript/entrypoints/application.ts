@@ -1,3 +1,4 @@
+import "./application.css";
 import { Application } from "@hotwired/stimulus";
 import EncryptionController from "./controllers/encryption_controller";
 import ThemeController from "./controllers/theme_controller";

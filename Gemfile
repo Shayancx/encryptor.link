@@ -8,7 +8,6 @@ gem "pg"
 gem "puma"
 
 # Assets
-gem "sassc-rails"
 gem "sprockets-rails"
 gem "vite_rails"
 

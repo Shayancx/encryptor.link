@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,14 +17,13 @@
 </head>
 <body data-controller="rate-limit">
 
-  <header>
-    <div class="container">
-      <div class="app-header">
-        <a href="/" class="app-brand">encryptor.link</a>
-        <a href="/check" class="ms-3 link-secondary">Check Link Status</a>
+  <header class="bg-gray-800 text-white border-b sticky top-0">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-4 p-4">
+      <a href="/" class="text-xl font-semibold">encryptor.link</a>
+      <a href="/check" class="text-sm text-gray-400 hover:text-white">Check Link Status</a>
 
-        <div class="theme-switch-container" data-controller="theme">
-          <button type="button" class="theme-switch-btn" id="themeToggle" aria-label="Toggle theme" data-action="click->theme#toggle" data-theme-target="button">
+      <div data-controller="theme">
+        <button type="button" id="themeToggle" aria-label="Toggle theme" class="p-2" data-action="click->theme#toggle" data-theme-target="button">
             <svg id="sun-icon" data-theme-target="sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="4"></circle>
               <path d="m12 2 0 2"></path>
@@ -45,17 +44,13 @@
     </div>
   </header>
 
-  <main class="container py-4">
+  <main class="max-w-4xl mx-auto p-4">
     <%= yield %>
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <div class="text-center">
-        <p class="mb-1">Zero-knowledge, client-side encrypted messages</p>
-        <p class="mb-0">All encryption and decryption happens in your browser. The server never sees your plaintext data.</p>
-      </div>
-    </div>
+  <footer class="border-t py-4 text-center text-xs text-gray-500">
+    <p>Zero-knowledge, client-side encrypted messages</p>
+    <p>All encryption and decryption happens in your browser. The server never sees your plaintext data.</p>
   </footer>
 
 </body>

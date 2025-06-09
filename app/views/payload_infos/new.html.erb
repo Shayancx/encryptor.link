@@ -1,16 +1,12 @@
-<div class="gh-card">
-  <div class="gh-card-header">
-    <h3>Check Link Status</h3>
+<div class="bg-white dark:bg-gray-800 rounded shadow p-4">
+  <h3 class="text-lg font-semibold mb-4">Check Link Status</h3>
+  <div class="mb-3">
+    <label for="linkInput" class="block text-sm font-medium mb-1">Paste encrypted link</label>
+    <input type="text" id="linkInput" placeholder="https://encryptor.link/abcd1234" class="border rounded p-2 w-full">
   </div>
-  <div class="gh-card-body">
-    <div class="mb-3">
-      <label for="linkInput" class="form-label">Paste encrypted link</label>
-      <input type="text" id="linkInput" class="form-control" placeholder="https://encryptor.link/abcd1234">
-    </div>
-    <button id="checkBtn" class="btn btn-primary">Check Status</button>
-    <div id="resultContainer" class="mt-4 d-none">
-      <pre id="result" class="bg-dark text-white p-3 rounded"></pre>
-    </div>
+  <button id="checkBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Check Status</button>
+  <div id="resultContainer" class="mt-4 hidden">
+    <pre id="result" class="bg-gray-800 text-white p-3 rounded"></pre>
   </div>
 </div>
 
@@ -24,7 +20,7 @@
       const id = parts[0];
       const response = await fetch(`/${id}/info`, { headers: { 'Accept': 'application/json' } });
       const data = await response.json();
-      document.getElementById('resultContainer').classList.remove('d-none');
+      document.getElementById('resultContainer').classList.remove('hidden');
       document.getElementById('result').textContent = JSON.stringify(data, null, 2);
     } catch (e) {
       alert('Invalid link or error fetching info');

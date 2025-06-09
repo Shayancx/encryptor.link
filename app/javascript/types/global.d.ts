@@ -6,10 +6,6 @@ interface Window {
   Stimulus?: any;
 }
 
-declare module '*.scss' {
-  const content: { [className: string]: string };
-  export default content;
-}
 
 declare class CSRFHelper {
   static getToken(): string | null;

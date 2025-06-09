@@ -1,149 +1,72 @@
-<div class="gh-card">
-  <div class="gh-card-header">
-    <h3>Decrypting Message</h3>
-  </div>
-  <div class="gh-card-body">
-    <% if @show_error %>
-      <!-- Pre-rendered error state for expired payloads -->
-      <div id="errorContainer">
-        <div class="gh-flash gh-flash-danger">
-          <div class="gh-flash-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-          </div>
-          <div class="gh-flash-content">
-            <div class="gh-flash-title">Cannot access this message</div>
-            <p id="errorMessage" class="mb-0">This message has expired or has been viewed the maximum number of times.</p>
-          </div>
+<div class="bg-white dark:bg-gray-800 rounded shadow p-4">
+  <h3 class="text-lg font-semibold mb-4">Decrypting Message</h3>
+  <% if @show_error %>
+    <div id="errorContainer">
+      <div class="p-4 bg-red-100 text-red-800 rounded">
+        <div class="font-semibold">Cannot access this message</div>
+        <p id="errorMessage" class="mt-1">This message has expired or has been viewed the maximum number of times.</p>
+      </div>
+    </div>
+  <% else %>
+    <div id="passwordContainer" class="hidden mb-4">
+      <div class="p-4 bg-blue-100 text-blue-800 rounded mb-3">
+        <div class="font-semibold">Password Protected Content</div>
+        <p class="mb-0">This content requires a password to access.</p>
+      </div>
+      <div class="mb-3">
+        <label for="passwordInput" class="block text-sm font-medium mb-1">Enter Password:</label>
+        <div class="flex gap-2">
+          <input type="password" id="passwordInput" placeholder="Enter the password..." class="flex-1 border rounded p-2">
+          <button id="submitPasswordBtn" class="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-1">
+            Decrypt
+          </button>
+        </div>
+        <div id="passwordError" class="text-red-600 mt-1 hidden">
+          Incorrect password. Please try again.
         </div>
       </div>
-    <% else %>
-      <!-- Password input for password-protected content -->
-      <div id="passwordContainer" class="d-none mb-4">
-        <div class="gh-flash gh-flash-info mb-3">
-          <div class="gh-flash-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-          </div>
-          <div class="gh-flash-content">
-            <div class="gh-flash-title">Password Protected Content</div>
-            <p class="mb-0">This content requires a password to access.</p>
-          </div>
-        </div>
+    </div>
 
-        <div class="mb-3">
-          <label for="passwordInput" class="form-label">Enter Password:</label>
-          <div class="input-group">
-            <input type="password" class="form-control" id="passwordInput" placeholder="Enter the password...">
-            <button class="btn btn-primary" type="button" id="submitPasswordBtn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              Decrypt
-            </button>
-          </div>
-          <div id="passwordError" class="invalid-feedback" style="display:none;">
-            Incorrect password. Please try again.
-          </div>
-        </div>
+    <div id="loadingContainer">
+      <div class="text-center py-5">
+        <p class="mb-0">Fetching encrypted data...</p>
+      </div>
+    </div>
+
+    <div id="errorContainer" class="hidden">
+      <div class="p-4 bg-red-100 text-red-800 rounded">
+        <div class="font-semibold">Cannot access this message</div>
+        <p id="errorMessage" class="mb-0">The message may have expired or been viewed the maximum number of times.</p>
+      </div>
+    </div>
+
+    <div id="messageContainer" class="hidden">
+      <div class="p-4 bg-yellow-100 text-yellow-800 rounded mb-4">
+        <div class="font-semibold">One-time message!</div>
+        <p class="mb-0">This message has been decrypted in your browser and cannot be accessed again.</p>
       </div>
 
-      <!-- Loading state -->
-      <div id="loadingContainer">
-        <div class="text-center py-5">
-          <div class="spinner-border mb-3" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="mb-0">Fetching encrypted data...</p>
-        </div>
+      <div id="messageContent" class="mb-4 hidden">
+        <div class="font-semibold mb-2">Decrypted Message:</div>
+        <div id="decryptedContent" class="prose"></div>
+        <button id="copyMessageBtn" class="mt-3 px-2 py-1 border rounded hidden">Copy Message</button>
       </div>
 
-      <!-- Error state -->
-      <div id="errorContainer" class="d-none">
-        <div class="gh-flash gh-flash-danger">
-          <div class="gh-flash-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-          </div>
-          <div class="gh-flash-content">
-            <div class="gh-flash-title">Cannot access this message</div>
-            <p id="errorMessage" class="mb-0">The message may have expired or been viewed the maximum number of times.</p>
-          </div>
+      <div id="filesContainer" class="mb-4 hidden">
+        <div class="font-semibold mb-2">Attached Files:</div>
+        <div class="text-sm space-y-1">
+          <div id="filesListBody"></div>
         </div>
+        <div id="pagination" class="mt-2"></div>
       </div>
 
-      <!-- Success state for messages -->
-      <div id="messageContainer" class="d-none">
-        <div class="gh-flash gh-flash-warning mb-4">
-          <div class="gh-flash-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-          </div>
-          <div class="gh-flash-content">
-            <div class="gh-flash-title">One-time message!</div>
-            <p class="mb-0">This message has been decrypted in your browser and cannot be accessed again.</p>
-          </div>
-        </div>
-
-        <div class="row">
-          <!-- Message content if present -->
-          <div id="messageContent" class="col-lg-7 mb-4 d-none">
-            <div class="gh-section-title">Decrypted Message:</div>
-            <div id="decryptedContent" class="rich-text-content trix-content"></div>
-
-            <button id="copyMessageBtn" class="btn btn-outline-primary mt-3 d-none">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy Message
-            </button>
-          </div>
-
-          <!-- Files container with pagination -->
-          <div id="filesContainer" class="col-lg-5 mb-4 d-none">
-            <div class="gh-section-title">Attached Files:</div>
-
-            <div class="gh-file-list">
-              <div id="filesListBody">
-                <!-- File items will be added dynamically -->
-              </div>
-            </div>
-
-            <!-- Pagination controls -->
-            <div id="pagination" class="gh-pagination mt-2"></div>
-          </div>
-        </div>
-
-        <div class="d-grid">
-          <a href="/" class="btn btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
-              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-              <path d="M2 2l7.586 7.586"></path>
-              <circle cx="11" cy="11" r="2"></circle>
-            </svg>
-            Create Your Own Encrypted Message
-          </a>
-        </div>
+      <div>
+        <a href="/" class="block text-center bg-blue-600 text-white px-4 py-2 rounded">Create Your Own Encrypted Message</a>
       </div>
-    <% end %>
-  </div>
+    </div>
+  <% end %>
 </div>
 
-<% unless @show_error %>
 <script type="module">
   // Import decryption module
   import { decryptMessage, decryptFile } from "/assets/decrypt.js";
@@ -582,4 +505,3 @@
     setTimeout(loadAndDecrypt, 100);
   });
 </script>
-<% end %>
