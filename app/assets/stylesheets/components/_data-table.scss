@@ -87,7 +87,7 @@ $table-cell-padding: 8px 16px !default;
       }
       
       tr {
-        padding: $spacer-3 0;
+        padding: map-get($spacers, 3) 0;
         
         &:not(:last-child) {
           border-bottom: 1px solid var(--gh-border-color);
@@ -95,7 +95,7 @@ $table-cell-padding: 8px 16px !default;
       }
       
       td {
-        padding: $spacer-1 0;
+        padding: map-get($spacers, 1) 0;
         text-align: left !important;
         
         &:before {
@@ -104,7 +104,7 @@ $table-cell-padding: 8px 16px !default;
           color: var(--gh-text-secondary);
           display: inline-block;
           width: 40%;
-          margin-right: $spacer-2;
+          margin-right: map-get($spacers, 2);
         }
       }
     }
