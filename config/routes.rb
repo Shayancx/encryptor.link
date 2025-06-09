@@ -9,4 +9,7 @@ Rails.application.routes.draw do
   get    "/:id",     to: "decryptions#show",  as: :decrypt
   get    "/:id/data", to: "decryptions#data",  as: :decrypt_data
   root   "encryptions#new"
+
+  get "/shadcn-test", to: "shadcn_test#index"
 end
+

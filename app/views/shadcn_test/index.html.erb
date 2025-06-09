@@ -1,0 +1,14 @@
+<%= vite_stylesheet_tag 'application' %>
+<div id="shadcn-test-root"></div>
+
+<script type="module">
+  import React from "react"
+  import ReactDOM from "react-dom/client"
+  import TestShadcn from "@/components/TestShadcn"
+  import "@/entrypoints/application.css"
+
+  const root = document.getElementById("shadcn-test-root")
+  if (root) {
+    ReactDOM.createRoot(root).render(React.createElement(TestShadcn))
+  }
+</script>
