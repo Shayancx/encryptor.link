@@ -1,11 +1,11 @@
 import "./application.css";
 import { Application } from "@hotwired/stimulus";
-import EncryptionController from "./controllers/encryption_controller";
-import ThemeController from "./controllers/theme_controller";
-import RichEditorController from "./controllers/rich_editor_controller";
-import RateLimitController from "./controllers/rate_limit_controller";
-import DataTableController from "./controllers/data_table_controller";
-import "./lib/csrf-helper";
+import EncryptionController from "@/controllers/encryption_controller";
+import ThemeController from "@/controllers/theme_controller";
+import RichEditorController from "@/controllers/rich_editor_controller";
+import RateLimitController from "@/controllers/rate_limit_controller";
+import DataTableController from "@/controllers/data_table_controller";
+import "@/lib/csrf-helper";
 
 declare global {
   interface Window {
