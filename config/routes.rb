@@ -21,9 +21,10 @@ Rails.application.routes.draw do
   
   # Catch-all for other routes
   get "*path", to: "application#react_app", constraints: lambda { |req|
-    !req.path.start_with?('/rails/') && 
-    !req.path.start_with?('/assets/') && 
+    !req.path.start_with?('/rails/') &&
+    !req.path.start_with?('/assets/') &&
     !req.path.start_with?('/vite/') &&
+    !req.path.start_with?('/vite-dev/') &&
     !req.path.start_with?('/@vite/') &&
     !req.path.start_with?('/@id/') &&
     !req.path.start_with?('/@fs/')
