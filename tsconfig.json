@@ -13,12 +13,16 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["@hotwired/stimulus"],
+    "types": ["@hotwired/stimulus", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["app/javascript/*"]
     }
   },
-  "include": ["app/javascript/**/*"],
+  "include": [
+    "app/javascript/**/*",
+    "esbuild.config.ts",
+    "app/assets/config/**/*.ts"
+  ],
   "exclude": ["node_modules", "public", "vendor"]
 }

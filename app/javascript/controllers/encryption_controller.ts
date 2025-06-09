@@ -3,6 +3,7 @@ import CryptographyService from "../services/CryptographyService";
 import ValidationService from "../services/ValidationService";
 import ErrorService from "../services/ErrorService";
 import { ProgressCallback } from "../types/crypto.types";
+import QRCode from "qrcode";
 
 interface FileItem {
   file: File;
@@ -347,8 +348,8 @@ export default class extends BaseController {
     }
   }
 
-  private generateQRCode(link: string): void {
-    if (!this.hasQrContainerTarget || typeof window.QRCode === 'undefined') return;
+  private async generateQRCode(link: string): Promise<void> {
+    if (!this.hasQrContainerTarget) return;
 
     // Show QR tab and panel
     if (this.hasQrTabTarget) {
@@ -364,15 +365,16 @@ export default class extends BaseController {
     // Clear existing QR code
     this.qrContainerTarget.innerHTML = '';
 
-    // Generate new QR code
-    new window.QRCode(this.qrContainerTarget, {
-      text: link,
+    const canvas = document.createElement('canvas');
+    await QRCode.toCanvas(canvas, link, {
       width: 256,
-      height: 256,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: window.QRCode.CorrectLevel.H
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      },
+      errorCorrectionLevel: 'H'
     });
+    this.qrContainerTarget.appendChild(canvas);
   }
 
   private resetForm(): void {

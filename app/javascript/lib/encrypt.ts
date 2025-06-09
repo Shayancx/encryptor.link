@@ -1,32 +1,32 @@
 // Web Crypto API wrapper for encryption
+import CSRFHelper from './csrf-helper';
+import { ProgressCallback, CancelToken } from '../types/crypto.types';
 
-async function encryptMessage(message, ttl, views, password = '', burnAfterReading = false) {
+export async function encryptMessage(
+  message: string,
+  ttl: number,
+  views: number,
+  password: string = '',
+  burnAfterReading: boolean = false
+): Promise<string> {
   try {
-    // Generate a random encryption key
     const key = await generateEncryptionKey(password);
-
-    // Generate a random IV
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
-
-    // Encrypt the message
     const encrypted = await encryptData(message, key.key, iv);
 
-    // Prepare API payload
-    const payload = {
+    const payload: any = {
       ciphertext: Base64.encode(encrypted),
       nonce: Base64.encode(iv),
-      ttl: ttl,
-      views: views,
+      ttl,
+      views,
       password_protected: !!password,
       burn_after_reading: burnAfterReading
     };
 
-    // Add password salt if password is provided
     if (password) {
-      payload.password_salt = Base64.encode(key.salt);
+      payload.password_salt = Base64.encode(key.salt!);
     }
 
-    // Send the encrypted data to the server with CSRF protection
     const response = await CSRFHelper.fetchWithCSRF('/encrypt', {
       method: 'POST',
       body: JSON.stringify(payload)
@@ -39,10 +39,7 @@ async function encryptMessage(message, ttl, views, password = '', burnAfterReadi
 
     const data = await response.json();
 
-    // Generate link with the key in the fragment
     let link = window.location.origin + '/' + data.id;
-
-    // For non-password protected content, add the key to the fragment
     if (!password) {
       const exportedKey = await window.crypto.subtle.exportKey('raw', key.key);
       const keyBase64 = Base64.encode(exportedKey);
@@ -56,26 +53,24 @@ async function encryptMessage(message, ttl, views, password = '', burnAfterReadi
   }
 }
 
-
-// Encrypt multiple files with progress reporting and cancellation support
-async function encryptFiles(
-  files,
-  message,
-  ttl,
-  views,
-  password = '',
-  burnAfterReading = false,
-  progressCallback = null,
-  cancelToken = null
-) {
+export async function encryptFiles(
+  files: File[],
+  message: string,
+  ttl: number,
+  views: number,
+  password: string = '',
+  burnAfterReading: boolean = false,
+  progressCallback: ProgressCallback | null = null,
+  cancelToken: CancelToken | null = null
+): Promise<string> {
   try {
-    const totalSteps = files.length + 3; // key generation, message, upload
+    const totalSteps = files.length + 3;
     let currentStep = 0;
     const totalSize = files.reduce((sum, f) => sum + f.size, 0);
     let processedBytes = 0;
     const startTime = performance.now();
 
-    const updateProgress = (status, details = '') => {
+    const updateProgress = (status: string, details: string = ''): void => {
       currentStep++;
       const percentage = Math.round((currentStep / totalSteps) * 100);
       const elapsed = (performance.now() - startTime) / 1000;
@@ -92,20 +87,19 @@ async function encryptFiles(
 
     updateProgress('Generating encryption key...');
     const key = await generateEncryptionKey(password);
-
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
-    const payload = {
+    const payload: any = {
       nonce: Base64.encode(iv),
-      ttl: ttl,
-      views: views,
+      ttl,
+      views,
       password_protected: !!password,
       burn_after_reading: burnAfterReading,
-      files: []
+      files: [] as any[]
     };
 
     if (password) {
-      payload.password_salt = Base64.encode(key.salt);
+      payload.password_salt = Base64.encode(key.salt!);
     }
 
     if (message && message.trim() !== '') {
@@ -129,7 +123,7 @@ async function encryptFiles(
           size: file.size
         });
         processedBytes += file.size;
-      } catch (fileError) {
+      } catch (fileError: any) {
         throw new Error(`Failed to process file "${file.name}": ${fileError.message}`);
       }
     }
@@ -162,14 +156,15 @@ async function encryptFiles(
   }
 }
 
-// Generate an encryption key
-async function generateEncryptionKey(password = '') {
+interface EncryptionKey {
+  key: CryptoKey;
+  salt?: Uint8Array;
+}
+
+async function generateEncryptionKey(password: string = ''): Promise<EncryptionKey> {
   try {
     if (password) {
-      // Generate a random salt
       const salt = window.crypto.getRandomValues(new Uint8Array(16));
-
-      // Convert password to a key using PBKDF2
       const passwordKey = await window.crypto.subtle.importKey(
         'raw',
         new TextEncoder().encode(password),
@@ -177,12 +172,10 @@ async function generateEncryptionKey(password = '') {
         false,
         ['deriveKey']
       );
-
-      // Derive the actual encryption key
       const key = await window.crypto.subtle.deriveKey(
         {
           name: 'PBKDF2',
-          salt: salt,
+          salt,
           iterations: 100000,
           hash: 'SHA-256'
         },
@@ -191,16 +184,9 @@ async function generateEncryptionKey(password = '') {
         true,
         ['encrypt']
       );
-
       return { key, salt };
     } else {
-      // Generate a random key
-      const key = await window.crypto.subtle.generateKey(
-        { name: 'AES-GCM', length: 256 },
-        true,
-        ['encrypt']
-      );
-
+      const key = await window.crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
       return { key };
     }
   } catch (error) {
@@ -208,90 +194,60 @@ async function generateEncryptionKey(password = '') {
   }
 }
 
-// Encrypt data with AES-GCM
-async function encryptData(data, key, iv) {
+async function encryptData(data: string | ArrayBuffer, key: CryptoKey, iv: Uint8Array): Promise<ArrayBuffer> {
   try {
-    // Convert string to ArrayBuffer if needed
-    let dataBuffer;
+    let dataBuffer: Uint8Array;
     if (typeof data === 'string') {
       dataBuffer = new TextEncoder().encode(data);
     } else {
       dataBuffer = new Uint8Array(data);
     }
-
-    // Encrypt using AES-GCM
-    const encrypted = await window.crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: iv },
-      key,
-      dataBuffer
-    );
-
+    const encrypted = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, dataBuffer);
     return encrypted;
   } catch (error) {
     throw error;
   }
 }
 
-// Read a file as ArrayBuffer
-function readFileAsArrayBuffer(file) {
+function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-
     reader.onload = () => {
-      resolve(reader.result);
+      resolve(reader.result as ArrayBuffer);
     };
-
     reader.onerror = () => {
-      const errorMsg = `Failed to read file: ${file.name}`;
-      reject(new Error(errorMsg));
+      reject(new Error(`Failed to read file: ${file.name}`));
     };
-
     reader.readAsArrayBuffer(file);
   });
 }
 
-// Optimized Base64 utility object that handles large files efficiently
 const Base64 = {
-  encode: function(arrayBuffer) {
-    try {
-      // For large files, use chunked encoding to avoid call stack limits
-      const bytes = new Uint8Array(arrayBuffer);
-      const chunkSize = 0x8000; // 32KB chunks
-
-      if (bytes.length <= chunkSize) {
-        // For small files, use the original method
-        const result = btoa(String.fromCharCode.apply(null, bytes));
-        return result;
-      }
-
-      // For large files, process in chunks
-      let result = '';
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        const chunk = bytes.subarray(i, i + chunkSize);
-        result += String.fromCharCode.apply(null, chunk);
-      }
-
-      const encodedResult = btoa(result);
-      return encodedResult;
-    } catch (error) {
-      throw new Error(`Base64 encoding failed: ${error.message}`);
+  encode(arrayBuffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(arrayBuffer);
+    const chunkSize = 0x8000;
+    if (bytes.length <= chunkSize) {
+      return btoa(String.fromCharCode.apply(null, bytes as any));
     }
+    let result = '';
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      result += String.fromCharCode.apply(null, chunk as any);
+    }
+    return btoa(result);
   },
 
-
-  decode: function(base64) {
-    try {
-      const binaryString = atob(base64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      return bytes.buffer;
-    } catch (error) {
-      throw new Error(`Base64 decoding failed: ${error.message}`);
+  decode(base64: string): ArrayBuffer {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
     }
+    return bytes.buffer;
   }
 };
 
-// Export the functions
-export { encryptMessage, encryptFiles };
+export default {
+  encryptMessage,
+  encryptFiles
+};

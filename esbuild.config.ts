@@ -1,12 +1,12 @@
-const esbuild = require('esbuild');
-const esbuildPluginTsc = require('esbuild-plugin-tsc');
+import * as esbuild from 'esbuild';
+import esbuildPluginTsc from 'esbuild-plugin-tsc';
 
 const isWatchMode = process.argv.includes('--watch');
 
-const config = {
+const config: esbuild.BuildOptions = {
   entryPoints: [
     'app/javascript/application.ts',
-    'app/javascript/lib/decrypt.js'
+    'app/javascript/lib/decrypt.ts'
   ],
   bundle: true,
   outdir: 'app/assets/builds',
@@ -15,9 +15,7 @@ const config = {
   format: 'esm',
   target: 'es2020',
   plugins: [
-    esbuildPluginTsc({
-      tsconfigPath: './tsconfig.json'
-    })
+    esbuildPluginTsc({ tsconfigPath: './tsconfig.json' })
   ]
 };
 
