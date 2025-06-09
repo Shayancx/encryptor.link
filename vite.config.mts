@@ -14,13 +14,13 @@ export default defineConfig({
     },
   },
   server: {
-    host: '127.0.0.1',
+    host: 'localhost',
     port: 3036,
     strictPort: true,
     cors: true,
     hmr: {
       protocol: 'ws',
-      host: '127.0.0.1',
+      host: 'localhost',
       port: 3036,
     },
   },
