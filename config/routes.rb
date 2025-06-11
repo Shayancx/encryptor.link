@@ -1,10 +1,18 @@
 Rails.application.routes.draw do
   # API routes
   namespace :api do
-    # Define your API endpoints here
+    namespace :v1 do
+      resources :messages, only: [:index, :create, :show]
+    end
   end
   
-  # Serve frontend for all other routes
-  get '*path', to: 'frontend#index', constraints: ->(req) { !req.xhr? && req.format.html? }
-  root 'frontend#index'
+  # Serve frontend in development
+  if Rails.env.development?
+    get '*path', to: 'application#frontend_index_html', constraints: lambda { |request|
+      !request.xhr? && request.format.html?
+    }
+  end
+  
+  # Root path
+  root 'application#frontend_index_html'
 end

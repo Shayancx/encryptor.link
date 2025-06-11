@@ -5,6 +5,7 @@ import { Button } from './components/ui/button';
 import { NewMessage } from './components/message/new-message';
 import { OpenMessage } from './components/message/open-message';
 import { useAppStore } from './store/app-store';
+import { ApiTest } from './components/ApiTest';
 
 function App() {
   const { 
@@ -50,6 +51,11 @@ function App() {
                 <Button variant="outline" onClick={startViewingMessage} className="w-full">
                   Open Message
                 </Button>
+              </div>
+              
+              {/* API Connection Test */}
+              <div className="mt-8">
+                <ApiTest />
               </div>
               
               <p className="text-xs text-muted-foreground mt-6">
