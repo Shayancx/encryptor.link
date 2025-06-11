@@ -41,6 +41,3 @@ gem "rack-attack"
 group :test do
   gem "rails-controller-testing"
 end
-gem 'vite_ruby'
-gem 'vite_plugin_legacy'
-gem 'vite_rails'
