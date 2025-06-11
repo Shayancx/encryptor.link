@@ -1,11 +1,19 @@
 class EncryptedFile < ApplicationRecord
-  belongs_to :message, optional: true
-  belongs_to :encrypted_payload, optional: true
+  belongs_to :encrypted_payload
   
-  validates :file_data, presence: true
-  validates :file_name, presence: true
-  validates :file_size, presence: true
+  # Using the actual columns from the database
+  validates :name, presence: true
+  validates :content_type, presence: true
+  validates :size, presence: true
   
-  # Rails 8 compatible serialization
-  serialize :metadata, coder: JSON
+  # Convert file_metadata to JSON before saving if it's a Hash
+  before_save :ensure_file_metadata_is_json
+  
+  private
+  
+  def ensure_file_metadata_is_json
+    if file_metadata.is_a?(Hash)
+      self.file_metadata = file_metadata.to_json
+    end
+  end
 end

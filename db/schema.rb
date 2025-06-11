@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_11_221131) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_11_230704) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -110,8 +110,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_221131) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.uuid "message_id"
+    t.string "file_id", null: false
+    t.string "name"
+    t.text "file_metadata"
     t.index ["encrypted_payload_id"], name: "idx_encrypted_files_payload"
     t.index ["encrypted_payload_id"], name: "index_encrypted_files_on_encrypted_payload_id"
+    t.index ["file_id"], name: "index_encrypted_files_on_file_id", unique: true
     t.index ["message_id"], name: "index_encrypted_files_on_message_id"
   end
 
@@ -125,6 +129,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_221131) do
     t.boolean "password_protected", default: false, null: false
     t.binary "password_salt"
     t.boolean "burn_after_reading", default: false, null: false
+    t.text "encrypted_data"
+    t.integer "max_views"
+    t.string "password_digest"
     t.index ["burn_after_reading"], name: "index_encrypted_payloads_on_burn_after_reading"
     t.index ["created_at"], name: "idx_payloads_created_at"
     t.index ["expires_at", "remaining_views"], name: "idx_payloads_cleanup"
