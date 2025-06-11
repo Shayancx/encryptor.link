@@ -8,7 +8,9 @@ import { QRGenerator } from '@/components/qrcode/qr-generator';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Clock, Eye, Lock, KeyRound, QrCode } from 'lucide-react';
+import { 
+  Lock, Eye, Clock, KeyRound, QrCode
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';

@@ -1,0 +1,87 @@
+/* Prose styles for rich text editor */
+.ProseMirror {
+  > * + * {
+    margin-top: 0.75em;
+  }
+
+  ul, ol {
+    padding: 0 1.2em;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 1.5em;
+  }
+
+  h2 {
+    font-size: 1.3em;
+  }
+
+  h3 {
+    font-size: 1.2em;
+  }
+
+  a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  blockquote {
+    border-left: 3px solid hsl(var(--border));
+    padding-left: 1em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  code {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+    padding: 0.2em 0.4em;
+    font-family: monospace;
+    font-size: 0.9em;
+  }
+
+  pre {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+    padding: 0.75em 1em;
+    font-family: monospace;
+    font-size: 0.9em;
+    overflow-x: auto;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  p.is-editor-empty:first-child::before {
+    color: hsl(var(--muted-foreground));
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}
+
+.dark .ProseMirror {
+  code {
+    background: hsla(var(--muted) / 0.8);
+  }
+
+  pre {
+    background: hsla(var(--muted) / 0.8);
+  }
+}
