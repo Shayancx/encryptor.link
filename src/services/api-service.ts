@@ -27,7 +27,7 @@ export interface ErrorResponse {
 }
 
 export class ApiService {
-  // Base API URL from environment
+  // Base API URL from environment  
   private static baseUrl = EnvironmentService.getApiUrl();
   
   // Default headers for API requests
@@ -155,61 +155,6 @@ export class ApiService {
    */
   static async viewMessage(id: string): Promise<any> {
     return this.post<any>(`/messages/${id}/view`, {});
-  }
-
-  /**
-   * Upload an encrypted file
-   */
-  static async uploadFile(file: File, messageId: string): Promise<any> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('message_id', messageId);
-
-      if (EnvironmentService.isDevelopment()) {
-        console.log(`Uploading file to: ${this.baseUrl}/files`, { fileName: file.name, size: file.size });
-      }
-
-      const response = await fetch(`${this.baseUrl}/files`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-
-      return this.handleResponse(response);
-    } catch (error) {
-      if (EnvironmentService.isDevelopment()) {
-        console.error('File upload failed:', error);
-      }
-      throw { error: 'Network error', status: 0 };
-    }
-  }
-
-  /**
-   * Download an encrypted file
-   */
-  static async downloadFile(fileId: string): Promise<Blob> {
-    try {
-      if (EnvironmentService.isDevelopment()) {
-        console.log(`Downloading file: ${this.baseUrl}/files/${fileId}`);
-      }
-      
-      const response = await fetch(`${this.baseUrl}/files/${fileId}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw { error: 'Failed to download file', status: response.status };
-      }
-
-      return await response.blob();
-    } catch (error) {
-      if (EnvironmentService.isDevelopment()) {
-        console.error('File download failed:', error);
-      }
-      throw { error: 'Network error', status: 0 };
-    }
   }
 
   /**

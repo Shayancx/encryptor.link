@@ -3,8 +3,18 @@ class Message < ApplicationRecord
   
   validates :encrypted_data, presence: true
   
-  # Rails 8 compatible serialization
-  serialize :metadata
+  # Use simple JSON serialization
+  def metadata
+    return {} unless super
+    JSON.parse(super) if super.is_a?(String)
+    super || {}
+  rescue JSON::ParserError
+    {}
+  end
+  
+  def metadata=(value)
+    super(value.is_a?(Hash) ? value.to_json : value)
+  end
   
   before_create :set_expiration
   
@@ -43,7 +53,14 @@ class Message < ApplicationRecord
   private
   
   def set_expiration
-    self.expires_at = metadata&.dig('expires_at')
-    self.max_views = metadata&.dig('max_views').to_i if metadata&.dig('max_views').present?
+    if metadata&.dig('expires_at')
+      self.expires_at = Time.parse(metadata['expires_at'])
+    end
+    
+    if metadata&.dig('max_views').present?
+      self.max_views = metadata['max_views'].to_i
+    end
+  rescue ArgumentError => e
+    Rails.logger.warn "Invalid expires_at format: #{e.message}"
   end
 end

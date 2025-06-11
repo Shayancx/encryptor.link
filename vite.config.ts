@@ -11,13 +11,22 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173, // Use default Vite port to avoid conflict with Rails
+    port: 5173,
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
+      '/health': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      }
     }
   },
+  build: {
+    outDir: 'public',
+    emptyOutDir: true,
+  }
 })

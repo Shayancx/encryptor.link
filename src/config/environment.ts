@@ -13,14 +13,10 @@ export class EnvironmentService {
     process.env.NODE_ENV === 'test' ? 'test' : 
     'development';
 
-  // Base URL depending on environment - using window.location for dynamic host
+  // Base URL depending on environment
   static getBaseUrl(): string {
     if (this.env === 'development') {
-      // Use the current hostname and port from the browser
-      const protocol = window.location.protocol;
-      const hostname = window.location.hostname;
-      const port = window.location.port || (protocol === 'https:' ? '443' : '80');
-      return `${protocol}//${hostname}:${port}`;
+      return 'http://localhost:5173';
     }
     
     return this.env === 'production' ? 'https://encryptor.link' : 'http://localhost:5173';
@@ -28,6 +24,7 @@ export class EnvironmentService {
 
   // API URL depending on environment
   static getApiUrl(): string {
+    // Always point to Rails server for API in development
     if (this.env === 'development') {
       return 'http://localhost:3000/api/v1';
     }

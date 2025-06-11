@@ -3,11 +3,16 @@
 # Avoid CORS issues when API is called from the frontend app.
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins '*'
+    origins 'localhost:5173', '127.0.0.1:5173', 'localhost:3000', '127.0.0.1:3000'
 
     resource '/api/*',
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
-      expose: ['access-token', 'expiry', 'token-type', 'uid', 'client']
+      credentials: true
+
+    resource '*',
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      credentials: true
   end
 end
