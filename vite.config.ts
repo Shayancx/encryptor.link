@@ -1,27 +1,22 @@
+import path from "path"
 import { defineConfig } from 'vite'
-import RubyPlugin from 'vite-plugin-ruby'
 import react from '@vitejs/plugin-react'
-import path from 'path'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    RubyPlugin(),
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
-    extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json'],
     alias: {
-      '@': path.resolve(__dirname, './app/javascript'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
-    host: 'localhost',
-    port: 3036,
-    strictPort: true,
-    hmr: {
-      protocol: 'ws',
-      host: 'localhost',
-      port: 3036,
-    },
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    }
   },
 })
