@@ -1,8 +1,8 @@
 /**
  * Convert ArrayBuffer to Base64 string
  */
-export function bufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
+export function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
+  const bytes = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : buffer;
   let binary = '';
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
@@ -49,10 +49,10 @@ export function getTimeRemaining(endTime: Date): {
   const days = Math.floor(total / (1000 * 60 * 60 * 24));
   
   return {
-    days,
-    hours,
-    minutes,
-    seconds
+    days: Math.max(0, days),
+    hours: Math.max(0, hours),
+    minutes: Math.max(0, minutes),
+    seconds: Math.max(0, seconds)
   };
 }
 

@@ -3,7 +3,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lock, AlertTriangle, Eye, Clock } from 'lucide-react';
+import { Lock, AlertTriangle, Eye, Clock, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ApiService } from '@/services/api-service';
 import { EncryptionService } from '@/services/encryption-service';
@@ -20,6 +20,7 @@ export function MessageDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<any>(null);
+  const [showOneTimeWarning, setShowOneTimeWarning] = useState(false);
   const { toast } = useToast();
 
   // Extract key from URL fragment
@@ -37,9 +38,15 @@ export function MessageDetail() {
 
     try {
       setIsLoading(true);
+      if (EnvironmentService.isDevelopment()) {
+        console.log('Fetching message with ID:', id);
+      }
+      
       const data = await ApiService.getMessage(id);
 
-      console.log('Fetched message data:', data);
+      if (EnvironmentService.isDevelopment()) {
+        console.log('Fetched message data:', data);
+      }
 
       if (data.deleted) {
         setError('This message has been deleted or has expired');
@@ -49,6 +56,11 @@ export function MessageDetail() {
 
       setMessage(data);
 
+      // Show one-time warning if applicable
+      if (data.remaining_views === 1 || data.metadata?.burn_after_reading) {
+        setShowOneTimeWarning(true);
+      }
+
       // Try to decrypt with key from URL fragment
       const key = getKeyFromFragment();
       if (key) {
@@ -57,15 +69,27 @@ export function MessageDetail() {
         setError('No decryption key provided in URL');
       }
 
-      // Track view if successfully loaded
-      try {
-        await ApiService.viewMessage(id);
-      } catch (viewError) {
-        console.warn('Failed to track view:', viewError);
+      // Track view if successfully loaded and decrypted
+      if (decryptedContent) {
+        try {
+          await ApiService.viewMessage(id);
+          if (EnvironmentService.isDevelopment()) {
+            console.log('View tracked successfully');
+          }
+        } catch (viewError) {
+          console.warn('Failed to track view:', viewError);
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching message:', error);
-      setError('Failed to load the encrypted message: ' + (error.error || error.message || 'Unknown error'));
+      
+      if (error.status === 404) {
+        setError('This message does not exist or has been deleted');
+      } else if (error.status === 410) {
+        setError('This message has expired or reached its view limit');
+      } else {
+        setError('Failed to load the encrypted message: ' + (error.error || error.message || 'Unknown error'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,18 +98,36 @@ export function MessageDetail() {
   // Decrypt message content
   const decryptMessageContent = async (encryptedData: string, key: string, metadata: any) => {
     try {
-      console.log('Decrypting with key:', key.substring(0, 10) + '...');
-      console.log('Encrypted data length:', encryptedData.length);
-      console.log('Metadata:', metadata);
+      if (EnvironmentService.isDevelopment()) {
+        console.log('Starting decryption...');
+        console.log('Key length:', key.length);
+        console.log('Has password:', metadata?.has_password);
+        console.log('Encrypted data length:', encryptedData.length);
+      }
       
       // Parse encrypted data if it's a JSON string
       let parsedData;
       try {
         parsedData = JSON.parse(encryptedData);
-        console.log('Parsed encrypted data:', parsedData);
+        if (EnvironmentService.isDevelopment()) {
+          console.log('Parsed encrypted data structure:', {
+            hasIv: !!parsedData.iv,
+            hasSalt: !!parsedData.salt,
+            hasEncryptedData: !!parsedData.encryptedData,
+            ivLength: parsedData.iv?.length,
+            saltLength: parsedData.salt?.length,
+            encryptedDataLength: parsedData.encryptedData?.length
+          });
+        }
       } catch (parseError) {
         console.error('Failed to parse encrypted data:', parseError);
         setError('Invalid encrypted data format');
+        return;
+      }
+      
+      // Validate parsed data structure
+      if (!parsedData.iv || !parsedData.salt || !parsedData.encryptedData) {
+        setError('Malformed encrypted data - missing required fields');
         return;
       }
       
@@ -97,13 +139,28 @@ export function MessageDetail() {
 
       // Decrypt the content
       const keyToUse = metadata?.has_password ? password : key;
+      
+      if (EnvironmentService.isDevelopment()) {
+        console.log('Using key type:', metadata?.has_password ? 'password' : 'direct key');
+        console.log('Key to use length:', keyToUse.length);
+      }
+      
       const decrypted = await EncryptionService.decryptMessage(parsedData, keyToUse);
-      console.log('Decrypted content:', decrypted.substring(0, 100) + '...');
+      
+      if (EnvironmentService.isDevelopment()) {
+        console.log('Decryption successful, content length:', decrypted.length);
+      }
       
       setDecryptedContent(decrypted);
       setNeedsPassword(false);
       setError(null);
-    } catch (error) {
+
+      toast({
+        title: "Message Decrypted",
+        description: "Your message has been successfully decrypted.",
+      });
+
+    } catch (error: any) {
       console.error('Decryption error:', error);
       
       if (metadata?.has_password) {
@@ -223,6 +280,20 @@ export function MessageDetail() {
 
   return (
     <div className="space-y-6">
+      {showOneTimeWarning && (
+        <Card className="border-orange-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-orange-600">
+              <AlertTriangle className="h-5 w-5" />
+              <div>
+                <h3 className="font-semibold">One-time Message</h3>
+                <p className="text-sm">This message will be permanently deleted after viewing.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Decrypted Message</h2>
       </div>

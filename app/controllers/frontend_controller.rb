@@ -5,7 +5,11 @@ class FrontendController < ApplicationController
       redirect_to 'http://localhost:5173', status: :temporary_redirect, allow_other_host: true
     else
       # In production, serve the built static files
-      render file: Rails.root.join('public', 'index.html'), layout: false
+      if File.exist?(Rails.root.join('public', 'index.html'))
+        render file: Rails.root.join('public', 'index.html'), layout: false
+      else
+        render plain: 'Frontend not built. Run npm run build first.', status: :service_unavailable
+      end
     end
   end
 end

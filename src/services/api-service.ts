@@ -29,8 +29,16 @@ export interface ErrorResponse {
 }
 
 export class ApiService {
-  // Base API URL from environment  
-  private static baseUrl = EnvironmentService.getApiUrl();
+  // Use relative URLs in development to leverage Vite proxy, absolute URLs in production
+  private static getBaseUrl(): string {
+    if (EnvironmentService.isDevelopment()) {
+      // Use relative URLs so they go through Vite proxy
+      return '/api/v1';
+    } else {
+      // Use absolute URLs in production
+      return EnvironmentService.getApiUrl();
+    }
+  }
   
   // Default headers for API requests
   private static defaultHeaders = {
@@ -88,7 +96,8 @@ export class ApiService {
    */
   static async get<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
     // Build URL with query parameters
-    const url = new URL(`${this.baseUrl}${endpoint}`);
+    const baseUrl = this.getBaseUrl();
+    const url = new URL(`${baseUrl}${endpoint}`, window.location.origin);
     Object.keys(params).forEach(key => {
       url.searchParams.append(key, params[key]);
     });
@@ -118,11 +127,14 @@ export class ApiService {
    */
   static async post<T>(endpoint: string, data: any): Promise<T> {
     try {
+      const baseUrl = this.getBaseUrl();
+      const url = new URL(`${baseUrl}${endpoint}`, window.location.origin);
+      
       if (EnvironmentService.isDevelopment()) {
-        console.log(`POST request to: ${this.baseUrl}${endpoint}`, data);
+        console.log(`POST request to: ${url.toString()}`, data);
       }
       
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetch(url.toString(), {
         method: 'POST',
         headers: this.defaultHeaders,
         body: JSON.stringify(data),

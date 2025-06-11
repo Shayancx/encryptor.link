@@ -14,12 +14,13 @@ Rails.application.routes.draw do
   # Health check
   get '/health', to: 'health#show'
   
-  # Frontend SPA routes - catch all except API
+  # Frontend SPA routes - serve index.html for all non-API routes
   get "*path", to: "frontend#index", constraints: lambda { |request|
     !request.xhr? && 
     request.format.html? && 
     !request.path.start_with?('/api/') &&
-    !request.path.start_with?('/health')
+    !request.path.start_with?('/health') &&
+    !request.path.start_with?('/assets/')
   }
   
   # Root path

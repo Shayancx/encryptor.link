@@ -39,13 +39,28 @@ export interface EncryptionMetadata {
 }
 
 export class EncryptionService {
-  // Generate a cryptographically secure random key
-  static generateKey(length = 32): string {
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    return Array.from(array)
+  // Generate a cryptographically secure random key as bytes
+  static generateKeyBytes(length = 32): Uint8Array {
+    return crypto.getRandomValues(new Uint8Array(length));
+  }
+
+  // Convert bytes to hex string
+  static bytesToHex(bytes: Uint8Array): string {
+    return Array.from(bytes)
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
+  }
+
+  // Convert hex string to bytes
+  static hexToBytes(hex: string): Uint8Array {
+    if (hex.length % 2 !== 0) {
+      throw new Error('Invalid hex string length');
+    }
+    const result = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+      result[i / 2] = parseInt(hex.substr(i, 2), 16);
+    }
+    return result;
   }
 
   // Generate a URL-friendly identifier
@@ -106,17 +121,18 @@ export class EncryptionService {
         salt = derived.salt;
         exportedKey = password;
       } else {
-        // Generate a random key
-        const rawKey = this.generateKey();
+        // Generate a random key as bytes
+        const rawKeyBytes = this.generateKeyBytes(32);
         key = await crypto.subtle.importKey(
           'raw',
-          new TextEncoder().encode(rawKey),
+          rawKeyBytes,
           { name: ENCRYPTION_ALGORITHM, length: 256 },
           false,
           ['encrypt', 'decrypt']
         );
         salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
-        exportedKey = rawKey;
+        // Export key as hex string for URL
+        exportedKey = this.bytesToHex(rawKeyBytes);
       }
 
       // Generate a random IV
@@ -164,7 +180,8 @@ export class EncryptionService {
       const encryptedData = base64ToBuffer(encryptedMessage.encryptedData);
 
       // Determine if using password or direct key
-      const isPassword = keyOrPassword.length < 32;
+      // Passwords are typically shorter and contain non-hex characters
+      const isPassword = keyOrPassword.length < 32 || !/^[0-9a-fA-F]+$/.test(keyOrPassword);
       let key: CryptoKey;
 
       if (isPassword) {
@@ -172,10 +189,11 @@ export class EncryptionService {
         const derived = await this.deriveKeyFromPassword(keyOrPassword, salt);
         key = derived.key;
       } else {
-        // Use provided key directly
+        // Convert hex key to bytes and import
+        const keyBytes = this.hexToBytes(keyOrPassword);
         key = await crypto.subtle.importKey(
           'raw',
-          new TextEncoder().encode(keyOrPassword),
+          keyBytes,
           { name: ENCRYPTION_ALGORITHM, length: 256 },
           false,
           ['encrypt', 'decrypt']
@@ -222,17 +240,17 @@ export class EncryptionService {
             salt = derived.salt;
             exportedKey = password;
           } else {
-            // Generate a random key
-            const rawKey = this.generateKey();
+            // Generate a random key as bytes
+            const rawKeyBytes = this.generateKeyBytes(32);
             key = await crypto.subtle.importKey(
               'raw',
-              new TextEncoder().encode(rawKey),
+              rawKeyBytes,
               { name: ENCRYPTION_ALGORITHM, length: 256 },
               false,
               ['encrypt', 'decrypt']
             );
             salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
-            exportedKey = rawKey;
+            exportedKey = this.bytesToHex(rawKeyBytes);
           }
 
           // Generate a random IV
@@ -297,7 +315,7 @@ export class EncryptionService {
           const salt = base64ToBuffer(metadata.salt);
 
           // Determine if using password or direct key
-          const isPassword = keyOrPassword.length < 32;
+          const isPassword = keyOrPassword.length < 32 || !/^[0-9a-fA-F]+$/.test(keyOrPassword);
           let key: CryptoKey;
 
           if (isPassword) {
@@ -305,10 +323,11 @@ export class EncryptionService {
             const derived = await this.deriveKeyFromPassword(keyOrPassword, salt);
             key = derived.key;
           } else {
-            // Use provided key directly
+            // Convert hex key to bytes and import
+            const keyBytes = this.hexToBytes(keyOrPassword);
             key = await crypto.subtle.importKey(
               'raw',
-              new TextEncoder().encode(keyOrPassword),
+              keyBytes,
               { name: ENCRYPTION_ALGORITHM, length: 256 },
               false,
               ['encrypt', 'decrypt']

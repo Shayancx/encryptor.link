@@ -9,7 +9,6 @@ gem "puma"
 
 # Assets
 gem "sprockets-rails"
-gem "vite_rails"
 
 # Reduces boot times through caching
 gem "bootsnap", require: false
