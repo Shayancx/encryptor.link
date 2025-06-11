@@ -3,11 +3,14 @@ class Message < ApplicationRecord
   
   validates :encrypted_data, presence: true
   
-  # Use simple JSON serialization
+  # JSON serialization for metadata
   def metadata
     return {} unless super
-    JSON.parse(super) if super.is_a?(String)
-    super || {}
+    if super.is_a?(String)
+      JSON.parse(super)
+    else
+      super || {}
+    end
   rescue JSON::ParserError
     {}
   end
@@ -44,10 +47,6 @@ class Message < ApplicationRecord
     return true if expires_at && Time.current > expires_at
     return true if max_views && view_count >= max_views
     false
-  end
-  
-  def max_views
-    metadata&.dig('max_views')
   end
   
   private

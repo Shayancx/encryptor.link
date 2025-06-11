@@ -15,6 +15,8 @@ export interface MessageRequest {
 
 export interface MessageResponse {
   id: string;
+  encrypted_data: string;
+  metadata: any;
   created_at: string;
   expires_at?: string;
   remaining_views?: number;
@@ -146,8 +148,8 @@ export class ApiService {
   /**
    * Retrieve an encrypted message
    */
-  static async getMessage(id: string): Promise<any> {
-    return this.get<any>(`/messages/${id}`);
+  static async getMessage(id: string): Promise<MessageResponse> {
+    return this.get<MessageResponse>(`/messages/${id}`);
   }
 
   /**

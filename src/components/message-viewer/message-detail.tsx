@@ -39,6 +39,8 @@ export function MessageDetail() {
       setIsLoading(true);
       const data = await ApiService.getMessage(id);
 
+      console.log('Fetched message data:', data);
+
       if (data.deleted) {
         setError('This message has been deleted or has expired');
         setIsLoading(false);
@@ -50,42 +52,61 @@ export function MessageDetail() {
       // Try to decrypt with key from URL fragment
       const key = getKeyFromFragment();
       if (key) {
-        await decryptMessageContent(data.encrypted_data, key);
+        await decryptMessageContent(data.encrypted_data, key, data.metadata);
       } else {
-        setError('No decryption key provided');
+        setError('No decryption key provided in URL');
       }
 
       // Track view if successfully loaded
-      await ApiService.viewMessage(id);
+      try {
+        await ApiService.viewMessage(id);
+      } catch (viewError) {
+        console.warn('Failed to track view:', viewError);
+      }
     } catch (error) {
       console.error('Error fetching message:', error);
-      setError('Failed to load the encrypted message');
+      setError('Failed to load the encrypted message: ' + (error.error || error.message || 'Unknown error'));
     } finally {
       setIsLoading(false);
     }
   };
 
   // Decrypt message content
-  const decryptMessageContent = async (encryptedData: string, key: string) => {
+  const decryptMessageContent = async (encryptedData: string, key: string, metadata: any) => {
     try {
-      // Parse encrypted data
-      const parsedData = JSON.parse(encryptedData);
+      console.log('Decrypting with key:', key.substring(0, 10) + '...');
+      console.log('Encrypted data length:', encryptedData.length);
+      console.log('Metadata:', metadata);
+      
+      // Parse encrypted data if it's a JSON string
+      let parsedData;
+      try {
+        parsedData = JSON.parse(encryptedData);
+        console.log('Parsed encrypted data:', parsedData);
+      } catch (parseError) {
+        console.error('Failed to parse encrypted data:', parseError);
+        setError('Invalid encrypted data format');
+        return;
+      }
       
       // Determine if password is needed
-      if (message?.metadata?.has_password && !password) {
+      if (metadata?.has_password && !password) {
         setNeedsPassword(true);
         return;
       }
 
       // Decrypt the content
-      const keyToUse = message?.metadata?.has_password ? password : key;
+      const keyToUse = metadata?.has_password ? password : key;
       const decrypted = await EncryptionService.decryptMessage(parsedData, keyToUse);
+      console.log('Decrypted content:', decrypted.substring(0, 100) + '...');
+      
       setDecryptedContent(decrypted);
       setNeedsPassword(false);
+      setError(null);
     } catch (error) {
       console.error('Decryption error:', error);
       
-      if (message?.metadata?.has_password) {
+      if (metadata?.has_password) {
         setNeedsPassword(true);
         setError('Invalid password. Please try again.');
       } else {
@@ -106,7 +127,7 @@ export function MessageDetail() {
     }
 
     setError(null);
-    await decryptMessageContent(message.encrypted_data, password);
+    await decryptMessageContent(message.encrypted_data, password, message.metadata);
   };
 
   // Update time remaining countdown
@@ -185,6 +206,7 @@ export function MessageDetail() {
                 placeholder="Enter password to decrypt"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSubmitPassword()}
               />
               
               {error && <p className="text-destructive text-sm">{error}</p>}
@@ -219,7 +241,7 @@ export function MessageDetail() {
             </div>
           )}
 
-          {message?.remaining_views !== null && (
+          {message?.remaining_views !== null && message?.remaining_views !== undefined && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
               <Eye className="h-4 w-4" />
               <span>
@@ -231,7 +253,7 @@ export function MessageDetail() {
           )}
 
           <div className="border rounded-md p-4 prose prose-sm dark:prose-invert max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: decryptedContent || '' }} />
+            <div dangerouslySetInnerHTML={{ __html: decryptedContent || 'No content to display' }} />
           </div>
           
           <div className="flex justify-end">

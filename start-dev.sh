@@ -33,11 +33,15 @@ echo "⏳ Waiting for Rails server to start..."
 sleep 5
 
 # Test Rails server
-if curl -s http://localhost:3000/api/v1/health > /dev/null 2>&1; then
+for i in {1..10}; do
+  if curl -s http://localhost:3000/api/v1/health > /dev/null 2>&1; then
     echo "✅ Rails server is responding"
-else
-    echo "⚠️ Rails server might not be ready yet"
-fi
+    break
+  else
+    echo "⏳ Waiting for Rails server... (attempt $i/10)"
+    sleep 2
+  fi
+done
 
 echo "🚀 Starting Vite dev server on port 5173..."
 npm run dev &
