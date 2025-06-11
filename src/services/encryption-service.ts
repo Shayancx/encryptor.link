@@ -21,6 +21,14 @@ export interface EncryptedMessage {
   salt: string;
   encryptedData: string;
   authTag?: string;
+  // For password-protected messages
+  encryptedKey?: string;
+  keySalt?: string;
+}
+
+export interface EncryptionResult {
+  encrypted: EncryptedMessage;
+  key?: string; // Only for non-password messages
 }
 
 export interface EncryptionMetadata {
@@ -104,39 +112,81 @@ export class EncryptionService {
     return { key: derivedKey, salt };
   }
 
+  // Encrypt a key with a password (for password-protected messages)
+  static async encryptKeyWithPassword(
+    key: Uint8Array,
+    password: string
+  ): Promise<{ encryptedKey: string; keySalt: string }> {
+    const keySalt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
+    const { key: passwordKey } = await this.deriveKeyFromPassword(password, keySalt);
+    
+    const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE));
+    const encryptedKeyBuffer = await crypto.subtle.encrypt(
+      {
+        name: ENCRYPTION_ALGORITHM,
+        iv,
+        tagLength: AUTH_TAG_LENGTH * 8
+      },
+      passwordKey,
+      key
+    );
+
+    // Combine IV and encrypted key
+    const combined = new Uint8Array(iv.length + encryptedKeyBuffer.byteLength);
+    combined.set(iv);
+    combined.set(new Uint8Array(encryptedKeyBuffer), iv.length);
+
+    return {
+      encryptedKey: bufferToBase64(combined),
+      keySalt: bufferToBase64(keySalt)
+    };
+  }
+
+  // Decrypt a key with a password
+  static async decryptKeyWithPassword(
+    encryptedKey: string,
+    keySalt: string,
+    password: string
+  ): Promise<Uint8Array> {
+    const combined = base64ToBuffer(encryptedKey);
+    const iv = combined.slice(0, IV_SIZE);
+    const encryptedKeyData = combined.slice(IV_SIZE);
+    const salt = base64ToBuffer(keySalt);
+
+    const { key: passwordKey } = await this.deriveKeyFromPassword(password, salt);
+    
+    const decryptedKeyBuffer = await crypto.subtle.decrypt(
+      {
+        name: ENCRYPTION_ALGORITHM,
+        iv,
+        tagLength: AUTH_TAG_LENGTH * 8
+      },
+      passwordKey,
+      encryptedKeyData
+    );
+
+    return new Uint8Array(decryptedKeyBuffer);
+  }
+
   // Encrypt message using modern Web Crypto API
   static async encryptMessage(
     message: string,
     password: string | null = null
-  ): Promise<{ encrypted: EncryptedMessage; key: string }> {
+  ): Promise<EncryptionResult> {
     try {
-      // Use provided password or generate a random key
-      let key: CryptoKey;
-      let salt: Uint8Array;
-      let exportedKey: string;
+      // Always generate a random key for the message
+      const messageKeyBytes = this.generateKeyBytes(32);
+      const messageKey = await crypto.subtle.importKey(
+        'raw',
+        messageKeyBytes,
+        { name: ENCRYPTION_ALGORITHM, length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
 
-      if (password) {
-        const derived = await this.deriveKeyFromPassword(password);
-        key = derived.key;
-        salt = derived.salt;
-        exportedKey = password;
-      } else {
-        // Generate a random key as bytes
-        const rawKeyBytes = this.generateKeyBytes(32);
-        key = await crypto.subtle.importKey(
-          'raw',
-          rawKeyBytes,
-          { name: ENCRYPTION_ALGORITHM, length: 256 },
-          false,
-          ['encrypt', 'decrypt']
-        );
-        salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
-        // Export key as hex string for URL
-        exportedKey = this.bytesToHex(rawKeyBytes);
-      }
-
-      // Generate a random IV
+      // Generate a random IV and salt
       const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE));
+      const salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
 
       // Sanitize HTML content if needed
       const sanitizedMessage = this.sanitizeContent(message);
@@ -149,19 +199,31 @@ export class EncryptionService {
           iv,
           tagLength: AUTH_TAG_LENGTH * 8
         },
-        key,
+        messageKey,
         encodedMessage
       );
 
-      // Convert binary data to Base64 strings for storage
-      return {
-        encrypted: {
-          iv: bufferToBase64(iv),
-          salt: bufferToBase64(salt),
-          encryptedData: bufferToBase64(new Uint8Array(encryptedBuffer))
-        },
-        key: exportedKey
+      const result: EncryptedMessage = {
+        iv: bufferToBase64(iv),
+        salt: bufferToBase64(salt),
+        encryptedData: bufferToBase64(new Uint8Array(encryptedBuffer))
       };
+
+      // If password protected, encrypt the key with the password
+      if (password) {
+        const { encryptedKey, keySalt } = await this.encryptKeyWithPassword(messageKeyBytes, password);
+        result.encryptedKey = encryptedKey;
+        result.keySalt = keySalt;
+        
+        // Don't return the key for password-protected messages
+        return { encrypted: result };
+      } else {
+        // Return the key for non-password messages
+        return { 
+          encrypted: result,
+          key: this.bytesToHex(messageKeyBytes)
+        };
+      }
     } catch (error) {
       EnvironmentService.log('Encryption error:', error);
       throw new Error('Failed to encrypt message: ' + (error instanceof Error ? error.message : String(error)));
@@ -176,20 +238,28 @@ export class EncryptionService {
     try {
       // Convert Base64 strings to binary data
       const iv = base64ToBuffer(encryptedMessage.iv);
-      const salt = base64ToBuffer(encryptedMessage.salt);
       const encryptedData = base64ToBuffer(encryptedMessage.encryptedData);
 
-      // Determine if using password or direct key
-      // Passwords are typically shorter and contain non-hex characters
-      const isPassword = keyOrPassword.length < 32 || !/^[0-9a-fA-F]+$/.test(keyOrPassword);
       let key: CryptoKey;
 
-      if (isPassword) {
-        // Derive key from password
-        const derived = await this.deriveKeyFromPassword(keyOrPassword, salt);
-        key = derived.key;
+      // Check if this is a password-protected message
+      if (encryptedMessage.encryptedKey && encryptedMessage.keySalt) {
+        // Decrypt the key using the password
+        const decryptedKeyBytes = await this.decryptKeyWithPassword(
+          encryptedMessage.encryptedKey,
+          encryptedMessage.keySalt,
+          keyOrPassword
+        );
+        
+        key = await crypto.subtle.importKey(
+          'raw',
+          decryptedKeyBytes,
+          { name: ENCRYPTION_ALGORITHM, length: 256 },
+          false,
+          ['encrypt', 'decrypt']
+        );
       } else {
-        // Convert hex key to bytes and import
+        // Direct key decryption
         const keyBytes = this.hexToBytes(keyOrPassword);
         key = await crypto.subtle.importKey(
           'raw',
@@ -223,42 +293,28 @@ export class EncryptionService {
   static async encryptFile(
     file: File,
     password: string | null = null
-  ): Promise<{ encryptedFile: Blob; key: string; metadata: any }> {
+  ): Promise<{ encryptedData: string; key?: string; metadata: any }> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
       reader.onload = async (event) => {
         try {
-          // Use provided password or generate a random key
-          let key: CryptoKey;
-          let salt: Uint8Array;
-          let exportedKey: string;
-
-          if (password) {
-            const derived = await this.deriveKeyFromPassword(password);
-            key = derived.key;
-            salt = derived.salt;
-            exportedKey = password;
-          } else {
-            // Generate a random key as bytes
-            const rawKeyBytes = this.generateKeyBytes(32);
-            key = await crypto.subtle.importKey(
-              'raw',
-              rawKeyBytes,
-              { name: ENCRYPTION_ALGORITHM, length: 256 },
-              false,
-              ['encrypt', 'decrypt']
-            );
-            salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
-            exportedKey = this.bytesToHex(rawKeyBytes);
-          }
+          // Always generate a random key for the file
+          const fileKeyBytes = this.generateKeyBytes(32);
+          const fileKey = await crypto.subtle.importKey(
+            'raw',
+            fileKeyBytes,
+            { name: ENCRYPTION_ALGORITHM, length: 256 },
+            false,
+            ['encrypt', 'decrypt']
+          );
 
           // Generate a random IV
           const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE));
+          const salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
 
           // Convert file data to ArrayBuffer
-          // @ts-ignore
-          const fileData = new Uint8Array(event.target.result);
+          const fileData = new Uint8Array(event.target!.result as ArrayBuffer);
 
           // Encrypt the file
           const encryptedBuffer = await crypto.subtle.encrypt(
@@ -267,12 +323,12 @@ export class EncryptionService {
               iv,
               tagLength: AUTH_TAG_LENGTH * 8
             },
-            key,
+            fileKey,
             fileData
           );
 
           // File metadata
-          const metadata = {
+          const metadata: any = {
             fileName: file.name,
             fileType: file.type,
             fileSize: file.size,
@@ -281,12 +337,16 @@ export class EncryptionService {
             encryptionAlgorithm: ENCRYPTION_ALGORITHM
           };
 
-          // Bundle encrypted data and metadata
-          const encryptedBlob = new Blob([encryptedBuffer], { type: 'application/octet-stream' });
-          
+          // If password protected, encrypt the key
+          if (password) {
+            const { encryptedKey, keySalt } = await this.encryptKeyWithPassword(fileKeyBytes, password);
+            metadata.encryptedKey = encryptedKey;
+            metadata.keySalt = keySalt;
+          }
+
           resolve({
-            encryptedFile: encryptedBlob,
-            key: exportedKey,
+            encryptedData: bufferToBase64(new Uint8Array(encryptedBuffer)),
+            key: password ? undefined : this.bytesToHex(fileKeyBytes),
             metadata
           });
         } catch (error) {
@@ -301,65 +361,61 @@ export class EncryptionService {
   
   // Decrypt file
   static async decryptFile(
-    encryptedFile: Blob,
+    encryptedData: string,
     metadata: any,
     keyOrPassword: string
   ): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+    try {
+      // Convert Base64 strings to binary data
+      const iv = base64ToBuffer(metadata.iv);
+      const encryptedFileData = base64ToBuffer(encryptedData);
+
+      let key: CryptoKey;
+
+      // Check if this is a password-protected file
+      if (metadata.encryptedKey && metadata.keySalt) {
+        // Decrypt the key using the password
+        const decryptedKeyBytes = await this.decryptKeyWithPassword(
+          metadata.encryptedKey,
+          metadata.keySalt,
+          keyOrPassword
+        );
+        
+        key = await crypto.subtle.importKey(
+          'raw',
+          decryptedKeyBytes,
+          { name: ENCRYPTION_ALGORITHM, length: 256 },
+          false,
+          ['encrypt', 'decrypt']
+        );
+      } else {
+        // Direct key decryption
+        const keyBytes = this.hexToBytes(keyOrPassword);
+        key = await crypto.subtle.importKey(
+          'raw',
+          keyBytes,
+          { name: ENCRYPTION_ALGORITHM, length: 256 },
+          false,
+          ['encrypt', 'decrypt']
+        );
+      }
+
+      // Decrypt the file
+      const decryptedBuffer = await crypto.subtle.decrypt(
+        {
+          name: ENCRYPTION_ALGORITHM,
+          iv,
+          tagLength: AUTH_TAG_LENGTH * 8
+        },
+        key,
+        encryptedFileData
+      );
       
-      reader.onload = async (event) => {
-        try {
-          // Convert Base64 strings to binary data
-          const iv = base64ToBuffer(metadata.iv);
-          const salt = base64ToBuffer(metadata.salt);
-
-          // Determine if using password or direct key
-          const isPassword = keyOrPassword.length < 32 || !/^[0-9a-fA-F]+$/.test(keyOrPassword);
-          let key: CryptoKey;
-
-          if (isPassword) {
-            // Derive key from password
-            const derived = await this.deriveKeyFromPassword(keyOrPassword, salt);
-            key = derived.key;
-          } else {
-            // Convert hex key to bytes and import
-            const keyBytes = this.hexToBytes(keyOrPassword);
-            key = await crypto.subtle.importKey(
-              'raw',
-              keyBytes,
-              { name: ENCRYPTION_ALGORITHM, length: 256 },
-              false,
-              ['encrypt', 'decrypt']
-            );
-          }
-
-          // @ts-ignore
-          const encryptedData = new Uint8Array(event.target.result);
-
-          // Decrypt the file
-          const decryptedBuffer = await crypto.subtle.decrypt(
-            {
-              name: ENCRYPTION_ALGORITHM,
-              iv,
-              tagLength: AUTH_TAG_LENGTH * 8
-            },
-            key,
-            encryptedData
-          );
-          
-          // Create a blob with the original file type
-          const decryptedBlob = new Blob([decryptedBuffer], { type: metadata.fileType });
-          
-          resolve(decryptedBlob);
-        } catch (error) {
-          reject(error);
-        }
-      };
-      
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(encryptedFile);
-    });
+      // Create a blob with the original file type
+      return new Blob([decryptedBuffer], { type: metadata.fileType });
+    } catch (error) {
+      throw new Error('Failed to decrypt file: ' + (error instanceof Error ? error.message : String(error)));
+    }
   }
 
   // Download a decrypted file
@@ -368,21 +424,22 @@ export class EncryptionService {
   }
 
   // Create a shareable link with the encryption key in the URL fragment
-  static createShareableLink(messageId: string, key: string): string {
+  static createShareableLink(messageId: string, key?: string): string {
     const baseUrl = EnvironmentService.getBaseUrl();
-    return `${baseUrl}/message/${messageId}#${key}`;
+    // Only include key in fragment for non-password messages
+    return key ? `${baseUrl}/message/${messageId}#${key}` : `${baseUrl}/message/${messageId}`;
   }
 
   // Extract message ID and key from a shareable link
-  static parseShareableLink(link: string): { messageId: string; key: string } | null {
+  static parseShareableLink(link: string): { messageId: string; key?: string } | null {
     try {
       const url = new URL(link);
-      const pathSegments = url.pathname.split('/');
+      const pathSegments = url.pathname.split('/').filter(Boolean);
       const messageId = pathSegments[pathSegments.length - 1];
       const key = url.hash.substring(1); // Remove the # symbol
       
-      if (messageId && key) {
-        return { messageId, key };
+      if (messageId) {
+        return { messageId, key: key || undefined };
       }
       return null;
     } catch (error) {

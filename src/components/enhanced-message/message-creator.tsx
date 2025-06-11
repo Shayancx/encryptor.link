@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { QRGenerator } from '@/components/qrcode/qr-generator';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Lock, Eye, Clock, KeyRound, QrCode } from 'lucide-react';
+import { Lock, Eye, Clock, KeyRound, QrCode, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
@@ -91,65 +91,97 @@ export function MessageCreator() {
       console.log("Starting message encryption and creation...");
 
       // Encrypt the message
-      const { encrypted, key } = await EncryptionService.encryptMessage(
+      const encryptionResult = await EncryptionService.encryptMessage(
         content,
         enablePassword ? password : null
       );
 
-      console.log("Message encrypted successfully", { encrypted });
+      console.log("Message encrypted successfully", { 
+        hasKey: !!encryptionResult.key,
+        isPasswordProtected: enablePassword 
+      });
 
       // Prepare metadata
       const expiresAt = expirationToMs(expiration);
       const maxViews = viewLimitToNumber(viewLimit);
+
+      // Encrypt files if any
+      const encryptedFiles = [];
+      for (const file of files) {
+        toast({
+          title: "Encrypting files...",
+          description: `Encrypting ${file.name}...`,
+        });
+
+        const encryptedFile = await EncryptionService.encryptFile(
+          file,
+          enablePassword ? password : null
+        );
+
+        encryptedFiles.push({
+          data: encryptedFile.encryptedData,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          metadata: encryptedFile.metadata,
+          key: encryptedFile.key // Only for non-password files
+        });
+      }
 
       const metadata = {
         expires_at: expiresAt ? new Date(Date.now() + expiresAt).toISOString() : undefined,
         max_views: maxViews,
         burn_after_reading: burnAfterReading,
         has_password: enablePassword,
-        attachments: [] // We'll add files later
+        files: encryptedFiles.map(f => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          metadata: f.metadata
+        }))
       };
 
       console.log("Sending to API:", {
         data: {
-          encrypted_data: JSON.stringify(encrypted),
-          metadata
+          encrypted_data: JSON.stringify(encryptionResult.encrypted),
+          metadata,
+          files: encryptedFiles
         }
       });
 
       // Create message on the server
       const response = await ApiService.createMessage({
         data: {
-          encrypted_data: JSON.stringify(encrypted),
-          metadata
+          encrypted_data: JSON.stringify(encryptionResult.encrypted),
+          metadata,
+          files: encryptedFiles
         }
       });
 
       console.log("API response:", response);
 
-      // Generate the shareable link with the key in the fragment
-      const messageUrl = EnvironmentService.getUrl(`/message/${response.id}`);
-      const shareableLink = `${messageUrl}#${key}`;
+      // Generate the shareable link
+      const shareableLink = EncryptionService.createShareableLink(
+        response.id,
+        encryptionResult.key // Only includes key for non-password messages
+      );
       setEncryptedLink(shareableLink);
-
-      // Upload files if any
-      if (files.length > 0) {
-        toast({
-          title: "Encrypting files...",
-          description: "Your files are being encrypted and uploaded.",
-        });
-
-        for (const file of files) {
-          // Upload logic would go here
-          // For now just simulate success
-          await new Promise(r => setTimeout(r, 500));
-        }
-      }
 
       toast({
         title: "Message Created",
-        description: "Your encrypted message has been created successfully!",
+        description: enablePassword ? 
+          "Your password-protected message has been created. Share the link and password separately!" :
+          "Your encrypted message has been created successfully!",
       });
+
+      // Show warning for password-protected messages
+      if (enablePassword) {
+        toast({
+          title: "Important Security Note",
+          description: "Never share the password in the same channel as the link. Send them separately for maximum security.",
+          variant: "default",
+        });
+      }
     } catch (error) {
       console.error('Error creating message:', error);
       toast({
@@ -198,16 +230,27 @@ export function MessageCreator() {
               </div>
               
               {enablePassword && (
-                <div className="mt-4">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter a strong password"
-                    />
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input 
+                        id="password" 
+                        type="password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter a strong password"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md">
+                    <div className="flex gap-2">
+                      <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-amber-800 dark:text-amber-200">
+                        <p className="font-medium">Security Notice</p>
+                        <p className="mt-1">The password will NOT be included in the link. You must share it separately through a secure channel.</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -322,8 +365,8 @@ export function MessageCreator() {
         </Card>
         
         <div className="space-y-2">
-          <Label>Attach Files (optional, max 10MB total)</Label>
-          <Dropzone onDrop={handleFilesDrop} maxSize={10 * 1024 * 1024} />
+          <Label>Attach Files (optional, max 100MB total)</Label>
+          <Dropzone onDrop={handleFilesDrop} maxSize={100 * 1024 * 1024} />
           
           {files.length > 0 && (
             <div className="mt-4 space-y-2">
@@ -349,29 +392,45 @@ export function MessageCreator() {
         </div>
         
         {encryptedLink ? (
-          <div className="bg-secondary p-4 rounded-md">
-            <Label className="block mb-2">Your Encrypted Link</Label>
-            <div className="flex items-center gap-2">
-              <Input 
-                readOnly 
-                value={encryptedLink}
-                className="font-mono"
-              />
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(encryptedLink);
-                  toast({
-                    title: "Link copied",
-                    description: "Encrypted link copied to clipboard",
-                  });
-                }}
-              >
-                Copy
-              </Button>
+          <div className="space-y-4">
+            <div className="bg-secondary p-4 rounded-md">
+              <Label className="block mb-2">Your Encrypted Link</Label>
+              <div className="flex items-center gap-2">
+                <Input 
+                  readOnly 
+                  value={encryptedLink}
+                  className="font-mono"
+                />
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(encryptedLink);
+                    toast({
+                      title: "Link copied",
+                      description: "Encrypted link copied to clipboard",
+                    });
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {enablePassword ? 
+                  "Share this link with the recipient. Remember to send the password separately!" :
+                  "Share this link securely with the recipient. The decryption key is included in the link."
+                }
+              </p>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Share this link securely with the recipient. The message will be encrypted end-to-end.
-            </p>
+            
+            {enablePassword && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                <h4 className="font-medium mb-2">How to share securely:</h4>
+                <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <li>Copy and send the link above through one channel (e.g., email)</li>
+                  <li>Send the password through a different channel (e.g., SMS, phone call)</li>
+                  <li>Never include both in the same message</li>
+                </ol>
+              </div>
+            )}
           </div>
         ) : (
           <Button 

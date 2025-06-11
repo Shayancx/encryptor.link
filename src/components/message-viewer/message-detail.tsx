@@ -3,12 +3,12 @@ import { useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lock, AlertTriangle, Eye, Clock, CheckCircle } from 'lucide-react';
+import { Lock, AlertTriangle, Eye, Clock, CheckCircle, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ApiService } from '@/services/api-service';
 import { EncryptionService } from '@/services/encryption-service';
 import { EnvironmentService } from '@/config/environment';
-import { getTimeRemaining } from '@/services/utils';
+import { getTimeRemaining, formatFileSize } from '@/services/utils';
 
 export function MessageDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,13 +17,15 @@ export function MessageDetail() {
   const [needsPassword, setNeedsPassword] = useState(false);
   const [message, setMessage] = useState<any>(null);
   const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
+  const [decryptedFiles, setDecryptedFiles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDecryptingFile, setIsDecryptingFile] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<any>(null);
   const [showOneTimeWarning, setShowOneTimeWarning] = useState(false);
   const { toast } = useToast();
 
-  // Extract key from URL fragment
+  // Extract key from URL fragment (only for non-password messages)
   const getKeyFromFragment = () => {
     return location.hash.substring(1);
   };
@@ -61,23 +63,16 @@ export function MessageDetail() {
         setShowOneTimeWarning(true);
       }
 
-      // Try to decrypt with key from URL fragment
-      const key = getKeyFromFragment();
-      if (key) {
-        await decryptMessageContent(data.encrypted_data, key, data.metadata);
+      // Check if password protected
+      if (data.metadata?.has_password) {
+        setNeedsPassword(true);
       } else {
-        setError('No decryption key provided in URL');
-      }
-
-      // Track view if successfully loaded and decrypted
-      if (decryptedContent) {
-        try {
-          await ApiService.viewMessage(id);
-          if (EnvironmentService.isDevelopment()) {
-            console.log('View tracked successfully');
-          }
-        } catch (viewError) {
-          console.warn('Failed to track view:', viewError);
+        // Try to decrypt with key from URL fragment
+        const key = getKeyFromFragment();
+        if (key) {
+          await decryptMessageContent(data.encrypted_data, key, data.metadata);
+        } else {
+          setError('No decryption key provided in URL');
         }
       }
     } catch (error: any) {
@@ -96,64 +91,46 @@ export function MessageDetail() {
   };
 
   // Decrypt message content
-  const decryptMessageContent = async (encryptedData: string, key: string, metadata: any) => {
+  const decryptMessageContent = async (encryptedData: string, keyOrPassword: string, metadata: any) => {
     try {
       if (EnvironmentService.isDevelopment()) {
         console.log('Starting decryption...');
-        console.log('Key length:', key.length);
-        console.log('Has password:', metadata?.has_password);
-        console.log('Encrypted data length:', encryptedData.length);
+        console.log('Is password protected:', metadata?.has_password);
       }
       
-      // Parse encrypted data if it's a JSON string
-      let parsedData;
-      try {
-        parsedData = JSON.parse(encryptedData);
-        if (EnvironmentService.isDevelopment()) {
-          console.log('Parsed encrypted data structure:', {
-            hasIv: !!parsedData.iv,
-            hasSalt: !!parsedData.salt,
-            hasEncryptedData: !!parsedData.encryptedData,
-            ivLength: parsedData.iv?.length,
-            saltLength: parsedData.salt?.length,
-            encryptedDataLength: parsedData.encryptedData?.length
-          });
-        }
-      } catch (parseError) {
-        console.error('Failed to parse encrypted data:', parseError);
-        setError('Invalid encrypted data format');
-        return;
-      }
+      // Parse encrypted data
+      const parsedData = JSON.parse(encryptedData);
       
-      // Validate parsed data structure
-      if (!parsedData.iv || !parsedData.salt || !parsedData.encryptedData) {
-        setError('Malformed encrypted data - missing required fields');
-        return;
-      }
-      
-      // Determine if password is needed
-      if (metadata?.has_password && !password) {
-        setNeedsPassword(true);
-        return;
-      }
-
       // Decrypt the content
-      const keyToUse = metadata?.has_password ? password : key;
+      const decrypted = await EncryptionService.decryptMessage(parsedData, keyOrPassword);
       
       if (EnvironmentService.isDevelopment()) {
-        console.log('Using key type:', metadata?.has_password ? 'password' : 'direct key');
-        console.log('Key to use length:', keyToUse.length);
-      }
-      
-      const decrypted = await EncryptionService.decryptMessage(parsedData, keyToUse);
-      
-      if (EnvironmentService.isDevelopment()) {
-        console.log('Decryption successful, content length:', decrypted.length);
+        console.log('Decryption successful');
       }
       
       setDecryptedContent(decrypted);
       setNeedsPassword(false);
       setError(null);
+
+      // Decrypt file metadata if present
+      if (metadata?.files && metadata.files.length > 0) {
+        const decryptedFilesList = metadata.files.map((file: any) => ({
+          ...file,
+          ready: true,
+          keyOrPassword: keyOrPassword
+        }));
+        setDecryptedFiles(decryptedFilesList);
+      }
+
+      // Track view after successful decryption
+      try {
+        await ApiService.viewMessage(id!);
+        if (EnvironmentService.isDevelopment()) {
+          console.log('View tracked successfully');
+        }
+      } catch (viewError) {
+        console.warn('Failed to track view:', viewError);
+      }
 
       toast({
         title: "Message Decrypted",
@@ -164,7 +141,6 @@ export function MessageDetail() {
       console.error('Decryption error:', error);
       
       if (metadata?.has_password) {
-        setNeedsPassword(true);
         setError('Invalid password. Please try again.');
       } else {
         setError('Failed to decrypt message. The key might be incorrect or the data is corrupted.');
@@ -185,6 +161,44 @@ export function MessageDetail() {
 
     setError(null);
     await decryptMessageContent(message.encrypted_data, password, message.metadata);
+  };
+
+  // Handle file download
+  const handleDownloadFile = async (file: any) => {
+    try {
+      setIsDecryptingFile(file.name);
+      
+      // Get the file data from the server
+      const fileResponse = await ApiService.getFile(id!, file.name);
+      
+      if (!fileResponse || !fileResponse.data) {
+        throw new Error('No file data received');
+      }
+
+      // Decrypt the file
+      const decryptedBlob = await EncryptionService.decryptFile(
+        fileResponse.data,
+        file.metadata,
+        file.keyOrPassword
+      );
+
+      // Download the file
+      EncryptionService.downloadDecryptedFile(decryptedBlob, file.name);
+
+      toast({
+        title: "File Downloaded",
+        description: `${file.name} has been decrypted and downloaded.`,
+      });
+    } catch (error: any) {
+      console.error('Error downloading file:', error);
+      toast({
+        title: "Download Failed",
+        description: error.message || "Failed to download and decrypt file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDecryptingFile(null);
+    }
   };
 
   // Update time remaining countdown
@@ -323,11 +337,45 @@ export function MessageDetail() {
             </div>
           )}
 
-          <div className="border rounded-md p-4 prose prose-sm dark:prose-invert max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: decryptedContent || 'No content to display' }} />
-          </div>
+          {decryptedContent && (
+            <div className="border rounded-md p-4 prose prose-sm dark:prose-invert max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: decryptedContent }} />
+            </div>
+          )}
+
+          {decryptedFiles.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-medium">Attached Files ({decryptedFiles.length})</h3>
+              <div className="space-y-2">
+                {decryptedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <p className="font-medium">{file.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {file.type || 'Unknown type'} • {formatFileSize(file.size)}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleDownloadFile(file)}
+                      disabled={isDecryptingFile === file.name}
+                    >
+                      {isDecryptingFile === file.name ? (
+                        <>Decrypting...</>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-4">
             <Button onClick={() => window.location.href = '/'}>
               Back to Home
             </Button>

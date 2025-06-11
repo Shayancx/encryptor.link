@@ -8,8 +8,9 @@ export interface MessageRequest {
       max_views?: number;
       burn_after_reading: boolean;
       has_password: boolean;
-      attachments: any[];
+      files: any[];
     };
+    files?: any[];
   };
 }
 
@@ -21,6 +22,11 @@ export interface MessageResponse {
   expires_at?: string;
   remaining_views?: number;
   deleted: boolean;
+}
+
+export interface FileResponse {
+  data: string;
+  metadata: any;
 }
 
 export interface ErrorResponse {
@@ -154,7 +160,48 @@ export class ApiService {
    * Create a new encrypted message
    */
   static async createMessage(data: MessageRequest): Promise<MessageResponse> {
+    // Handle files separately if present
+    if (data.data.files && data.data.files.length > 0) {
+      // First create the message
+      const messageData = {
+        ...data,
+        data: {
+          ...data.data,
+          files: undefined // Remove files from initial message creation
+        }
+      };
+      
+      const messageResponse = await this.post<MessageResponse>('/messages', messageData);
+      
+      // Then upload files
+      for (const file of data.data.files) {
+        await this.uploadFile(messageResponse.id, file);
+      }
+      
+      return messageResponse;
+    }
+    
     return this.post<MessageResponse>('/messages', data);
+  }
+
+  /**
+   * Upload an encrypted file
+   */
+  static async uploadFile(messageId: string, fileData: any): Promise<any> {
+    return this.post<any>(`/messages/${messageId}/files`, {
+      data: fileData.data,
+      name: fileData.name,
+      type: fileData.type,
+      size: fileData.size,
+      metadata: fileData.metadata
+    });
+  }
+
+  /**
+   * Get file data
+   */
+  static async getFile(messageId: string, fileName: string): Promise<FileResponse> {
+    return this.get<FileResponse>(`/messages/${messageId}/files/${encodeURIComponent(fileName)}`);
   }
 
   /**

@@ -55,6 +55,21 @@ module Api
           
           if message.save
             Rails.logger.info "Message created successfully: #{message.id}"
+            
+            # Handle files if present
+            if message_data[:files].present?
+              message_data[:files].each do |file_data|
+                encrypted_file = message.encrypted_files.create!(
+                  file_data: file_data[:data],
+                  file_name: file_data[:name],
+                  file_type: file_data[:type],
+                  file_size: file_data[:size],
+                  metadata: file_data[:metadata]
+                )
+                Rails.logger.info "File created: #{encrypted_file.file_name}"
+              end
+            end
+            
             render json: { 
               id: message.id,
               created_at: message.created_at,
@@ -84,6 +99,55 @@ module Api
         else
           render json: { error: 'Failed to increment view count' }, status: :unprocessable_entity
         end
+      end
+
+      # POST /api/v1/messages/:id/files
+      def upload_file
+        message = Message.find_by(id: params[:id])
+        
+        if message.nil?
+          render json: { error: 'Message not found' }, status: :not_found
+          return
+        end
+        
+        encrypted_file = message.encrypted_files.create!(
+          file_data: params[:data],
+          file_name: params[:name],
+          file_type: params[:type],
+          file_size: params[:size],
+          metadata: params[:metadata]
+        )
+        
+        render json: { 
+          id: encrypted_file.id,
+          message_id: message.id,
+          name: encrypted_file.file_name
+        }, status: :created
+      rescue => e
+        Rails.logger.error "File upload error: #{e.message}"
+        render json: { error: e.message }, status: :unprocessable_entity
+      end
+
+      # GET /api/v1/messages/:id/files/:filename
+      def get_file
+        message = Message.find_by(id: params[:id])
+        
+        if message.nil?
+          render json: { error: 'Message not found' }, status: :not_found
+          return
+        end
+        
+        file = message.encrypted_files.find_by(file_name: params[:filename])
+        
+        if file.nil?
+          render json: { error: 'File not found' }, status: :not_found
+          return
+        end
+        
+        render json: {
+          data: file.file_data,
+          metadata: file.metadata
+        }
       end
 
       # DELETE /api/v1/messages/:id

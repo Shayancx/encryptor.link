@@ -12,8 +12,8 @@ interface DropzoneProps {
 
 export function Dropzone({ 
   onDrop, 
-  maxSize = 10485760, // 10MB 
-  maxFiles = 5,
+  maxSize = 104857600, // 100MB default
+  maxFiles = 10,
   className 
 }: DropzoneProps) {
   const handleDrop = useCallback((acceptedFiles: File[]) => {
@@ -36,6 +36,12 @@ export function Dropzone({
       'text/plain': [],
       'application/msword': [],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [],
+      'application/vnd.ms-excel': [],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [],
+      'application/zip': [],
+      'application/x-zip-compressed': [],
+      'application/x-rar-compressed': [],
+      'application/x-7z-compressed': [],
     }
   });
 
@@ -76,6 +82,9 @@ export function Dropzone({
         
         <p className="text-xs text-muted-foreground">
           Files are encrypted in your browser before uploading
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Max file size: {maxSize / 1024 / 1024}MB | Max files: {maxFiles}
         </p>
       </div>
     </div>
