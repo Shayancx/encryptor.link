@@ -42,3 +42,4 @@ group :test do
   gem "rails-controller-testing"
 end
 gem 'rack-cors', require: 'rack/cors'
+gem 'secure_headers'

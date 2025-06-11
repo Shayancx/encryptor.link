@@ -1,83 +1,275 @@
 import CryptoJS from 'crypto-js';
 import fileDownload from 'js-file-download';
+import sanitizeHtml from 'sanitize-html';
+import { nanoid } from 'nanoid';
+import { bufferToBase64, base64ToBuffer } from './utils';
+import { EnvironmentService } from '@/config/environment';
+
+// Encryption algorithm used
+const ENCRYPTION_ALGORITHM = 'AES-GCM';
+// Key derivation iterations
+const PBKDF2_ITERATIONS = 100000;
+// Salt size in bytes
+const SALT_SIZE = 16;
+// IV size in bytes
+const IV_SIZE = 12;
+// Length of authentication tag in bytes
+const AUTH_TAG_LENGTH = 16;
 
 export interface EncryptedMessage {
   iv: string;
+  salt: string;
   encryptedData: string;
+  authTag?: string;
+}
+
+export interface EncryptionMetadata {
+  createdAt: string;
+  expiresAt?: string;
+  maxViews?: number;
+  burnAfterReading: boolean;
+  hasPassword: boolean;
+  attachments: {
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+  }[];
+  id: string;
 }
 
 export class EncryptionService {
-  // Generate a random encryption key
-  static generateKey(): string {
-    return CryptoJS.lib.WordArray.random(16).toString();
+  // Generate a cryptographically secure random key
+  static generateKey(length = 32): string {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
   }
 
-  // Encrypt message
-  static encryptMessage(message: string, key: string): EncryptedMessage {
-    // Generate a random IV
-    const iv = CryptoJS.lib.WordArray.random(16);
-    
-    // Encrypt the message
-    const encrypted = CryptoJS.AES.encrypt(message, key, {
-      iv: iv,
-      padding: CryptoJS.pad.Pkcs7,
-      mode: CryptoJS.mode.CBC
-    });
+  // Generate a URL-friendly identifier
+  static generateId(): string {
+    return nanoid(10);
+  }
 
-    return {
-      iv: iv.toString(),
-      encryptedData: encrypted.toString()
-    };
+  // Derive an encryption key from a password
+  static async deriveKeyFromPassword(
+    password: string, 
+    salt: Uint8Array | null = null
+  ): Promise<{ key: CryptoKey; salt: Uint8Array }> {
+    // Generate salt if not provided
+    if (!salt) {
+      salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
+    }
+
+    // Import the password as a key
+    const passwordKey = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(password),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits', 'deriveKey']
+    );
+
+    // Derive a key using PBKDF2
+    const derivedKey = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt,
+        iterations: PBKDF2_ITERATIONS,
+        hash: 'SHA-256',
+      },
+      passwordKey,
+      { name: ENCRYPTION_ALGORITHM, length: 256 },
+      true,
+      ['encrypt', 'decrypt']
+    );
+
+    return { key: derivedKey, salt };
+  }
+
+  // Encrypt message using modern Web Crypto API
+  static async encryptMessage(
+    message: string,
+    password: string | null = null
+  ): Promise<{ encrypted: EncryptedMessage; key: string }> {
+    try {
+      // Use provided password or generate a random key
+      let key: CryptoKey;
+      let salt: Uint8Array;
+      let exportedKey: string;
+
+      if (password) {
+        const derived = await this.deriveKeyFromPassword(password);
+        key = derived.key;
+        salt = derived.salt;
+        exportedKey = password;
+      } else {
+        // Generate a random key
+        const rawKey = this.generateKey();
+        key = await crypto.subtle.importKey(
+          'raw',
+          new TextEncoder().encode(rawKey),
+          { name: ENCRYPTION_ALGORITHM, length: 256 },
+          false,
+          ['encrypt', 'decrypt']
+        );
+        salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
+        exportedKey = rawKey;
+      }
+
+      // Generate a random IV
+      const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE));
+
+      // Sanitize HTML content if needed
+      const sanitizedMessage = this.sanitizeContent(message);
+      const encodedMessage = new TextEncoder().encode(sanitizedMessage);
+
+      // Encrypt the data
+      const encryptedBuffer = await crypto.subtle.encrypt(
+        {
+          name: ENCRYPTION_ALGORITHM,
+          iv,
+          tagLength: AUTH_TAG_LENGTH * 8
+        },
+        key,
+        encodedMessage
+      );
+
+      // Convert binary data to Base64 strings for storage
+      return {
+        encrypted: {
+          iv: bufferToBase64(iv),
+          salt: bufferToBase64(salt),
+          encryptedData: bufferToBase64(new Uint8Array(encryptedBuffer))
+        },
+        key: exportedKey
+      };
+    } catch (error) {
+      EnvironmentService.log('Encryption error:', error);
+      throw new Error('Failed to encrypt message: ' + (error instanceof Error ? error.message : String(error)));
+    }
   }
 
   // Decrypt message
-  static decryptMessage(encryptedMessage: EncryptedMessage, key: string): string {
-    // Decrypt
-    const decrypted = CryptoJS.AES.decrypt(encryptedMessage.encryptedData, key, {
-      iv: CryptoJS.enc.Hex.parse(encryptedMessage.iv),
-      padding: CryptoJS.pad.Pkcs7,
-      mode: CryptoJS.mode.CBC
-    });
-    
-    return decrypted.toString(CryptoJS.enc.Utf8);
+  static async decryptMessage(
+    encryptedMessage: EncryptedMessage,
+    keyOrPassword: string
+  ): Promise<string> {
+    try {
+      // Convert Base64 strings to binary data
+      const iv = base64ToBuffer(encryptedMessage.iv);
+      const salt = base64ToBuffer(encryptedMessage.salt);
+      const encryptedData = base64ToBuffer(encryptedMessage.encryptedData);
+
+      // Determine if using password or direct key
+      const isPassword = keyOrPassword.length < 32;
+      let key: CryptoKey;
+
+      if (isPassword) {
+        // Derive key from password
+        const derived = await this.deriveKeyFromPassword(keyOrPassword, salt);
+        key = derived.key;
+      } else {
+        // Use provided key directly
+        key = await crypto.subtle.importKey(
+          'raw',
+          new TextEncoder().encode(keyOrPassword),
+          { name: ENCRYPTION_ALGORITHM, length: 256 },
+          false,
+          ['encrypt', 'decrypt']
+        );
+      }
+
+      // Decrypt the data
+      const decryptedBuffer = await crypto.subtle.decrypt(
+        {
+          name: ENCRYPTION_ALGORITHM,
+          iv,
+          tagLength: AUTH_TAG_LENGTH * 8
+        },
+        key,
+        encryptedData
+      );
+
+      // Convert the decrypted data back to string
+      return new TextDecoder().decode(decryptedBuffer);
+    } catch (error) {
+      EnvironmentService.log('Decryption error:', error);
+      throw new Error('Failed to decrypt message. The key might be incorrect or the data is corrupted.');
+    }
   }
 
   // Encrypt file
-  static encryptFile(file: File): Promise<{ encryptedFile: Blob; key: string }> {
+  static async encryptFile(
+    file: File,
+    password: string | null = null
+  ): Promise<{ encryptedFile: Blob; key: string; metadata: any }> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      
+      reader.onload = async (event) => {
         try {
-          const key = this.generateKey();
-          const iv = CryptoJS.lib.WordArray.random(16);
-          
-          // Convert file data to WordArray
-          const wordArray = CryptoJS.lib.WordArray.create(
-            // @ts-ignore
-            new Uint8Array(event.target.result)
-          );
-          
+          // Use provided password or generate a random key
+          let key: CryptoKey;
+          let salt: Uint8Array;
+          let exportedKey: string;
+
+          if (password) {
+            const derived = await this.deriveKeyFromPassword(password);
+            key = derived.key;
+            salt = derived.salt;
+            exportedKey = password;
+          } else {
+            // Generate a random key
+            const rawKey = this.generateKey();
+            key = await crypto.subtle.importKey(
+              'raw',
+              new TextEncoder().encode(rawKey),
+              { name: ENCRYPTION_ALGORITHM, length: 256 },
+              false,
+              ['encrypt', 'decrypt']
+            );
+            salt = crypto.getRandomValues(new Uint8Array(SALT_SIZE));
+            exportedKey = rawKey;
+          }
+
+          // Generate a random IV
+          const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE));
+
+          // Convert file data to ArrayBuffer
+          // @ts-ignore
+          const fileData = new Uint8Array(event.target.result);
+
           // Encrypt the file
-          const encrypted = CryptoJS.AES.encrypt(wordArray, key, {
-            iv: iv,
-            padding: CryptoJS.pad.Pkcs7,
-            mode: CryptoJS.mode.CBC
-          }).toString();
-          
-          // Bundle IV and encrypted data
-          const encryptedBundle = JSON.stringify({
-            iv: iv.toString(),
-            encryptedData: encrypted,
+          const encryptedBuffer = await crypto.subtle.encrypt(
+            {
+              name: ENCRYPTION_ALGORITHM,
+              iv,
+              tagLength: AUTH_TAG_LENGTH * 8
+            },
+            key,
+            fileData
+          );
+
+          // File metadata
+          const metadata = {
             fileName: file.name,
-            fileType: file.type
-          });
-          
-          // Convert to Blob
-          const encryptedBlob = new Blob([encryptedBundle], { type: 'application/json' });
+            fileType: file.type,
+            fileSize: file.size,
+            iv: bufferToBase64(iv),
+            salt: bufferToBase64(salt),
+            encryptionAlgorithm: ENCRYPTION_ALGORITHM
+          };
+
+          // Bundle encrypted data and metadata
+          const encryptedBlob = new Blob([encryptedBuffer], { type: 'application/octet-stream' });
           
           resolve({
             encryptedFile: encryptedBlob,
-            key
+            key: exportedKey,
+            metadata
           });
         } catch (error) {
           reject(error);
@@ -90,42 +282,162 @@ export class EncryptionService {
   }
   
   // Decrypt file
-  static decryptFile(encryptedFileData: any, key: string): Promise<void> {
+  static async decryptFile(
+    encryptedFile: Blob,
+    metadata: any,
+    keyOrPassword: string
+  ): Promise<Blob> {
     return new Promise((resolve, reject) => {
-      try {
-        const { iv, encryptedData, fileName, fileType } = encryptedFileData;
-        
-        // Decrypt the file
-        const decrypted = CryptoJS.AES.decrypt(encryptedData, key, {
-          iv: CryptoJS.enc.Hex.parse(iv),
-          padding: CryptoJS.pad.Pkcs7,
-          mode: CryptoJS.mode.CBC
-        });
-        
-        // Convert WordArray to ArrayBuffer
-        const typedArray = this.convertWordArrayToUint8Array(decrypted);
-        const blob = new Blob([typedArray], { type: fileType });
-        
-        // Download the file
-        fileDownload(blob, fileName);
-        resolve();
-      } catch (error) {
-        reject(error);
+      const reader = new FileReader();
+      
+      reader.onload = async (event) => {
+        try {
+          // Convert Base64 strings to binary data
+          const iv = base64ToBuffer(metadata.iv);
+          const salt = base64ToBuffer(metadata.salt);
+
+          // Determine if using password or direct key
+          const isPassword = keyOrPassword.length < 32;
+          let key: CryptoKey;
+
+          if (isPassword) {
+            // Derive key from password
+            const derived = await this.deriveKeyFromPassword(keyOrPassword, salt);
+            key = derived.key;
+          } else {
+            // Use provided key directly
+            key = await crypto.subtle.importKey(
+              'raw',
+              new TextEncoder().encode(keyOrPassword),
+              { name: ENCRYPTION_ALGORITHM, length: 256 },
+              false,
+              ['encrypt', 'decrypt']
+            );
+          }
+
+          // @ts-ignore
+          const encryptedData = new Uint8Array(event.target.result);
+
+          // Decrypt the file
+          const decryptedBuffer = await crypto.subtle.decrypt(
+            {
+              name: ENCRYPTION_ALGORITHM,
+              iv,
+              tagLength: AUTH_TAG_LENGTH * 8
+            },
+            key,
+            encryptedData
+          );
+          
+          // Create a blob with the original file type
+          const decryptedBlob = new Blob([decryptedBuffer], { type: metadata.fileType });
+          
+          resolve(decryptedBlob);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(encryptedFile);
+    });
+  }
+
+  // Download a decrypted file
+  static downloadDecryptedFile(decryptedBlob: Blob, fileName: string): void {
+    fileDownload(decryptedBlob, fileName);
+  }
+
+  // Create a shareable link with the encryption key in the URL fragment
+  static createShareableLink(messageId: string, key: string): string {
+    const baseUrl = EnvironmentService.getBaseUrl();
+    return `${baseUrl}/message/${messageId}#${key}`;
+  }
+
+  // Extract message ID and key from a shareable link
+  static parseShareableLink(link: string): { messageId: string; key: string } | null {
+    try {
+      const url = new URL(link);
+      const pathSegments = url.pathname.split('/');
+      const messageId = pathSegments[pathSegments.length - 1];
+      const key = url.hash.substring(1); // Remove the # symbol
+      
+      if (messageId && key) {
+        return { messageId, key };
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Sanitize HTML content to prevent XSS
+  private static sanitizeContent(content: string): string {
+    return sanitizeHtml(content, {
+      allowedTags: [
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
+        'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
+        'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'span'
+      ],
+      allowedAttributes: {
+        a: ['href', 'target', 'rel'],
+        span: ['style'],
+        div: ['style'],
+        '*': ['class']
+      },
+      allowedStyles: {
+        '*': {
+          // Allow limited styles for basic formatting
+          'color': [/^#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
+          'text-align': [/^left$/, /^right$/, /^center$/],
+          'font-weight': [/^\d+$/],
+          'text-decoration': [/^underline$/, /^line-through$/]
+        }
       }
     });
   }
-  
-  // Helper function to convert WordArray to TypedArray
-  private static convertWordArrayToUint8Array(wordArray: any): Uint8Array {
-    const words = wordArray.words;
-    const sigBytes = wordArray.sigBytes;
-    const u8 = new Uint8Array(sigBytes);
-    
-    for (let i = 0; i < sigBytes; i++) {
-      const byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-      u8[i] = byte;
+
+  // Evaluate password strength
+  static evaluatePasswordStrength(password: string): {
+    score: number;
+    feedback: string;
+  } {
+    if (!password) {
+      return { score: 0, feedback: 'Password is empty' };
     }
-    
-    return u8;
+
+    // Very simple password evaluation logic
+    // In a real implementation, use zxcvbn or a similar library
+    let score = 0;
+    const feedback = [];
+
+    // Length check
+    if (password.length < 8) {
+      feedback.push('Password is too short');
+    } else {
+      score += 1;
+    }
+
+    // Complexity checks
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+    // Generate feedback based on score
+    if (score < 2) {
+      feedback.push('Password is very weak');
+    } else if (score < 3) {
+      feedback.push('Password is weak');
+    } else if (score < 4) {
+      feedback.push('Password is moderate');
+    } else {
+      feedback.push('Password is strong');
+    }
+
+    return {
+      score: score,
+      feedback: feedback.join('. ')
+    };
   }
 }

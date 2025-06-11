@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_09_000000) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_11_200920) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -127,6 +127,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_09_000000) do
     t.index ["created_at"], name: "idx_payloads_created_at"
     t.index ["expires_at", "remaining_views"], name: "idx_payloads_cleanup"
     t.index ["expires_at"], name: "index_encrypted_payloads_on_expires_at"
+  end
+
+  create_table "messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "encrypted_data", null: false
+    t.text "metadata"
+    t.datetime "expires_at", precision: nil
+    t.integer "view_count", default: 0
+    t.boolean "deleted", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "max_views"
+    t.index ["expires_at"], name: "index_messages_on_expires_at"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

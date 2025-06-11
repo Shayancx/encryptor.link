@@ -5,16 +5,43 @@ import { Button } from './components/ui/button';
 import { MessageCreator } from './components/enhanced-message/message-creator';
 import { Toaster } from './components/ui/toaster';
 import { Check, Link } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { EnvironmentService } from './config/environment';
+import { EncryptionService } from './services/encryption-service'; 
 
-function App() {
+export function App() {
   const [mode, setMode] = useState<'create' | 'open'>('create');
   const [linkToOpen, setLinkToOpen] = useState('');
+  const navigate = useNavigate();
   
   const handleOpenLink = () => {
-    if (linkToOpen.trim()) {
-      alert(`Opening link: ${linkToOpen} (this would decrypt the message in a real implementation)`);
-    } else {
+    if (!linkToOpen.trim()) {
       alert('Please enter a link to open');
+      return;
+    }
+
+    try {
+      // Try to parse as full URL
+      const parsedLink = EncryptionService.parseShareableLink(linkToOpen);
+      if (parsedLink) {
+        navigate(`/message/${parsedLink.messageId}#${parsedLink.key}`);
+        return;
+      }
+
+      // If not a full URL, try to parse as just an ID + key
+      if (linkToOpen.includes('#')) {
+        const [id, key] = linkToOpen.split('#');
+        if (id && key) {
+          navigate(`/message/${id}#${key}`);
+          return;
+        }
+      }
+
+      // Invalid link format
+      alert('Invalid link format. Please enter a complete encrypted message link.');
+    } catch (error) {
+      console.error('Error parsing link:', error);
+      alert('Failed to parse the link. Please enter a valid encrypted message link.');
     }
   };
 
@@ -26,6 +53,11 @@ function App() {
           <div className="container flex justify-between items-center py-4">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight">encryptor.link</h1>
+              {EnvironmentService.isDevelopment() && (
+                <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
+                  DEV
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <Button 
@@ -67,7 +99,7 @@ function App() {
                         type="text"
                         value={linkToOpen}
                         onChange={(e) => setLinkToOpen(e.target.value)}
-                        placeholder="https://encryptor.link/m/..."
+                        placeholder={`${EnvironmentService.getBaseUrl()}/message/abc123#key456`}
                         className="w-full pl-10 py-2 rounded-md border border-input bg-background"
                       />
                     </div>
@@ -108,5 +140,3 @@ function App() {
     </ThemeProvider>
   );
 }
-
-export default App;

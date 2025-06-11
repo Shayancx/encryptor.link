@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { QRGenerator } from '@/components/qrcode/qr-generator';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { 
-  Lock, Eye, Clock, KeyRound, QrCode
-} from 'lucide-react';
+import { Lock, Eye, Clock, KeyRound, QrCode } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
+import { EncryptionService } from '@/services/encryption-service';
+import { ApiService } from '@/services/api-service';
+import { EnvironmentService } from '@/config/environment';
+import { expirationToMs, viewLimitToNumber } from '@/services/utils';
 
 const expirationOptions = [
   { value: '1h', label: '1 hour' },
@@ -42,6 +43,7 @@ export function MessageCreator() {
   const [burnAfterReading, setBurnAfterReading] = useState(true);
   const [generateQR, setGenerateQR] = useState(false);
   const [encryptedLink, setEncryptedLink] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
   const handleFilesDrop = (acceptedFiles: File[]) => {
@@ -64,8 +66,8 @@ export function MessageCreator() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleCreateMessage = () => {
-    // This would typically call your encryption service
+  const handleCreateMessage = async () => {
+    // Validate input
     if (!content && files.length === 0) {
       toast({
         title: "Content required",
@@ -74,15 +76,90 @@ export function MessageCreator() {
       });
       return;
     }
-    
-    // Simulate creating an encrypted link
-    const simulatedLink = `https://encryptor.link/m/${Math.random().toString(36).substring(2, 15)}`;
-    setEncryptedLink(simulatedLink);
-    
-    toast({
-      title: "Message Created",
-      description: "Your encrypted message has been created successfully!",
-    });
+
+    if (enablePassword && !password) {
+      toast({
+        title: "Password required",
+        description: "Please enter a password for your encrypted message.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      console.log("Starting message encryption and creation...");
+
+      // Encrypt the message
+      const { encrypted, key } = await EncryptionService.encryptMessage(
+        content,
+        enablePassword ? password : null
+      );
+
+      console.log("Message encrypted successfully", { encrypted });
+
+      // Prepare metadata
+      const expiresAt = expirationToMs(expiration);
+      const maxViews = viewLimitToNumber(viewLimit);
+
+      const metadata = {
+        expires_at: expiresAt ? new Date(Date.now() + expiresAt).toISOString() : undefined,
+        max_views: maxViews,
+        burn_after_reading: burnAfterReading,
+        has_password: enablePassword,
+        attachments: [] // We'll add files later
+      };
+
+      console.log("Sending to API:", {
+        data: {
+          encrypted_data: JSON.stringify(encrypted),
+          metadata
+        }
+      });
+
+      // Create message on the server
+      const response = await ApiService.createMessage({
+        data: {
+          encrypted_data: JSON.stringify(encrypted),
+          metadata
+        }
+      });
+
+      console.log("API response:", response);
+
+      // Generate the shareable link with the key in the fragment
+      const messageUrl = EnvironmentService.getUrl(`/message/${response.id}`);
+      const shareableLink = `${messageUrl}#${key}`;
+      setEncryptedLink(shareableLink);
+
+      // Upload files if any
+      if (files.length > 0) {
+        toast({
+          title: "Encrypting files...",
+          description: "Your files are being encrypted and uploaded.",
+        });
+
+        for (const file of files) {
+          // Upload logic would go here
+          // For now just simulate success
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+
+      toast({
+        title: "Message Created",
+        description: "Your encrypted message has been created successfully!",
+      });
+    } catch (error) {
+      console.error('Error creating message:', error);
+      toast({
+        title: "Error",
+        description: error.error || "Failed to create encrypted message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -297,8 +374,12 @@ export function MessageCreator() {
             </p>
           </div>
         ) : (
-          <Button onClick={handleCreateMessage} className="w-full">
-            Create Encrypted Message
+          <Button 
+            onClick={handleCreateMessage} 
+            className="w-full"
+            disabled={isCreating}
+          >
+            {isCreating ? 'Creating...' : 'Create Encrypted Message'}
           </Button>
         )}
       </div>

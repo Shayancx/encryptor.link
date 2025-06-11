@@ -2,6 +2,7 @@ import React from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
+import { EnvironmentService } from '@/config/environment';
 
 interface QRGeneratorProps {
   value: string;
@@ -10,7 +11,12 @@ interface QRGeneratorProps {
   fgColor?: string;
 }
 
-export function QRGenerator({ value, size = 200, bgColor = "#FFFFFF", fgColor = "#000000" }: QRGeneratorProps) {
+export function QRGenerator({ 
+  value, 
+  size = 200, 
+  bgColor = "#FFFFFF", 
+  fgColor = "#000000" 
+}: QRGeneratorProps) {
   const downloadQRCode = () => {
     const canvas = document.getElementById('qr-code-canvas') as HTMLCanvasElement;
     if (!canvas) return;
@@ -20,6 +26,11 @@ export function QRGenerator({ value, size = 200, bgColor = "#FFFFFF", fgColor = 
     link.href = canvas.toDataURL('image/png');
     link.click();
   };
+
+  // Log environment info in development
+  if (EnvironmentService.isDevelopment()) {
+    EnvironmentService.log('QR Code generated with value:', value);
+  }
 
   return (
     <div className="flex flex-col items-center gap-4">
