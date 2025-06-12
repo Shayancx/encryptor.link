@@ -11,6 +11,9 @@ module Api
           message_data = params.dig(:data, :encrypted_data)
           metadata = params.dig(:data, :metadata) || {}
           files_data = params.dig(:data, :files) || []
+          files_data = files_data.map do |file|
+            file.respond_to?(:to_unsafe_h) ? file.to_unsafe_h.symbolize_keys : file.symbolize_keys
+          end
           
           # Parse the encrypted data
           encrypted_data = JSON.parse(message_data) rescue message_data
