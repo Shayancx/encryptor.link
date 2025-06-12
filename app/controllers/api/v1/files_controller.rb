@@ -10,9 +10,22 @@ module Api
           return render json: { error: "Message not found" }, status: :not_found
         end
         
-        # Find file by name
+        # Find file by name - handle double encoding for special characters
         file_name = params[:file_name]
-        file = payload.encrypted_files.find_by(file_name: file_name)
+        # Try double decode first (for double encoded filenames)
+        decoded_name = begin
+          URI.decode_www_form_component(URI.decode_www_form_component(file_name))
+        rescue
+          # If double decode fails, try single decode
+          begin
+            URI.decode_www_form_component(file_name)
+          rescue
+            # If all decoding fails, use as-is
+            file_name
+          end
+        end
+        
+        file = payload.encrypted_files.find_by(file_name: decoded_name)
         
         if file.nil?
           return render json: { error: "File not found" }, status: :not_found

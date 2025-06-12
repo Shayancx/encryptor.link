@@ -7,8 +7,8 @@ class EncryptedPayload < ApplicationRecord
   # Ciphertext can be blank if only files are attached
   validates :nonce, presence: true
   validates :expires_at, presence: true
-  validates :remaining_views, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
-  validates :max_views, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 100 }, allow_nil: true
+  validates :remaining_views, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }
+  validates :max_views, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 5 }, allow_nil: true
   
   before_validation :set_defaults, on: :create
   

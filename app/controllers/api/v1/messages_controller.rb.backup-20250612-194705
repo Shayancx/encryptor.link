@@ -15,10 +15,13 @@ module Api
             file.respond_to?(:to_unsafe_h) ? file.to_unsafe_h.symbolize_keys : file.symbolize_keys
           end
           
-          # Generate nonce - FIXED: no more IV extraction
+          # Parse the encrypted data
+          encrypted_data = JSON.parse(message_data) rescue message_data
+          
+          # Generate nonce - simple generation without IV extraction
           nonce = SecureRandom.random_bytes(12)
           
-          # Create the payload - FIXED: simplified ciphertext
+          # Create the payload
           payload = EncryptedPayload.create!(
             ciphertext: message_data.is_a?(String) ? message_data : message_data.to_json,
             nonce: nonce,
@@ -30,70 +33,33 @@ module Api
             max_views: metadata[:max_views] || 1
           )
           
-          # Handle files if present - FIXED: proper file name extraction
+          # Handle files if present
           if files_data.present?
             Rails.logger.info "Processing #{files_data.length} files..."
             
             files_data.each_with_index do |file_data, index|
-              Rails.logger.info "DEBUG: Raw file_data = #{file_data.inspect}"
-              
-              # FIXED: Extract filename from where frontend actually puts it
-              name_value = nil
-              
-              # Try different possible locations for the filename
-              if file_data[:metadata].present?
-                name_value = file_data[:metadata]['fileName'] || file_data[:metadata][:fileName]
-              end
-              name_value ||= file_data[:name] || file_data['name'] || file_data[:fileName] || file_data['fileName']
-              
-              Rails.logger.info "DEBUG: Extracted name_value = #{name_value.inspect}"
-              
-              # FIXED: Extract file type from metadata
-              file_type = nil
-              if file_data[:metadata].present?
-                file_type = file_data[:metadata]['fileType'] || file_data[:metadata][:fileType]
-              end
-              file_type ||= file_data[:type] || file_data['type'] || 'application/octet-stream'
-              
-              # FIXED: Extract file size from metadata  
-              file_size = nil
-              if file_data[:metadata].present?
-                file_size = file_data[:metadata]['fileSize'] || file_data[:metadata][:fileSize]
-              end
-              file_size ||= file_data[:size] || file_data['size'] || 0
-              
-              Rails.logger.info "Processing file #{index + 1}: #{name_value} (#{file_type}, #{file_size} bytes)"
+              Rails.logger.info "Processing file #{index + 1}: #{file_data[:name] || file_data[:file_name]}"
 
-              # CRITICAL: Validate filename is not blank
-              if name_value.blank?
-                Rails.logger.error "ERROR: File name is blank for file #{index + 1}"
-                Rails.logger.error "file_data keys: #{file_data.keys.inspect}"
-                Rails.logger.error "metadata keys: #{file_data[:metadata]&.keys&.inspect}"
-                raise StandardError, "File name is required for file #{index + 1}. Available keys: #{file_data.keys}"
-              end
+              # Normalize file name in case the key differs
+              name_value = file_data[:name] || file_data[:file_name] || file_data['name'] || file_data['fileName']
 
-              # FIXED: Create encrypted file with proper attributes
+              # Create the encrypted file record
               encrypted_file = payload.encrypted_files.build(
-                file_name: name_value.to_s,  # CRITICAL: ensure it's a string
-                file_type: file_type.to_s,
-                file_size: file_size.to_i,
+                file_name: name_value,
+                file_type: file_data[:type] || 'application/octet-stream',
+                file_size: file_data[:size] || 0,
                 file_metadata: (file_data[:metadata] || {}).to_json
               )
 
-              Rails.logger.info "DEBUG: Built encrypted_file with file_name=#{encrypted_file.file_name.inspect}"
+              # Maintain legacy :name column if it exists
+              encrypted_file.name = name_value if encrypted_file.respond_to?(:name=)
               
               # Store the encrypted data using Active Storage
               if file_data[:data].present?
                 encrypted_file.store_encrypted_data(file_data[:data])
               end
               
-              # CRITICAL: Save and check for errors
-              unless encrypted_file.save
-                Rails.logger.error "ERROR: Failed to save encrypted_file: #{encrypted_file.errors.full_messages}"
-                raise StandardError, "Failed to save file: #{encrypted_file.errors.full_messages.join(', ')}"
-              end
-              
-              Rails.logger.info "SUCCESS: Saved encrypted_file with ID #{encrypted_file.id}"
+              encrypted_file.save!
             end
           end
           
@@ -149,7 +115,9 @@ module Api
         if payload && payload.remaining_views > 0
           payload.decrement!(:remaining_views)
           
+          # Delete if no views left or burn after reading
           if payload.remaining_views <= 0 || payload.burn_after_reading
+            # Also delete attached files
             payload.encrypted_files.each do |file|
               file.encrypted_blob.purge if file.encrypted_blob.attached?
             end
