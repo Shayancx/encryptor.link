@@ -4,14 +4,16 @@ module Api
       skip_before_action :verify_authenticity_token
       
       def create
-        ActiveRecord::Base.transaction do
+        begin
           Rails.logger.info "Starting message creation..."
           
           # Extract data from nested structure
           message_data = params.dig(:data, :encrypted_data)
           metadata = params.dig(:data, :metadata) || {}
           files_data = params.dig(:data, :files) || []
-          files_data = files_data.map(&:to_h).map(&:deep_symbolize_keys)
+          files_data = files_data.map do |file|
+            file.respond_to?(:to_unsafe_h) ? file.to_unsafe_h.symbolize_keys : file.symbolize_keys
+          end
           
           # Generate nonce - FIXED: no more IV extraction
           nonce = SecureRandom.random_bytes(12)
@@ -35,26 +37,35 @@ module Api
             files_data.each_with_index do |file_data, index|
               Rails.logger.info "DEBUG: Raw file_data = #{file_data.inspect}"
               
-              # FIXED: Simplified file name extraction
-              file_name = file_data[:name] || 
-                          file_data.dig(:metadata, :fileName) || 
-                          file_data.dig(:metadata, :filename) || 
-                          "unknown_file"
+              # FIXED: Extract filename from where frontend actually puts it
+              name_value = nil
               
-              file_type = file_data[:type] || 
-                          file_data.dig(:metadata, :fileType) || 
-                          file_data.dig(:metadata, :filetype) || 
-                          'application/octet-stream'
+              # Try different possible locations for the filename
+              if file_data[:metadata].present?
+                name_value = file_data[:metadata]['fileName'] || file_data[:metadata][:fileName]
+              end
+              name_value ||= file_data[:name] || file_data['name'] || file_data[:fileName] || file_data['fileName']
               
-              file_size = file_data[:size] || 
-                          file_data.dig(:metadata, :fileSize) || 
-                          file_data.dig(:metadata, :filesize) || 
-                          0
+              Rails.logger.info "DEBUG: Extracted name_value = #{name_value.inspect}"
               
-              Rails.logger.info "Processing file #{index + 1}: #{file_name} (#{file_type}, #{file_size} bytes)"
+              # FIXED: Extract file type from metadata
+              file_type = nil
+              if file_data[:metadata].present?
+                file_type = file_data[:metadata]['fileType'] || file_data[:metadata][:fileType]
+              end
+              file_type ||= file_data[:type] || file_data['type'] || 'application/octet-stream'
+              
+              # FIXED: Extract file size from metadata  
+              file_size = nil
+              if file_data[:metadata].present?
+                file_size = file_data[:metadata]['fileSize'] || file_data[:metadata][:fileSize]
+              end
+              file_size ||= file_data[:size] || file_data['size'] || 0
+              
+              Rails.logger.info "Processing file #{index + 1}: #{name_value} (#{file_type}, #{file_size} bytes)"
 
               # CRITICAL: Validate filename is not blank
-              if file_name.blank?
+              if name_value.blank?
                 Rails.logger.error "ERROR: File name is blank for file #{index + 1}"
                 Rails.logger.error "file_data keys: #{file_data.keys.inspect}"
                 Rails.logger.error "metadata keys: #{file_data[:metadata]&.keys&.inspect}"
@@ -63,7 +74,7 @@ module Api
 
               # FIXED: Create encrypted file with proper attributes
               encrypted_file = payload.encrypted_files.build(
-                file_name: file_name.to_s,  # CRITICAL: ensure it's a string
+                file_name: name_value.to_s,  # CRITICAL: ensure it's a string
                 file_type: file_type.to_s,
                 file_size: file_size.to_i,
                 file_metadata: (file_data[:metadata] || {}).to_json
@@ -91,11 +102,11 @@ module Api
             created_at: payload.created_at,
             success: true
           }, status: :created
+        rescue StandardError => e
+          Rails.logger.error("Error in MessagesController#create: #{e.message}")
+          Rails.logger.error(e.backtrace.join("\n"))
+          render json: { error: e.message, success: false }, status: :unprocessable_entity
         end
-      rescue StandardError => e
-        Rails.logger.error("Error in MessagesController#create: #{e.message}")
-        Rails.logger.error(e.backtrace.join("\n"))
-        render json: { error: e.message, success: false }, status: :unprocessable_entity
       end
       
       def show

@@ -146,6 +146,13 @@ export function MessageCreator() {
         files: encryptedFiles
       };
 
+      const requestData = {
+        data: {
+          encrypted_data: JSON.stringify(encryptionResult.encrypted),
+          metadata,
+          files: fileDataArray // Include the actual encrypted file data
+        }
+      };
 
       console.log("Sending to API:", requestData);
 
@@ -177,10 +184,6 @@ export function MessageCreator() {
         });
       }
     } catch (error: any) {
-      console.error('Error creating message:', error);
-      console.error('Request data that failed:', requestData);
-      console.error('Full error object:', error);
-      
       console.error('Error creating message:', error);
       toast({
         title: "Error",

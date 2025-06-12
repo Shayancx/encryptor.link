@@ -21,11 +21,6 @@ class EncryptedFile < ApplicationRecord
   # Store encrypted data as a file with improved error handling
   def store_encrypted_data(base64_data)
     begin
-      # Validate base64 format
-      unless base64_data.match?(/\A[A-Za-z0-9+\/]*={0,2}\z/)
-        raise StandardError, "Invalid base64 format"
-      end
-      
       # Convert base64 to binary data
       binary_data = Base64.decode64(base64_data)
       
@@ -35,20 +30,12 @@ class EncryptedFile < ApplicationRecord
       temp_file.write(binary_data)
       temp_file.rewind
       
-      # Attach to Active Storage with error handling
-      begin
-        self.encrypted_blob.attach(
-          io: temp_file,
-          filename: "#{SecureRandom.hex(16)}.enc",
-          content_type: 'application/octet-stream'
-        )
-        
-        # Force attachment to be saved
-        self.encrypted_blob.reload
-      rescue => attachment_error
-        Rails.logger.error "Active Storage attachment failed: #{attachment_error.message}"
-        raise StandardError, "Failed to store encrypted file: #{attachment_error.message}"
-      end
+      # Attach to Active Storage
+      self.encrypted_blob.attach(
+        io: temp_file,
+        filename: "#{SecureRandom.hex(16)}.enc",
+        content_type: 'application/octet-stream'
+      )
       
       # Store the blob key for quick access
       self.encrypted_blob_key = self.encrypted_blob.key if self.encrypted_blob.attached?
