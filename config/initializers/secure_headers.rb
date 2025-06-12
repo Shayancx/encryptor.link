@@ -4,15 +4,17 @@ if defined?(SecureHeaders)
     # Strong CSP configuration
     config.csp = {
       default_src: %w('self'),
-      script_src: %w('self' 'unsafe-inline'),
+      script_src: %w('self' 'unsafe-inline' 'unsafe-eval' localhost:* 127.0.0.1:*),
       style_src: %w('self' 'unsafe-inline'),
-      img_src: %w('self' data:),
-      connect_src: %w('self' localhost:*),
-      font_src: %w('self'),
+      img_src: %w('self' data: blob:),
+      connect_src: %w('self' localhost:* 127.0.0.1:* ws://localhost:* wss://localhost:*),
+      font_src: %w('self' data:),
       object_src: %w('none'),
       frame_src: %w('self'),
       frame_ancestors: %w('self'),
-      form_action: %w('self')
+      form_action: %w('self'),
+      base_uri: %w('self'),
+      manifest_src: %w('self')
     }
 
     # Enable XSS protection
@@ -28,5 +30,17 @@ if defined?(SecureHeaders)
     if Rails.env.production?
       config.hsts = "max-age=31536000; includeSubDomains"
     end
+    
+    # Referrer Policy
+    config.referrer_policy = %w(strict-origin-when-cross-origin)
+    
+    # Permissions Policy
+    config.permissions_policy = {
+      camera: %w(none),
+      geolocation: %w(none),
+      microphone: %w(none),
+      payment: %w(none),
+      usb: %w(none)
+    }
   end
 end

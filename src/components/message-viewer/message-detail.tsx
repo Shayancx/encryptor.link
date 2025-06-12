@@ -23,6 +23,7 @@ export function MessageDetail() {
   const [error, setError] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<any>(null);
   const [showOneTimeWarning, setShowOneTimeWarning] = useState(false);
+  const [hasViewed, setHasViewed] = useState(false);
   const { toast } = useToast();
 
   // Extract key from URL fragment (only for non-password messages)
@@ -59,7 +60,7 @@ export function MessageDetail() {
       setMessage(data);
 
       // Show one-time warning if applicable
-      if (data.remaining_views === 1 || data.metadata?.burn_after_reading) {
+      if (data.metadata?.remaining_views === 1 || data.metadata?.burn_after_reading) {
         setShowOneTimeWarning(true);
       }
 
@@ -122,14 +123,17 @@ export function MessageDetail() {
         setDecryptedFiles(decryptedFilesList);
       }
 
-      // Track view after successful decryption
-      try {
-        await ApiService.viewMessage(id!);
-        if (EnvironmentService.isDevelopment()) {
-          console.log('View tracked successfully');
+      // Track view after successful decryption (only once)
+      if (!hasViewed) {
+        try {
+          await ApiService.viewMessage(id!);
+          setHasViewed(true);
+          if (EnvironmentService.isDevelopment()) {
+            console.log('View tracked successfully');
+          }
+        } catch (viewError) {
+          console.warn('Failed to track view:', viewError);
         }
-      } catch (viewError) {
-        console.warn('Failed to track view:', viewError);
       }
 
       toast({
@@ -168,6 +172,10 @@ export function MessageDetail() {
     try {
       setIsDecryptingFile(file.name);
       
+      if (EnvironmentService.isDevelopment()) {
+        console.log('Downloading file:', file.name);
+      }
+      
       // Get the file data from the server
       const fileResponse = await ApiService.getFile(id!, file.name);
       
@@ -175,10 +183,14 @@ export function MessageDetail() {
         throw new Error('No file data received');
       }
 
+      if (EnvironmentService.isDevelopment()) {
+        console.log('File data received, decrypting...');
+      }
+
       // Decrypt the file
       const decryptedBlob = await EncryptionService.decryptFile(
         fileResponse.data,
-        file.metadata,
+        file.metadata || fileResponse.metadata,
         file.keyOrPassword
       );
 
@@ -203,9 +215,9 @@ export function MessageDetail() {
 
   // Update time remaining countdown
   useEffect(() => {
-    if (!message?.expires_at) return;
+    if (!message?.metadata?.expires_at) return;
     
-    const expiresAt = new Date(message.expires_at);
+    const expiresAt = new Date(message.metadata.expires_at);
     
     const updateTimeRemaining = () => {
       const remaining = getTimeRemaining(expiresAt);
@@ -223,7 +235,7 @@ export function MessageDetail() {
     const interval = setInterval(updateTimeRemaining, 1000);
     
     return () => clearInterval(interval);
-  }, [message?.expires_at]);
+  }, [message?.metadata?.expires_at]);
 
   // Fetch message on component mount
   useEffect(() => {
@@ -232,7 +244,7 @@ export function MessageDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>Loading encrypted message...</p>
@@ -243,145 +255,153 @@ export function MessageDetail() {
 
   if (error && !needsPassword) {
     return (
-      <Card className="border-destructive">
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center gap-4">
-            <AlertTriangle className="h-12 w-12 text-destructive" />
-            <div>
-              <h2 className="text-xl font-bold mb-2">Error</h2>
-              <p>{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full border-destructive">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center text-center gap-4">
+              <AlertTriangle className="h-12 w-12 text-destructive" />
+              <div>
+                <h2 className="text-xl font-bold mb-2">Error</h2>
+                <p className="text-muted-foreground">{error}</p>
+              </div>
+              <Button onClick={() => window.location.href = '/'}>
+                Back to Home
+              </Button>
             </div>
-            <Button onClick={() => window.location.href = '/'}>
-              Back to Home
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   if (needsPassword) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center gap-4">
-            <Lock className="h-12 w-12 text-primary" />
-            <div>
-              <h2 className="text-xl font-bold mb-2">Password Protected</h2>
-              <p>This message is protected with a password.</p>
-            </div>
-            
-            <div className="w-full max-w-xs space-y-4">
-              <Input
-                type="password"
-                placeholder="Enter password to decrypt"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSubmitPassword()}
-              />
-              
-              {error && <p className="text-destructive text-sm">{error}</p>}
-              
-              <Button onClick={handleSubmitPassword} className="w-full">
-                Decrypt Message
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {showOneTimeWarning && (
-        <Card className="border-orange-500">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-orange-600">
-              <AlertTriangle className="h-5 w-5" />
+            <div className="flex flex-col items-center text-center gap-4">
+              <Lock className="h-12 w-12 text-primary" />
               <div>
-                <h3 className="font-semibold">One-time Message</h3>
-                <p className="text-sm">This message will be permanently deleted after viewing.</p>
+                <h2 className="text-xl font-bold mb-2">Password Protected</h2>
+                <p className="text-muted-foreground">This message is protected with a password.</p>
+              </div>
+              
+              <div className="w-full space-y-4">
+                <Input
+                  type="password"
+                  placeholder="Enter password to decrypt"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSubmitPassword()}
+                />
+                
+                {error && <p className="text-destructive text-sm">{error}</p>}
+                
+                <Button onClick={handleSubmitPassword} className="w-full">
+                  Decrypt Message
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
-
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Decrypted Message</h2>
       </div>
-      
-      <Card>
-        <CardContent className="pt-6 space-y-4">
-          {timeRemaining && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Clock className="h-4 w-4" />
-              <span>
-                Expires in: {timeRemaining.days > 0 ? `${timeRemaining.days}d ` : ''}
-                {String(timeRemaining.hours).padStart(2, '0')}:
-                {String(timeRemaining.minutes).padStart(2, '0')}:
-                {String(timeRemaining.seconds).padStart(2, '0')}
-              </span>
-            </div>
-          )}
+    );
+  }
 
-          {message?.remaining_views !== null && message?.remaining_views !== undefined && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Eye className="h-4 w-4" />
-              <span>
-                {message.remaining_views === 1 
-                  ? 'This is your last view'
-                  : `${message.remaining_views} views remaining`}
-              </span>
-            </div>
-          )}
-
-          {decryptedContent && (
-            <div className="border rounded-md p-4 prose prose-sm dark:prose-invert max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: decryptedContent }} />
-            </div>
-          )}
-
-          {decryptedFiles.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-medium">Attached Files ({decryptedFiles.length})</h3>
-              <div className="space-y-2">
-                {decryptedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-md">
-                    <div>
-                      <p className="font-medium">{file.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {file.type || 'Unknown type'} • {formatFileSize(file.size)}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleDownloadFile(file)}
-                      disabled={isDecryptingFile === file.name}
-                    >
-                      {isDecryptingFile === file.name ? (
-                        <>Decrypting...</>
-                      ) : (
-                        <>
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </>
-                      )}
-                    </Button>
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-4xl py-8">
+        <div className="space-y-6">
+          {showOneTimeWarning && (
+            <Card className="border-orange-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-orange-600">
+                  <AlertTriangle className="h-5 w-5" />
+                  <div>
+                    <h3 className="font-semibold">One-time Message</h3>
+                    <p className="text-sm">This message will be permanently deleted after viewing.</p>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
-          
-          <div className="flex justify-end pt-4">
-            <Button onClick={() => window.location.href = '/'}>
-              Back to Home
-            </Button>
+
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight">Decrypted Message</h2>
           </div>
-        </CardContent>
-      </Card>
+          
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              {timeRemaining && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                  <Clock className="h-4 w-4" />
+                  <span>
+                    Expires in: {timeRemaining.days > 0 ? `${timeRemaining.days}d ` : ''}
+                    {String(timeRemaining.hours).padStart(2, '0')}:
+                    {String(timeRemaining.minutes).padStart(2, '0')}:
+                    {String(timeRemaining.seconds).padStart(2, '0')}
+                  </span>
+                </div>
+              )}
+
+              {message?.metadata?.remaining_views !== null && message?.metadata?.remaining_views !== undefined && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                  <Eye className="h-4 w-4" />
+                  <span>
+                    {message.metadata.remaining_views === 1 
+                      ? 'This is your last view'
+                      : `${message.metadata.remaining_views} views remaining`}
+                  </span>
+                </div>
+              )}
+
+              {decryptedContent && (
+                <div className="border rounded-md p-4 prose prose-sm dark:prose-invert max-w-none">
+                  <div dangerouslySetInnerHTML={{ __html: decryptedContent }} />
+                </div>
+              )}
+
+              {decryptedFiles.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="font-medium">Attached Files ({decryptedFiles.length})</h3>
+                  <div className="space-y-2">
+                    {decryptedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-md">
+                        <div>
+                          <p className="font-medium">{file.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {file.type || 'Unknown type'} • {formatFileSize(file.size)}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleDownloadFile(file)}
+                          disabled={isDecryptingFile === file.name}
+                        >
+                          {isDecryptingFile === file.name ? (
+                            <>Decrypting...</>
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex justify-end pt-4">
+                <Button onClick={() => window.location.href = '/'}>
+                  Back to Home
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

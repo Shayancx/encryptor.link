@@ -10,14 +10,13 @@ export class EnvironmentService {
     if (this.env === 'development') {
       return 'http://localhost:5173';
     }
-    return 'https://encryptor.link';
+    // In production, use relative URLs
+    return '';
   }
 
   static getApiUrl(): string {
-    if (this.env === 'development') {
-      return 'http://localhost:3000/api/v1';
-    }
-    return 'https://encryptor.link/api/v1';
+    // Always use relative URLs for API
+    return '/api/v1';
   }
 
   static getEnvironment(): Environment {
@@ -33,7 +32,8 @@ export class EnvironmentService {
   }
 
   static getUrl(path: string): string {
-    return `${this.getBaseUrl()}${path}`;
+    const base = this.getBaseUrl();
+    return base ? `${base}${path}` : path;
   }
 
   static getApiEndpoint(path: string): string {
@@ -42,7 +42,7 @@ export class EnvironmentService {
 
   static log(message: string, data?: any): void {
     if (this.isDevelopment()) {
-      if (data) {
+      if (data !== undefined) {
         console.log(`[${this.env.toUpperCase()}] ${message}`, data);
       } else {
         console.log(`[${this.env.toUpperCase()}] ${message}`);

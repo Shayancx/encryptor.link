@@ -63,11 +63,8 @@ export interface ErrorResponse {
 
 export class ApiService {
   private static getBaseUrl(): string {
-    if (EnvironmentService.isDevelopment()) {
-      return '/api/v1';
-    } else {
-      return EnvironmentService.getApiUrl();
-    }
+    // Always use relative URLs in production
+    return '/api/v1';
   }
   
   private static defaultHeaders = {
@@ -83,7 +80,13 @@ export class ApiService {
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
       } else {
-        data = await response.text();
+        const text = await response.text();
+        // Try to parse as JSON anyway
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { error: text || 'Unknown error' };
+        }
       }
       
       if (!response.ok) {
@@ -92,7 +95,7 @@ export class ApiService {
         }
         
         const error: ErrorResponse = {
-          error: typeof data === 'object' && data.error ? data.error : 'Request failed',
+          error: (typeof data === 'object' && data.error) ? data.error : 'Request failed',
           status: response.status
         };
         
@@ -125,7 +128,7 @@ export class ApiService {
       const response = await fetch(url, {
         method: 'GET',
         headers: this.defaultHeaders,
-        credentials: 'include',
+        credentials: 'same-origin',
       });
 
       return this.handleResponse<T>(response);
@@ -150,7 +153,7 @@ export class ApiService {
         method: 'POST',
         headers: this.defaultHeaders,
         body: JSON.stringify(data),
-        credentials: 'include',
+        credentials: 'same-origin',
       });
 
       return this.handleResponse<T>(response);
@@ -175,7 +178,9 @@ export class ApiService {
   }
 
   static async getFile(messageId: string, fileName: string): Promise<FileResponse> {
-    return this.get<FileResponse>(`/messages/${messageId}/files/${encodeURIComponent(fileName)}`);
+    // Double encode to handle special characters properly
+    const encodedFileName = encodeURIComponent(encodeURIComponent(fileName));
+    return this.get<FileResponse>(`/messages/${messageId}/files/${encodedFileName}`);
   }
 
   static async healthCheck(): Promise<any> {

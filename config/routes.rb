@@ -6,7 +6,7 @@ Rails.application.routes.draw do
         member do
           post :view
         end
-        resources :files, only: [:show], param: :file_name
+        resources :files, only: [:show], param: :file_name, constraints: { file_name: /[^\/]+/ }
       end
       get 'health', to: 'health#index'
     end
@@ -20,6 +20,6 @@ Rails.application.routes.draw do
   
   # Catch all for React Router - must be last
   get '*path', to: 'application#frontend', constraints: ->(request) {
-    !request.xhr? && request.format.html?
+    !request.xhr? && request.format.html? && !request.path.start_with?('/api')
   }
 end

@@ -99,3 +99,5 @@ node_modules
 
 /storage/*
 !/storage/.keep
+/storage/*
+!/storage/.keep
