@@ -142,10 +142,17 @@ export function MessageCreator() {
         expires_at: expiresAt ? new Date(Date.now() + expiresAt).toISOString() : undefined,
         max_views: maxViews,
         burn_after_reading: burnAfterReading,
-        has_password: enablePassword,
-        files: encryptedFiles
+        has_password: enablePassword
       };
 
+      // Create the proper request structure
+      const requestData = {
+        data: {
+          encrypted_data: JSON.stringify(encryptionResult.encrypted),
+          metadata: metadata,
+          files: fileDataArray
+        }
+      };
 
       console.log("Sending to API:", requestData);
 
@@ -178,10 +185,8 @@ export function MessageCreator() {
       }
     } catch (error: any) {
       console.error('Error creating message:', error);
-      console.error('Request data that failed:', requestData);
       console.error('Full error object:', error);
       
-      console.error('Error creating message:', error);
       toast({
         title: "Error",
         description: error.error || error.message || "Failed to create encrypted message. Please try again.",

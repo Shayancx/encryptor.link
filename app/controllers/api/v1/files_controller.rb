@@ -25,9 +25,13 @@ module Api
           end
         end
         
+        Rails.logger.info "Looking for file: #{decoded_name}"
+        Rails.logger.info "Available files: #{payload.encrypted_files.pluck(:file_name).inspect}"
+        
         file = payload.encrypted_files.find_by(file_name: decoded_name)
         
         if file.nil?
+          Rails.logger.error "File not found: #{decoded_name}"
           return render json: { error: "File not found" }, status: :not_found
         end
         
@@ -35,8 +39,11 @@ module Api
         encrypted_data = file.get_encrypted_data
         
         if encrypted_data.nil?
+          Rails.logger.error "File data not found for file: #{decoded_name}"
           return render json: { error: "File data not found" }, status: :not_found
         end
+        
+        Rails.logger.info "Successfully retrieved file: #{decoded_name}"
         
         # Return the encrypted file data
         render json: {

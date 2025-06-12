@@ -4,19 +4,35 @@ module Api
       skip_before_action :verify_authenticity_token
       
       def create
+        payload = nil
+        
         ActiveRecord::Base.transaction do
           Rails.logger.info "Starting message creation..."
           
-          # Extract data from nested structure
-          message_data = params.dig(:data, :encrypted_data)
-          metadata = params.dig(:data, :metadata) || {}
-          files_data = params.dig(:data, :files) || []
-          files_data = files_data.map(&:to_h).map(&:deep_symbolize_keys)
+          # Permit parameters properly
+          permitted_params = params.permit(
+            data: [
+              :encrypted_data,
+              { 
+                metadata: [:expires_at, :max_views, :burn_after_reading, :has_password],
+                files: [:name, :type, :size, :data, metadata: {}]
+              }
+            ]
+          )
           
-          # Generate nonce - FIXED: no more IV extraction
+          # Extract data from permitted parameters
+          message_data = permitted_params.dig(:data, :encrypted_data)
+          metadata = permitted_params.dig(:data, :metadata) || {}
+          files_data = permitted_params.dig(:data, :files) || []
+          
+          Rails.logger.info "Extracted message_data: #{message_data.inspect}"
+          Rails.logger.info "Extracted metadata: #{metadata.inspect}"
+          Rails.logger.info "Files count: #{files_data&.length || 0}"
+          
+          # Generate nonce
           nonce = SecureRandom.random_bytes(12)
           
-          # Create the payload - FIXED: simplified ciphertext
+          # Create the payload
           payload = EncryptedPayload.create!(
             ciphertext: message_data.is_a?(String) ? message_data : message_data.to_json,
             nonce: nonce,
@@ -28,74 +44,72 @@ module Api
             max_views: metadata[:max_views] || 1
           )
           
-          # Handle files if present - FIXED: proper file name extraction
+          Rails.logger.info "Created payload with ID: #{payload.id}"
+          
+          # Handle files if present
           if files_data.present?
             Rails.logger.info "Processing #{files_data.length} files..."
             
-            files_data.each_with_index do |file_data, index|
-              Rails.logger.info "DEBUG: Raw file_data = #{file_data.inspect}"
+            files_data.each_with_index do |file_data_params, index|
+              # Convert to hash safely
+              file_data = file_data_params.to_h.deep_symbolize_keys
               
-              # FIXED: Simplified file name extraction
-              file_name = file_data[:name] || 
-                          file_data.dig(:metadata, :fileName) || 
-                          file_data.dig(:metadata, :filename) || 
-                          "unknown_file"
+              Rails.logger.info "Processing file #{index + 1}: #{file_data[:name]}"
+              Rails.logger.info "File data keys: #{file_data.keys.inspect}"
               
-              file_type = file_data[:type] || 
-                          file_data.dig(:metadata, :fileType) || 
-                          file_data.dig(:metadata, :filetype) || 
-                          'application/octet-stream'
+              # Extract file information
+              file_name = file_data[:name] || "unknown_file"
+              file_type = file_data[:type] || 'application/octet-stream'
+              file_size = file_data[:size] || 0
               
-              file_size = file_data[:size] || 
-                          file_data.dig(:metadata, :fileSize) || 
-                          file_data.dig(:metadata, :filesize) || 
-                          0
+              Rails.logger.info "Creating EncryptedFile with file_name='#{file_name}', file_type='#{file_type}', file_size=#{file_size}"
               
-              Rails.logger.info "Processing file #{index + 1}: #{file_name} (#{file_type}, #{file_size} bytes)"
-
-              # CRITICAL: Validate filename is not blank
-              if file_name.blank?
-                Rails.logger.error "ERROR: File name is blank for file #{index + 1}"
-                Rails.logger.error "file_data keys: #{file_data.keys.inspect}"
-                Rails.logger.error "metadata keys: #{file_data[:metadata]&.keys&.inspect}"
-                raise StandardError, "File name is required for file #{index + 1}. Available keys: #{file_data.keys}"
-              end
-
-              # FIXED: Create encrypted file with proper attributes
-              encrypted_file = payload.encrypted_files.build(
-                file_name: file_name.to_s,  # CRITICAL: ensure it's a string
-                file_type: file_type.to_s,
-                file_size: file_size.to_i,
-                file_metadata: (file_data[:metadata] || {}).to_json
-              )
-
-              Rails.logger.info "DEBUG: Built encrypted_file with file_name=#{encrypted_file.file_name.inspect}"
+              # Create encrypted file - explicitly set each attribute
+              encrypted_file = payload.encrypted_files.new
+              encrypted_file.file_name = file_name.to_s
+              encrypted_file.file_type = file_type.to_s
+              encrypted_file.file_size = file_size.to_i
+              encrypted_file.file_metadata = (file_data[:metadata] || {}).to_json
               
-              # Store the encrypted data using Active Storage
+              Rails.logger.info "EncryptedFile attributes before save: #{encrypted_file.attributes.inspect}"
+              
+              # Store the encrypted data using Active Storage BEFORE saving
               if file_data[:data].present?
+                Rails.logger.info "Storing encrypted data for file: #{file_name}"
                 encrypted_file.store_encrypted_data(file_data[:data])
+              else
+                Rails.logger.warn "No encrypted data found for file: #{file_name}"
               end
               
-              # CRITICAL: Save and check for errors
+              # Save the encrypted file
               unless encrypted_file.save
-                Rails.logger.error "ERROR: Failed to save encrypted_file: #{encrypted_file.errors.full_messages}"
+                Rails.logger.error "Failed to save encrypted_file: #{encrypted_file.errors.full_messages}"
+                Rails.logger.error "EncryptedFile attributes: #{encrypted_file.attributes.inspect}"
                 raise StandardError, "Failed to save file: #{encrypted_file.errors.full_messages.join(', ')}"
               end
               
-              Rails.logger.info "SUCCESS: Saved encrypted_file with ID #{encrypted_file.id}"
+              Rails.logger.info "Successfully saved file: #{file_name} with ID: #{encrypted_file.id}"
             end
           end
           
-          render json: { 
-            id: payload.id,
-            created_at: payload.created_at,
-            success: true
-          }, status: :created
+          Rails.logger.info "Message creation successful! Payload ID: #{payload.id}"
         end
+        
+        # Render success response outside of transaction
+        render json: { 
+          id: payload.id,
+          created_at: payload.created_at,
+          success: true
+        }, status: :created
+        
       rescue StandardError => e
         Rails.logger.error("Error in MessagesController#create: #{e.message}")
         Rails.logger.error(e.backtrace.join("\n"))
-        render json: { error: e.message, success: false }, status: :unprocessable_entity
+        
+        # Only render error if we haven't already rendered
+        unless performed?
+          render json: { error: e.message, success: false }, status: :unprocessable_entity
+        end
       end
       
       def show
