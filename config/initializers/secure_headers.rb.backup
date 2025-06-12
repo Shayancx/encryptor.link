@@ -34,19 +34,13 @@ if defined?(SecureHeaders)
     # Referrer Policy
     config.referrer_policy = %w(strict-origin-when-cross-origin)
     
-    # Permissions Policy - only configure if the method exists
-    if config.respond_to?(:permissions_policy=)
-      config.permissions_policy = {
-        camera: %w(none),
-        geolocation: %w(none),
-        microphone: %w(none),
-        payment: %w(none),
-        usb: %w(none)
-      }
-    else
-      # For older versions of secure_headers gem, use the application controller
-      # to set permissions policy headers manually if needed
-      Rails.logger.info "SecureHeaders gem version doesn't support permissions_policy configuration"
-    end
+    # Permissions Policy
+    config.permissions_policy = {
+      camera: %w(none),
+      geolocation: %w(none),
+      microphone: %w(none),
+      payment: %w(none),
+      usb: %w(none)
+    }
   end
 end
