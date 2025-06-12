@@ -42,3 +42,6 @@ group :test do
 end
 gem 'rack-cors', require: 'rack/cors'
 gem 'secure_headers'
+
+# Vite integration
+gem 'vite_rails'

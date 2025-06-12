@@ -1,16 +1,31 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>EncryptorLink</title>
+    <title>Encryptor.link</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     
-    <!-- Load Vite development client (only in development) -->
+    <% if defined?(ViteRuby) && ViteRuby.instance.dev_server_running? %>
+      <%= vite_client_tag %>
+      <%= vite_javascript_tag 'application' %>
+    <% else %>
+      <!-- Fallback for when Vite is not running -->
+      <script type="module" crossorigin src="/assets/index.js"></script>
+      <link rel="stylesheet" href="/assets/index.css">
+    <% end %>
     <%= vite_client_tag %>
-    
-    <!-- Load Vite entry point (explicitly using 'entrypoints/application.js') -->
-    <%= vite_javascript_tag 'entrypoints/application' %>
+    <%= vite_javascript_tag 'application' %>
+    <!--
+      If using a TypeScript entrypoint file:
+        vite_typescript_tag 'application'
+
+      If using a .jsx or .tsx entrypoint, add the extension:
+        vite_javascript_tag 'application.jsx'
+
+      Visit the guide for more information: https://vite-ruby.netlify.app/guide/rails
+    -->
+
   </head>
 
   <body>

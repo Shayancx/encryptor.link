@@ -289,7 +289,7 @@ export class EncryptionService {
     }
   }
 
-  // Encrypt file
+  // Encrypt file - IMPORTANT: Return base64 string
   static async encryptFile(
     file: File,
     password: string | null = null
@@ -327,6 +327,9 @@ export class EncryptionService {
             fileData
           );
 
+          // IMPORTANT: Keep encrypted data as base64 string
+          const encryptedDataBase64 = bufferToBase64(new Uint8Array(encryptedBuffer));
+
           // File metadata
           const metadata: any = {
             fileName: file.name,
@@ -345,7 +348,7 @@ export class EncryptionService {
           }
 
           resolve({
-            encryptedData: bufferToBase64(new Uint8Array(encryptedBuffer)),
+            encryptedData: encryptedDataBase64, // Return as base64 string
             key: password ? undefined : this.bytesToHex(fileKeyBytes),
             metadata
           });

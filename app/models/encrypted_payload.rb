@@ -1,41 +1,24 @@
 class EncryptedPayload < ApplicationRecord
+  include Expirable
+  
   has_many :encrypted_files, dependent: :destroy
+  has_one :destruction_certificate
   
   validates :ciphertext, presence: true
+  validates :nonce, presence: true
+  validates :expires_at, presence: true
+  validates :remaining_views, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
   
-  # Method to create payload with proper parameter mapping
-  def self.create_with_files(request_params)
-    encrypted_data = request_params.dig(:data, :encrypted_data)
-    metadata = request_params.dig(:data, :metadata) || {}
-    files_data = metadata[:files] || []
-    
-    ActiveRecord::Base.transaction do
-      # Create the payload with ciphertext column
-      payload = self.create!(
-        ciphertext: encrypted_data, # Map encrypted_data to ciphertext
-        expires_at: metadata[:expires_at],
-        max_views: metadata[:max_views],
-        burn_after_reading: metadata[:burn_after_reading],
-        password_digest: metadata[:has_password] ? "password_protected" : nil
-      )
-      
-      # Create associated files
-      files_data.each do |file_data|
-        file_metadata = file_data[:metadata] || {}
-        
-        payload.encrypted_files.create!(
-          name: file_data[:name],
-          content_type: file_data[:type],
-          size: file_data[:size],
-          file_metadata: file_metadata.to_json
-        )
-      end
-      
-      return payload
-    end
-  rescue StandardError => e
-    Rails.logger.error("Failed to create encrypted payload with files: #{e.message}")
-    Rails.logger.error(e.backtrace.join("\n"))
-    raise e
+  before_validation :set_defaults, on: :create
+  
+  private
+  
+  def set_defaults
+    self.nonce ||= SecureRandom.random_bytes(12)
+    self.expires_at ||= 7.days.from_now
+    self.remaining_views ||= 1
+    self.max_views ||= self.remaining_views
+    self.burn_after_reading ||= false
+    self.password_protected ||= false
   end
 end

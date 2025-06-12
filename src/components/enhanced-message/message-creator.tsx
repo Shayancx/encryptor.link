@@ -107,6 +107,8 @@ export function MessageCreator() {
 
       // Encrypt files if any
       const encryptedFiles = [];
+      const fileDataArray = [];
+      
       for (const file of files) {
         toast({
           title: "Encrypting files...",
@@ -118,13 +120,21 @@ export function MessageCreator() {
           enablePassword ? password : null
         );
 
+        // Add to metadata (without the actual data)
         encryptedFiles.push({
-          data: encryptedFile.encryptedData,
           name: file.name,
           type: file.type,
           size: file.size,
-          metadata: encryptedFile.metadata,
-          key: encryptedFile.key // Only for non-password files
+          metadata: encryptedFile.metadata
+        });
+
+        // Add to file data array (with the actual encrypted data)
+        fileDataArray.push({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: encryptedFile.encryptedData,
+          metadata: encryptedFile.metadata
         });
       }
 
@@ -133,30 +143,21 @@ export function MessageCreator() {
         max_views: maxViews,
         burn_after_reading: burnAfterReading,
         has_password: enablePassword,
-        files: encryptedFiles.map(f => ({
-          name: f.name,
-          type: f.type,
-          size: f.size,
-          metadata: f.metadata
-        }))
+        files: encryptedFiles
       };
 
-      console.log("Sending to API:", {
+      const requestData = {
         data: {
           encrypted_data: JSON.stringify(encryptionResult.encrypted),
           metadata,
-          files: encryptedFiles
+          files: fileDataArray // Include the actual encrypted file data
         }
-      });
+      };
+
+      console.log("Sending to API:", requestData);
 
       // Create message on the server
-      const response = await ApiService.createMessage({
-        data: {
-          encrypted_data: JSON.stringify(encryptionResult.encrypted),
-          metadata,
-          files: encryptedFiles
-        }
-      });
+      const response = await ApiService.createMessage(requestData);
 
       console.log("API response:", response);
 
@@ -182,11 +183,11 @@ export function MessageCreator() {
           variant: "default",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating message:', error);
       toast({
         title: "Error",
-        description: error.error || "Failed to create encrypted message. Please try again.",
+        description: error.error || error.message || "Failed to create encrypted message. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -365,8 +366,8 @@ export function MessageCreator() {
         </Card>
         
         <div className="space-y-2">
-          <Label>Attach Files (optional, max 100MB total)</Label>
-          <Dropzone onDrop={handleFilesDrop} maxSize={100 * 1024 * 1024} />
+          <Label>Attach Files (optional, max 1GB per file)</Label>
+          <Dropzone onDrop={handleFilesDrop} maxSize={1000 * 1024 * 1024} />
           
           {files.length > 0 && (
             <div className="mt-4 space-y-2">

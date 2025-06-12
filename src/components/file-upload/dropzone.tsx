@@ -12,7 +12,7 @@ interface DropzoneProps {
 
 export function Dropzone({ 
   onDrop, 
-  maxSize = 104857600, // 100MB default
+  maxSize = 1000 * 1024 * 1024, // 1GB default
   maxFiles = 10,
   className 
 }: DropzoneProps) {
@@ -30,19 +30,8 @@ export function Dropzone({
     onDrop: handleDrop,
     maxSize,
     maxFiles,
-    accept: {
-      'image/*': [],
-      'application/pdf': [],
-      'text/plain': [],
-      'application/msword': [],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [],
-      'application/vnd.ms-excel': [],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [],
-      'application/zip': [],
-      'application/x-zip-compressed': [],
-      'application/x-rar-compressed': [],
-      'application/x-7z-compressed': [],
-    }
+    // Accept all file types
+    accept: undefined
   });
 
   const isFileTooLarge = 
@@ -51,13 +40,19 @@ export function Dropzone({
       errors.some(e => e.code === 'file-too-large')
     );
 
+  const tooManyFiles = 
+    fileRejections.length > 0 && 
+    fileRejections.some(({ errors }) => 
+      errors.some(e => e.code === 'too-many-files')
+    );
+
   return (
     <div 
       {...getRootProps()} 
       className={cn(
         "border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors flex flex-col items-center justify-center text-sm",
         isDragActive ? "border-primary bg-primary/5" : "border-border",
-        isDragReject || isFileTooLarge ? "border-destructive bg-destructive/5" : "",
+        isDragReject || isFileTooLarge || tooManyFiles ? "border-destructive bg-destructive/5" : "",
         className
       )}
     >
@@ -72,16 +67,16 @@ export function Dropzone({
           <p className="text-muted-foreground">Drag & drop files here, or click to select files</p>
         )}
         
-        {isDragReject && (
-          <p className="text-destructive">File type not accepted</p>
-        )}
-        
         {isFileTooLarge && (
           <p className="text-destructive">File is too large (max {maxSize / 1024 / 1024}MB)</p>
         )}
         
+        {tooManyFiles && (
+          <p className="text-destructive">Too many files (max {maxFiles} files)</p>
+        )}
+        
         <p className="text-xs text-muted-foreground">
-          Files are encrypted in your browser before uploading
+          All file types accepted • Files are encrypted before upload
         </p>
         <p className="text-xs text-muted-foreground">
           Max file size: {maxSize / 1024 / 1024}MB | Max files: {maxFiles}

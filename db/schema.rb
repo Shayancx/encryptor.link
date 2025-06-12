@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_11_230704) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_12_031554) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -110,7 +110,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_230704) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.uuid "message_id"
-    t.string "file_id", null: false
+    t.string "file_id", default: -> { "gen_random_uuid()" }, null: false
     t.string "name"
     t.text "file_metadata"
     t.index ["encrypted_payload_id"], name: "idx_encrypted_files_payload"

@@ -1,15 +1,67 @@
 module Api
   module V1
     class MessagesController < ApplicationController
-      protect_from_forgery with: :null_session
+      skip_before_action :verify_authenticity_token
       
       def create
         begin
-          @payload = EncryptedPayload.create_with_files(params)
+          Rails.logger.info "Starting message creation..."
+          
+          # Extract data from nested structure
+          message_data = params.dig(:data, :encrypted_data)
+          metadata = params.dig(:data, :metadata) || {}
+          files_data = params.dig(:data, :files) || []
+          
+          # Parse the encrypted data
+          encrypted_data = JSON.parse(message_data) rescue message_data
+          
+          # Generate nonce if not provided
+          nonce = if encrypted_data.is_a?(Hash) && encrypted_data['iv']
+            Base64.decode64(encrypted_data['iv'])
+          else
+            SecureRandom.random_bytes(12)
+          end
+          
+          # Create the payload
+          payload = EncryptedPayload.create!(
+            ciphertext: message_data.is_a?(String) ? message_data.encode('UTF-8').force_encoding('ASCII-8BIT') : message_data.to_json.encode('UTF-8').force_encoding('ASCII-8BIT'),
+            nonce: nonce,
+            expires_at: metadata[:expires_at] || 7.days.from_now,
+            remaining_views: metadata[:max_views] || 1,
+            burn_after_reading: metadata[:burn_after_reading] || false,
+            password_protected: metadata[:has_password] || false,
+            password_salt: metadata[:has_password] ? SecureRandom.random_bytes(16) : nil,
+            max_views: metadata[:max_views] || 1
+          )
+          
+          # Handle files if present
+          if files_data.present?
+            Rails.logger.info "Processing #{files_data.length} files..."
+            
+            files_data.each_with_index do |file_data, index|
+              Rails.logger.info "Processing file #{index + 1}: #{file_data[:name]}"
+              
+              # Create the encrypted file record
+              encrypted_file = payload.encrypted_files.build(
+                name: file_data[:name],
+                file_name: file_data[:name],
+                file_type: file_data[:type] || 'application/octet-stream',
+                file_size: file_data[:size] || 0,
+                file_metadata: (file_data[:metadata] || {}).to_json
+              )
+              
+              # Store the encrypted data using Active Storage
+              if file_data[:data].present?
+                encrypted_file.store_encrypted_data(file_data[:data])
+              end
+              
+              encrypted_file.save!
+            end
+          end
           
           render json: { 
-            id: @payload.id,
-            created_at: @payload.created_at,
+            id: payload.id,
+            created_at: payload.created_at,
             success: true
           }, status: :created
         rescue StandardError => e
@@ -20,30 +72,57 @@ module Api
       end
       
       def show
-        @payload = EncryptedPayload.find_by(id: params[:id])
+        payload = EncryptedPayload.find_by(id: params[:id])
         
-        if @payload
+        if payload && payload.remaining_views > 0 && !payload.expired?
           render json: {
-            encrypted_data: @payload.ciphertext, # Map ciphertext to encrypted_data in response
+            encrypted_data: payload.ciphertext.force_encoding('UTF-8'),
             metadata: {
-              expires_at: @payload.expires_at,
-              max_views: @payload.max_views,
-              burn_after_reading: @payload.burn_after_reading,
-              has_password: @payload.password_digest.present?,
-              files: @payload.encrypted_files.map do |file|
+              expires_at: payload.expires_at,
+              max_views: payload.max_views,
+              remaining_views: payload.remaining_views,
+              burn_after_reading: payload.burn_after_reading,
+              has_password: payload.password_protected,
+              files: payload.encrypted_files.map do |file|
                 {
                   id: file.id,
-                  name: file.name,
-                  type: file.content_type,
-                  size: file.size,
-                  metadata: file.file_metadata ? (file.file_metadata.is_a?(String) ? JSON.parse(file.file_metadata) : file.file_metadata) : {}
+                  name: file.file_name,
+                  type: file.file_type,
+                  size: file.file_size,
+                  metadata: file.file_metadata ? JSON.parse(file.file_metadata) : {}
                 }
               end
             },
+            deleted: false,
             success: true
           }
         else
-          render json: { error: "Message not found", success: false }, status: :not_found
+          render json: { 
+            error: "Message not found or expired", 
+            deleted: true,
+            success: false 
+          }, status: :not_found
+        end
+      end
+      
+      def view
+        payload = EncryptedPayload.find_by(id: params[:id])
+        
+        if payload && payload.remaining_views > 0
+          payload.decrement!(:remaining_views)
+          
+          # Delete if no views left or burn after reading
+          if payload.remaining_views <= 0 || payload.burn_after_reading
+            # Also delete attached files
+            payload.encrypted_files.each do |file|
+              file.encrypted_blob.purge if file.encrypted_blob.attached?
+            end
+            payload.destroy
+          end
+          
+          render json: { success: true }
+        else
+          render json: { error: "Invalid message", success: false }, status: :not_found
         end
       end
     end
