@@ -42,16 +42,21 @@ module Api
             Rails.logger.info "Processing #{files_data.length} files..."
             
             files_data.each_with_index do |file_data, index|
-              Rails.logger.info "Processing file #{index + 1}: #{file_data[:name]}"
-              
+              Rails.logger.info "Processing file #{index + 1}: #{file_data[:name] || file_data[:file_name]}"
+
+              # Normalize file name in case the key differs
+              name_value = file_data[:name] || file_data[:file_name] || file_data['name'] || file_data['fileName']
+
               # Create the encrypted file record
               encrypted_file = payload.encrypted_files.build(
-                name: file_data[:name],
-                file_name: file_data[:name],
+                file_name: name_value,
                 file_type: file_data[:type] || 'application/octet-stream',
                 file_size: file_data[:size] || 0,
                 file_metadata: (file_data[:metadata] || {}).to_json
               )
+
+              # Maintain legacy :name column if it exists
+              encrypted_file.name = name_value if encrypted_file.respond_to?(:name=)
               
               # Store the encrypted data using Active Storage
               if file_data[:data].present?
