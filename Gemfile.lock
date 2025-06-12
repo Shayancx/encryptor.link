@@ -276,7 +276,7 @@ GEM
       rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
     rubyzip (2.4.1)
-    secure_headers (6.7.0)
+    secure_headers (7.1.0)
     securerandom (0.4.1)
     selenium-webdriver (4.33.0)
       base64 (~> 0.2)
@@ -354,7 +354,7 @@ DEPENDENCIES
   rspec-rails (~> 7.0)
   rubocop
   rubocop-rails-omakase
-  secure_headers (~> 6.4)
+  secure_headers (~> 7.1)
   selenium-webdriver
   shoulda-matchers
   simplecov
