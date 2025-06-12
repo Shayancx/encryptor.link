@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_12_031554) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_12_143751) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -103,7 +103,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_031554) do
 
   create_table "encrypted_files", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "encrypted_payload_id", null: false
-    t.text "file_data", null: false
+    t.text "file_data"
     t.string "file_name", null: false
     t.string "file_type"
     t.integer "file_size", null: false
@@ -113,6 +113,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_031554) do
     t.string "file_id", default: -> { "gen_random_uuid()" }, null: false
     t.string "name"
     t.text "file_metadata"
+    t.string "encrypted_blob_key"
+    t.index ["encrypted_blob_key"], name: "index_encrypted_files_on_encrypted_blob_key"
     t.index ["encrypted_payload_id"], name: "idx_encrypted_files_payload"
     t.index ["encrypted_payload_id"], name: "index_encrypted_files_on_encrypted_payload_id"
     t.index ["file_id"], name: "index_encrypted_files_on_file_id", unique: true

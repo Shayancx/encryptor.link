@@ -17,6 +17,6 @@ class FixEncryptedPayloadsAndFiles < ActiveRecord::Migration[8.0]
     end
     
     # Ensure file_data can be null (since we use Active Storage now)
-    change_column_null :encrypted_files, :file_data, true
+    change_column_null :encrypted_files, :file_data, true if column_exists?(:encrypted_files, :file_data)
   end
 end
