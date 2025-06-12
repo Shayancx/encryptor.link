@@ -37,6 +37,10 @@ class EncryptionService
       raise EncryptionError, "Payload too large" if decoded_size > MAX_PAYLOAD_SIZE
     end
 
+    if @params[:ciphertext].blank? && @params[:files].blank?
+      raise EncryptionError, "Ciphertext or files must be provided"
+    end
+
     views = @params[:views].to_i
     raise EncryptionError, "Views must be between 1 and #{MAX_VIEWS}" unless views.between?(1, MAX_VIEWS)
   end

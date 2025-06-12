@@ -4,7 +4,7 @@ class EncryptedPayload < ApplicationRecord
   has_many :encrypted_files, dependent: :destroy
   has_one :destruction_certificate
   
-  validates :ciphertext, presence: true
+  # Ciphertext can be blank if only files are attached
   validates :nonce, presence: true
   validates :expires_at, presence: true
   validates :remaining_views, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
