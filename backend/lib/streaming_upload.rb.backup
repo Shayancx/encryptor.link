@@ -3,16 +3,9 @@ require 'json'
 require 'fileutils'
 require 'thread'
 require 'digest'
-require 'logger'
 
 module StreamingUpload
   TEMP_STORAGE_PATH = File.expand_path('../storage/temp', __dir__)
-  
-  # Initialize logger for this module
-  LOG_PATH = File.expand_path('../logs', __dir__)
-  FileUtils.mkdir_p(LOG_PATH)
-  LOGGER = Logger.new(File.join(LOG_PATH, 'streaming.log'), 'daily')
-  LOGGER.level = ENV['RACK_ENV'] == 'production' ? Logger::INFO : Logger::DEBUG
   
   # Thread-safe session storage
   @sessions = {}
@@ -340,7 +333,7 @@ Thread.new do
     begin
       StreamingUpload.cleanup_old_sessions
     rescue => e
-      StreamingUpload::LOGGER.error "Cleanup error: #{e.message}" if defined?(StreamingUpload::LOGGER)
+      puts "Cleanup error: #{e.message}"
     end
     sleep 300
   end
