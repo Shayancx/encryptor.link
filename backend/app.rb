@@ -465,13 +465,11 @@ class EncryptorAPI < Roda
           end
         end
         
-        # Upload chunk - handle multipart form data
+                # Upload chunk - handle multipart form data
         r.post 'chunk' do
           begin
-            # Debug logging
-            LOGGER.info "Chunk upload request received"
-            LOGGER.info "Content-Type: #{request.content_type}"
-            LOGGER.info "Params keys: #{request.params.keys.join(', ')}"
+            # Log request details
+            LOGGER.info "Chunk upload request - Content-Type: #{request.content_type}"
             
             # Parse parameters
             session_id = request.params['session_id']
@@ -481,39 +479,39 @@ class EncryptorAPI < Roda
             # Validate parameters
             unless session_id && chunk_index && iv
               response.status = 400
-              next { error: "Missing required fields: session_id=#{session_id.inspect}, chunk_index=#{chunk_index.inspect}, iv=#{iv.inspect}" }
+              next { error: "Missing required fields: session_id, chunk_index, or iv" }
             end
             
             chunk_index = chunk_index.to_i
             
-            # Handle chunk data - support multiple upload formats
+            # Handle chunk data from multipart upload
             chunk_data = nil
+            chunk_file = request.params['chunk_data']
             
-            # Try to get chunk data from various possible formats
-            if request.params['chunk_data']
-              chunk_param = request.params['chunk_data']
-              
-              if chunk_param.is_a?(String)
-                # Base64 encoded data
-                chunk_data = chunk_param
-              elsif chunk_param.respond_to?(:read)
-                # Rack::Multipart::UploadedFile or similar
-                chunk_data = chunk_param.read
-              elsif chunk_param.is_a?(Hash) && chunk_param[:tempfile]
-                # Standard Rack file upload hash
-                chunk_data = chunk_param[:tempfile].read
-              elsif chunk_param.is_a?(Hash) && chunk_param['tempfile']
-                # String keys variant
-                chunk_data = chunk_param['tempfile'].read
-              else
-                LOGGER.error "Unknown chunk_data format: #{chunk_param.class}"
-                response.status = 400
-                next { error: "Invalid chunk data format: #{chunk_param.class}" }
+            if chunk_file.nil?
+              response.status = 400
+              next { error: 'Missing chunk_data file' }
+            end
+            
+            # Handle different file upload formats
+            if chunk_file.is_a?(String)
+              # Base64 encoded data
+              chunk_data = chunk_file
+            elsif chunk_file.respond_to?(:read)
+              # Rack::Multipart::UploadedFile
+              chunk_data = chunk_file.read
+              chunk_file.rewind if chunk_file.respond_to?(:rewind)
+            elsif chunk_file.is_a?(Hash)
+              # Standard Rack file upload hash
+              if chunk_file[:tempfile]
+                chunk_data = chunk_file[:tempfile].read
+              elsif chunk_file['tempfile']
+                chunk_data = chunk_file['tempfile'].read
               end
             else
-              LOGGER.error "No chunk_data in params"
+              LOGGER.error "Unknown chunk_data format: #{chunk_file.class}"
               response.status = 400
-              next { error: 'Missing chunk_data parameter' }
+              next { error: "Invalid chunk data format" }
             end
             
             unless chunk_data
@@ -521,10 +519,13 @@ class EncryptorAPI < Roda
               next { error: 'Could not read chunk data' }
             end
             
+            # Log chunk details
+            LOGGER.info "Storing chunk #{chunk_index} for session #{session_id} (size: #{chunk_data.bytesize} bytes)"
+            
             # Store chunk
             result = StreamingUpload.store_chunk(session_id, chunk_index, chunk_data, iv)
             
-            LOGGER.info "Chunk #{chunk_index} stored for session: #{session_id} (#{result[:chunks_received]}/#{result[:total_chunks]})"
+            LOGGER.info "Chunk #{chunk_index} stored successfully: #{result[:chunks_received]}/#{result[:total_chunks]}"
             
             result
           rescue => e
@@ -534,7 +535,36 @@ class EncryptorAPI < Roda
             { error: "Failed to upload chunk: #{e.message}" }
           end
         end
-        
+
+                # Health check for streaming
+        r.get 'health' do
+          begin
+            # Check temp storage
+            temp_exists = Dir.exist?(StreamingUpload::TEMP_STORAGE_PATH)
+            
+            # Check database
+            db_healthy = DB.test_connection
+            
+            # Get session count
+            session_count = Dir.glob(File.join(StreamingUpload::TEMP_STORAGE_PATH, '*')).count
+            
+            {
+              status: 'healthy',
+              streaming: {
+                temp_storage: temp_exists,
+                active_sessions: session_count,
+                database: db_healthy
+              }
+            }
+          rescue => e
+            response.status = 503
+            {
+              status: 'unhealthy',
+              error: e.message
+            }
+          end
+        end
+
         # Finalize upload
         r.post 'finalize' do
           begin
