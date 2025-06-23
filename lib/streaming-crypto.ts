@@ -1,27 +1,35 @@
 /**
- * Streaming crypto implementation for chunked file encryption
- * Uses AES-GCM with per-chunk encryption for memory efficiency
+ * Enhanced streaming crypto implementation with bulletproof reliability
  */
+
+import { StreamingLogger } from './streaming-logger'
 
 const CHUNK_SIZE = 1024 * 1024 // 1MB chunks
 const PBKDF2_ITERATIONS = 250000
 const MAX_RETRIES = 3
-const RETRY_DELAY = 1000 // 1 second
+const RETRY_DELAY = 1000
+const UPLOAD_TIMEOUT = 30000 // 30 seconds per chunk
+const MAX_CONCURRENT_UPLOADS = 2 // Reduced for stability
 
 export interface StreamingUploadSession {
   sessionId: string
   fileId: string
   totalChunks: number
   uploadedChunks: number
+  chunkStatuses: Map<number, 'pending' | 'uploading' | 'completed' | 'failed'>
 }
 
-/**
- * Convert ArrayBuffer to base64 string safely
- */
+export interface ChunkUploadResult {
+  success: boolean
+  chunkIndex: number
+  error?: string
+}
+
+// Utility functions
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
   const chunks: string[] = []
-  const chunkSize = 0x8000 // 32KB chunks to avoid call stack issues
+  const chunkSize = 0x8000
   
   for (let i = 0; i < bytes.length; i += chunkSize) {
     const chunk = bytes.subarray(i, i + chunkSize)
@@ -31,9 +39,6 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(chunks.join(''))
 }
 
-/**
- * Convert base64 string to ArrayBuffer
- */
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
   const binary = atob(base64)
   const bytes = new Uint8Array(binary.length)
@@ -43,9 +48,6 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
   return bytes.buffer
 }
 
-/**
- * Derive encryption key from password
- */
 async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
   const encoder = new TextEncoder()
   const passwordKey = await crypto.subtle.importKey(
@@ -70,16 +72,11 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
   )
 }
 
-/**
- * Sleep function for retries
- */
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-/**
- * Initialize a streaming upload session
- */
+// Initialize streaming upload with validation
 export async function initializeStreamingUpload(
   filename: string,
   fileSize: number,
@@ -87,6 +84,8 @@ export async function initializeStreamingUpload(
   password: string,
   authToken?: string
 ): Promise<StreamingUploadSession> {
+  StreamingLogger.log('Init', `Starting upload for ${filename}`, { fileSize, mimeType })
+  
   const totalChunks = Math.ceil(fileSize / CHUNK_SIZE)
   
   const headers: Record<string, string> = {
@@ -97,58 +96,74 @@ export async function initializeStreamingUpload(
     headers['Authorization'] = `Bearer ${authToken}`
   }
 
+  const requestBody = {
+    filename,
+    fileSize,
+    mimeType,
+    password,
+    totalChunks,
+    chunkSize: CHUNK_SIZE
+  }
+
+  StreamingLogger.log('Init', 'Sending initialization request', requestBody)
+
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9292/api'}/streaming/initialize`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({
-      filename,
-      fileSize,
-      mimeType,
-      password,
-      totalChunks,
-      chunkSize: CHUNK_SIZE
-    })
+    body: JSON.stringify(requestBody)
   })
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Failed to initialize upload' }))
+    StreamingLogger.error('Init', 'Initialization failed', error)
     throw new Error(error.error || `HTTP ${response.status}`)
   }
 
   const data = await response.json()
+  StreamingLogger.log('Init', 'Session initialized', data)
   
   return {
     sessionId: data.session_id,
     fileId: data.file_id,
     totalChunks,
-    uploadedChunks: 0
+    uploadedChunks: 0,
+    chunkStatuses: new Map()
   }
 }
 
-/**
- * Encrypt a chunk of data
- */
+// Encrypt chunk with error handling
 async function encryptChunk(
   chunk: ArrayBuffer,
-  key: CryptoKey
+  key: CryptoKey,
+  chunkIndex: number
 ): Promise<{ encryptedData: ArrayBuffer; iv: Uint8Array }> {
-  const iv = crypto.getRandomValues(new Uint8Array(12))
+  StreamingLogger.log('Encrypt', `Encrypting chunk ${chunkIndex}`, { size: chunk.byteLength })
   
-  const encryptedData = await crypto.subtle.encrypt(
-    {
-      name: 'AES-GCM',
-      iv: iv
-    },
-    key,
-    chunk
-  )
-  
-  return { encryptedData, iv }
+  try {
+    const iv = crypto.getRandomValues(new Uint8Array(12))
+    
+    const encryptedData = await crypto.subtle.encrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv
+      },
+      key,
+      chunk
+    )
+    
+    StreamingLogger.log('Encrypt', `Chunk ${chunkIndex} encrypted`, { 
+      originalSize: chunk.byteLength,
+      encryptedSize: encryptedData.byteLength 
+    })
+    
+    return { encryptedData, iv }
+  } catch (error) {
+    StreamingLogger.error('Encrypt', `Failed to encrypt chunk ${chunkIndex}`, error)
+    throw error
+  }
 }
 
-/**
- * Upload a single chunk with retry logic
- */
+// Upload single chunk with comprehensive error handling
 async function uploadChunkWithRetry(
   chunk: ArrayBuffer,
   chunkIndex: number,
@@ -156,34 +171,47 @@ async function uploadChunkWithRetry(
   password: string,
   salt: Uint8Array,
   maxRetries: number = MAX_RETRIES,
-  onProgress?: (uploaded: number, total: number) => void,
   signal?: AbortSignal
-): Promise<void> {
-  const key = await deriveKey(password, salt)
+): Promise<ChunkUploadResult> {
+  StreamingLogger.log('Upload', `Starting upload for chunk ${chunkIndex}`, { 
+    size: chunk.byteLength,
+    sessionId: session.sessionId 
+  })
   
-  let lastError: Error | null = null
+  const key = await deriveKey(password, salt)
   
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     if (signal?.aborted) {
-      throw new Error('Upload cancelled')
+      StreamingLogger.log('Upload', `Chunk ${chunkIndex} aborted`)
+      return { success: false, chunkIndex, error: 'Upload cancelled' }
     }
     
     try {
-      // Encrypt the chunk
-      const { encryptedData, iv } = await encryptChunk(chunk, key)
+      // Update status
+      session.chunkStatuses.set(chunkIndex, 'uploading')
       
-      // Create form data for multipart upload
+      // Encrypt the chunk
+      const { encryptedData, iv } = await encryptChunk(chunk, key, chunkIndex)
+      
+      // Create form data
       const formData = new FormData()
       formData.append('session_id', session.sessionId)
       formData.append('chunk_index', chunkIndex.toString())
       formData.append('iv', arrayBufferToBase64(iv.buffer))
       
-      // Create blob from encrypted data
+      // Create blob with proper type
       const blob = new Blob([encryptedData], { type: 'application/octet-stream' })
-      formData.append('chunk_data', blob, `chunk_${chunkIndex}`)
+      formData.append('chunk_data', blob, `chunk_${chunkIndex}.enc`)
       
+      // Log form data details
+      StreamingLogger.log('Upload', `Uploading chunk ${chunkIndex} attempt ${attempt + 1}`, {
+        encryptedSize: encryptedData.byteLength,
+        ivLength: iv.length
+      })
+      
+      // Upload with timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT)
       
       const uploadSignal = signal ? 
         AbortSignal.any([signal, controller.signal]) : 
@@ -200,57 +228,90 @@ async function uploadChunkWithRetry(
       
       clearTimeout(timeoutId)
       
+      const responseText = await response.text()
+      StreamingLogger.log('Upload', `Chunk ${chunkIndex} response`, { 
+        status: response.status,
+        response: responseText 
+      })
+      
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}`
         try {
-          const errorData = await response.json()
+          const errorData = JSON.parse(responseText)
           errorMessage = errorData.error || errorMessage
         } catch {
-          // Ignore JSON parse errors
+          errorMessage = responseText || errorMessage
         }
-        throw new Error(`Failed to upload chunk ${chunkIndex}: ${errorMessage}`)
+        throw new Error(errorMessage)
       }
       
-      const result = await response.json()
+      const result = JSON.parse(responseText)
       
       // Validate response
       if (!result.chunks_received || !result.total_chunks) {
-        throw new Error(`Invalid response for chunk ${chunkIndex}`)
+        throw new Error(`Invalid response for chunk ${chunkIndex}: ${responseText}`)
       }
       
+      // Update session
       session.uploadedChunks = result.chunks_received
+      session.chunkStatuses.set(chunkIndex, 'completed')
       
-      if (onProgress) {
-        onProgress(session.uploadedChunks, session.totalChunks)
-      }
+      StreamingLogger.log('Upload', `Chunk ${chunkIndex} uploaded successfully`, {
+        chunksReceived: result.chunks_received,
+        totalChunks: result.total_chunks
+      })
       
-      // Success! Exit retry loop
-      return
+      return { success: true, chunkIndex }
       
     } catch (error: any) {
-      lastError = error
-      console.warn(`Chunk ${chunkIndex} upload attempt ${attempt + 1} failed:`, error.message)
+      StreamingLogger.error('Upload', `Chunk ${chunkIndex} attempt ${attempt + 1} failed`, error)
       
       if (attempt < maxRetries - 1) {
-        // Exponential backoff
         const delay = RETRY_DELAY * Math.pow(2, attempt)
-        console.log(`Retrying in ${delay}ms...`)
+        StreamingLogger.log('Upload', `Retrying chunk ${chunkIndex} in ${delay}ms...`)
         await sleep(delay)
+      } else {
+        session.chunkStatuses.set(chunkIndex, 'failed')
+        return { success: false, chunkIndex, error: error.message }
       }
     }
   }
   
-  // All retries failed
-  throw lastError || new Error(`Failed to upload chunk ${chunkIndex} after ${maxRetries} attempts`)
+  return { success: false, chunkIndex, error: 'Max retries exceeded' }
 }
 
-/**
- * Finalize the streaming upload
- */
+// Verify all chunks uploaded
+async function verifyChunks(session: StreamingUploadSession): Promise<number[]> {
+  const missingChunks: number[] = []
+  
+  for (let i = 0; i < session.totalChunks; i++) {
+    if (session.chunkStatuses.get(i) !== 'completed') {
+      missingChunks.push(i)
+    }
+  }
+  
+  StreamingLogger.log('Verify', 'Chunk verification', {
+    total: session.totalChunks,
+    completed: session.totalChunks - missingChunks.length,
+    missing: missingChunks
+  })
+  
+  return missingChunks
+}
+
+// Finalize upload with verification
 export async function finalizeStreamingUpload(
   session: StreamingUploadSession,
   salt: string
 ): Promise<{ fileId: string; shareableLink: string }> {
+  StreamingLogger.log('Finalize', 'Starting finalization', { sessionId: session.sessionId })
+  
+  // Verify all chunks uploaded
+  const missingChunks = await verifyChunks(session)
+  if (missingChunks.length > 0) {
+    throw new Error(`Cannot finalize: missing chunks ${missingChunks.join(', ')}`)
+  }
+  
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9292/api'}/streaming/finalize`, {
     method: 'POST',
     headers: {
@@ -264,40 +325,53 @@ export async function finalizeStreamingUpload(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Failed to finalize upload' }))
+    StreamingLogger.error('Finalize', 'Finalization failed', error)
     throw new Error(error.error || `HTTP ${response.status}`)
   }
 
   const data = await response.json()
+  StreamingLogger.log('Finalize', 'Upload finalized', data)
+  
   return {
     fileId: data.file_id,
     shareableLink: `${window.location.origin}/view/${data.file_id}`
   }
 }
 
-/**
- * Optimized file chunk reading
- */
+// Enhanced file reading with progress
 export async function* readFileInChunks(
   file: File,
   chunkSize: number = CHUNK_SIZE
-): AsyncGenerator<{ chunk: ArrayBuffer; index: number }, void, undefined> {
+): AsyncGenerator<{ chunk: ArrayBuffer; index: number; progress: number }, void, undefined> {
   let offset = 0
   let index = 0
   
   while (offset < file.size) {
     const end = Math.min(offset + chunkSize, file.size)
     const slice = file.slice(offset, end)
-    const arrayBuffer = await slice.arrayBuffer()
     
-    yield { chunk: arrayBuffer, index }
-    offset = end
-    index++
+    try {
+      const arrayBuffer = await slice.arrayBuffer()
+      const progress = (end / file.size) * 100
+      
+      StreamingLogger.log('Read', `Read chunk ${index}`, { 
+        start: offset, 
+        end, 
+        size: arrayBuffer.byteLength,
+        progress: progress.toFixed(1) 
+      })
+      
+      yield { chunk: arrayBuffer, index, progress }
+      offset = end
+      index++
+    } catch (error) {
+      StreamingLogger.error('Read', `Failed to read chunk ${index}`, error)
+      throw error
+    }
   }
 }
 
-/**
- * Stream encrypt and upload a file
- */
+// Main upload function with enhanced reliability
 export async function streamEncryptAndUpload(
   file: File,
   password: string,
@@ -305,13 +379,13 @@ export async function streamEncryptAndUpload(
   onProgress?: (progress: number) => void,
   signal?: AbortSignal
 ): Promise<{ fileId: string; shareableLink: string }> {
-  console.log(`[Upload] Starting upload for ${file.name}`, {
-    size: file.size,
-    type: file.type,
-    chunks: Math.ceil(file.size / CHUNK_SIZE)
+  StreamingLogger.log('Main', 'Starting streaming upload', {
+    fileName: file.name,
+    fileSize: file.size,
+    fileType: file.type
   })
   
-  // Generate salt for this upload
+  // Generate salt
   const salt = crypto.getRandomValues(new Uint8Array(32))
   const saltBase64 = arrayBufferToBase64(salt.buffer)
 
@@ -327,38 +401,44 @@ export async function streamEncryptAndUpload(
       authToken
     )
     
-    console.log(`[Upload] Session initialized:`, session)
+    // Initialize chunk statuses
+    for (let i = 0; i < session.totalChunks; i++) {
+      session.chunkStatuses.set(i, 'pending')
+    }
+    
   } catch (error: any) {
-    console.error('[Upload] Failed to initialize session:', error)
+    StreamingLogger.error('Main', 'Failed to initialize session', error)
     throw new Error(`Failed to start upload: ${error.message}`)
   }
 
-  const uploadPromises: Promise<void>[] = []
-  const MAX_CONCURRENT_UPLOADS = 3
+  const uploadQueue: Promise<ChunkUploadResult>[] = []
+  const failedChunks: number[] = []
+  let lastProgress = 0
 
   try {
-    // Process file in chunks
-    for await (const { chunk, index } of readFileInChunks(file)) {
+    // Process chunks
+    for await (const { chunk, index, progress } of readFileInChunks(file)) {
       if (signal?.aborted) {
         throw new Error('Upload cancelled')
       }
       
-      // Wait if we have too many concurrent uploads
-      while (uploadPromises.length >= MAX_CONCURRENT_UPLOADS) {
-        // Wait for at least one to complete
-        await Promise.race(uploadPromises)
+      // Wait if queue is full
+      while (uploadQueue.length >= MAX_CONCURRENT_UPLOADS) {
+        const completed = await Promise.race(uploadQueue)
+        uploadQueue.splice(uploadQueue.findIndex(p => p === completed), 1)
         
-        // Remove completed promises
-        for (let i = uploadPromises.length - 1; i >= 0; i--) {
-          if (await Promise.race([uploadPromises[i], Promise.resolve('done')]) === 'done') {
-            uploadPromises.splice(i, 1)
-          }
+        if (!completed.success) {
+          failedChunks.push(completed.chunkIndex)
         }
       }
-
-      console.log(`[Upload] Queueing chunk ${index + 1}/${session.totalChunks}`)
       
-      // Upload chunk with retry
+      // Update progress
+      if (onProgress && progress - lastProgress > 1) {
+        onProgress(progress * 0.9) // Reserve 10% for finalization
+        lastProgress = progress
+      }
+      
+      // Upload chunk
       const uploadPromise = uploadChunkWithRetry(
         chunk,
         index,
@@ -366,48 +446,97 @@ export async function streamEncryptAndUpload(
         password,
         salt,
         MAX_RETRIES,
-        (uploaded, total) => {
-          if (onProgress) {
-            const progress = (uploaded / total) * 100
-            console.log(`[Upload] Progress: ${progress.toFixed(1)}%`)
-            onProgress(progress)
-          }
-        },
         signal
-      ).catch(error => {
-        console.error(`[Upload] Chunk ${index} failed permanently:`, error)
-        throw error
-      })
-
-      uploadPromises.push(uploadPromise)
+      )
+      
+      uploadQueue.push(uploadPromise)
     }
-
-    // Wait for all uploads to complete
-    console.log('[Upload] Waiting for all chunks to complete...')
-    await Promise.all(uploadPromises)
     
-    console.log('[Upload] All chunks uploaded, finalizing...')
-
+    // Wait for remaining uploads
+    StreamingLogger.log('Main', 'Waiting for remaining uploads', { 
+      remaining: uploadQueue.length 
+    })
+    
+    const results = await Promise.all(uploadQueue)
+    
+    // Check for failures
+    results.forEach(result => {
+      if (!result.success) {
+        failedChunks.push(result.chunkIndex)
+      }
+    })
+    
+    if (failedChunks.length > 0) {
+      throw new Error(`Failed to upload chunks: ${failedChunks.join(', ')}`)
+    }
+    
+    // Final verification
+    const missingChunks = await verifyChunks(session)
+    if (missingChunks.length > 0) {
+      // Retry missing chunks once more
+      StreamingLogger.log('Main', 'Retrying missing chunks', { missing: missingChunks })
+      
+      for (const chunkIndex of missingChunks) {
+        const { chunk } = await readChunkFromFile(file, chunkIndex, CHUNK_SIZE)
+        const result = await uploadChunkWithRetry(
+          chunk,
+          chunkIndex,
+          session,
+          password,
+          salt,
+          1, // Single retry
+          signal
+        )
+        
+        if (!result.success) {
+          throw new Error(`Failed to upload chunk ${chunkIndex} after retry`)
+        }
+      }
+    }
+    
+    // Update progress
+    if (onProgress) {
+      onProgress(95)
+    }
+    
     // Finalize upload
+    StreamingLogger.log('Main', 'Finalizing upload')
     const result = await finalizeStreamingUpload(session, saltBase64)
     
-    console.log('[Upload] Upload completed successfully:', result)
+    if (onProgress) {
+      onProgress(100)
+    }
+    
+    StreamingLogger.log('Main', 'Upload completed successfully', result)
     return result
     
   } catch (error: any) {
-    console.error('[Upload] Upload failed:', error)
+    StreamingLogger.error('Main', 'Upload failed', error)
     throw new Error(`Upload failed: ${error.message}`)
   }
 }
 
-/**
- * Download and decrypt file in chunks
- */
+// Helper to read specific chunk from file
+async function readChunkFromFile(
+  file: File,
+  chunkIndex: number,
+  chunkSize: number
+): Promise<{ chunk: ArrayBuffer; index: number }> {
+  const start = chunkIndex * chunkSize
+  const end = Math.min(start + chunkSize, file.size)
+  const slice = file.slice(start, end)
+  const chunk = await slice.arrayBuffer()
+  return { chunk, index: chunkIndex }
+}
+
+// Download and decrypt (unchanged but with logging)
 export async function streamDownloadAndDecrypt(
   fileId: string,
   password: string,
   onProgress?: (progress: number) => void
 ): Promise<{ blob: Blob; filename: string; mimetype: string }> {
+  StreamingLogger.log('Download', 'Starting download', { fileId })
+  
   // Get file info
   const infoResponse = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9292/api'}/streaming/info/${fileId}`
@@ -418,6 +547,8 @@ export async function streamDownloadAndDecrypt(
   }
 
   const fileInfo = await infoResponse.json()
+  StreamingLogger.log('Download', 'File info retrieved', fileInfo)
+  
   const salt = new Uint8Array(base64ToArrayBuffer(fileInfo.salt))
   const key = await deriveKey(password, salt)
 
@@ -461,8 +592,13 @@ export async function streamDownloadAndDecrypt(
     }
   }
 
-  // Combine chunks into blob
+  // Combine chunks
   const blob = new Blob(decryptedChunks, { type: fileInfo.mime_type })
+  
+  StreamingLogger.log('Download', 'Download completed', {
+    filename: fileInfo.filename,
+    size: blob.size
+  })
   
   return {
     blob,
