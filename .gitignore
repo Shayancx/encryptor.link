@@ -55,6 +55,7 @@ desktop.ini
 
 # Storage
 backend/storage/encrypted
+backend/storage/temp/
 
 # Dependency lockfile
 backend/Gemfile.lock

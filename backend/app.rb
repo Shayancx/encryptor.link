@@ -28,6 +28,16 @@ FileStorage.initialize_storage
 DB = Sequel.connect(Environment.database_url)
 DB.loggers << Logger.new('logs/db.log') if Environment.development?
 
+# Ensure database schema is up to date
+begin
+  Sequel.extension :migration
+  migration_dir = File.expand_path('db/migrations', __dir__)
+  Sequel::Migrator.run(DB, migration_dir)
+rescue => e
+  warn "Database migration failed: #{e.message}"
+  raise
+end
+
 # Logger setup
 LOGGER = Logger.new('logs/app.log', 'daily')
 
