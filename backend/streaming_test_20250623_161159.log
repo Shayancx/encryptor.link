@@ -1,5 +1,0 @@
-[2025-06-23 16:12:00] Removed old test database
-[2025-06-23 16:12:01] Test suite passed: basic_streaming
-[2025-06-23 16:12:02] Test suite passed: comprehensive_streaming
-[2025-06-23 16:12:04] Test suite passed: lib_streaming
-[2025-06-23 16:12:06] Test suite passed: integration_streaming

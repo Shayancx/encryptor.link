@@ -12,9 +12,7 @@
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
-    "dev:debug": "NODE_OPTIONS=\"--inspect\" next dev",
-    "test:streaming": "node test-streaming-upload.js",
-    "backend:test": "cd backend && bundle exec ruby test_streaming_complete.rb"
+    "dev:debug": "NODE_OPTIONS=\"--inspect\" next dev",    "backend:test": "cd backend && bundle exec ruby test_streaming_complete.rb"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.15",

@@ -19,15 +19,6 @@
 ```bash
 # Test streaming endpoint health
 curl http://localhost:9292/api/streaming/health
-
-# Run test suite
-./test/test-streaming.sh
-```
-
-### Node.js Test
-```bash
-# Requires Node.js 18+
-npm run test:streaming
 ```
 
 ### Backend Test
