@@ -7,6 +7,9 @@ node_modules/
 .next/
 out/
 build/
+dist/
+.cache/
+cache/
 
 # Vercel deployment
 .vercel/
@@ -15,16 +18,18 @@ build/
 .turbo/
 
 # Lockfiles (add others if you use them)
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
-package-lock.json
+**/package-lock.json
+**/pnpm-lock.yaml
+**/yarn.lock
 
 # Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
+*.tmp
+*.pid
 
 # Local env files
 .env
@@ -35,6 +40,9 @@ pnpm-debug.log*
 
 # Misc system files
 .DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
 *.pem
 
 # IDE/editor metadata
@@ -53,7 +61,7 @@ backend/Gemfile.lock
 
 # Ruby temp files
 backend/tmp/
-backend/log/
+backend/logs/
 backend/vendor/
 backend/.bundle/
 backend/.ruby-version
