@@ -70,6 +70,7 @@ backend/.env
 # SQLite database (if used locally)
 backend/db/*.sqlite3
 backend/db/*.sqlite3-journal
+backend/db/encryptor.db
 
 # === Testing / Coverage ===
 
