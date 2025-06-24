@@ -1,4 +1,5 @@
 "use client"
+import { parseCombinedPayload } from "@/lib/decrypt-combined"
 
 import { useState, useEffect } from "react"
 import { Download, FileText, Lock, Unlock, FileAudio, AlertCircle } from "lucide-react"
@@ -136,7 +137,7 @@ export default function ViewPage({ params }: { params: { id: string } }) {
         const result = await response.json()
         
         // Decode the combined encrypted data
-        const combinedData = JSON.parse(atob(result.encrypted_data))
+        const combinedData = parseCombinedPayload(result.encrypted_data)
         
         // Decrypt message if present
         if (combinedData.message) {

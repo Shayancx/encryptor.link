@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { Copy, FileText, Lock } from "lucide-react"
+import { useState, useRef } from "react"
+import { Copy, FileText, Lock, Upload, X, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
 import { encrypt } from "@/lib/crypto"
+import { safeBase64Encode } from "@/lib/base64-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,19 +13,30 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/components/ui/use-toast"
 import { TiptapEditor } from "@/components/editor/tiptap-editor"
-import { StreamingUpload } from "@/components/streaming-upload"
 import { useAuth } from "@/lib/contexts/auth-context"
+import { Progress } from "@/components/ui/progress"
+import { formatBytes } from "@/lib/utils"
+
+interface FileToEncrypt {
+  file: File
+  id: string
+}
 
 export default function EncryptPage() {
   const [message, setMessage] = useState("")
   const [password, setPassword] = useState("")
-  const [shareableLinks, setShareableLinks] = useState<string[]>([])
+  const [shareableLink, setShareableLink] = useState("")
   const [isEncrypting, setIsEncrypting] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [filesToEncrypt, setFilesToEncrypt] = useState<FileToEncrypt[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   const { user } = useAuth()
   
   // Dynamic upload limits based on authentication
   const uploadLimitMB = user ? 4096 : 100
+  const uploadLimitBytes = uploadLimitMB * 1024 * 1024
   const authToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
 
   const validatePassword = (pwd: string) => {
@@ -35,16 +47,34 @@ export default function EncryptPage() {
     return null
   }
 
-  const handleEncryptMessage = async () => {
-    if (!message) {
-      toast({
-        title: "No message",
-        description: "Please enter a message to encrypt",
-        variant: "destructive"
+  const handleFiles = (files: FileList) => {
+    const newFiles: FileToEncrypt[] = []
+    let totalSize = Array.from(filesToEncrypt).reduce((acc, f) => acc + f.file.size, 0)
+
+    for (const file of Array.from(files)) {
+      if (totalSize + file.size > uploadLimitBytes) {
+        toast({
+          title: "Files too large",
+          description: `Total size exceeds ${uploadLimitMB}MB limit`,
+          variant: "destructive"
+        })
+        break
+      }
+      totalSize += file.size
+      newFiles.push({
+        file,
+        id: Math.random().toString(36).substr(2, 9)
       })
-      return
     }
 
+    setFilesToEncrypt(prev => [...prev, ...newFiles])
+  }
+
+  const removeFile = (id: string) => {
+    setFilesToEncrypt(prev => prev.filter(f => f.id !== id))
+  }
+
+  const handleEncryptAll = async () => {
     const passwordError = validatePassword(password)
     if (passwordError) {
       toast({
@@ -55,13 +85,76 @@ export default function EncryptPage() {
       return
     }
 
+    if (!message && filesToEncrypt.length === 0) {
+      toast({
+        title: "Nothing to encrypt",
+        description: "Please enter a message or add files",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsEncrypting(true)
+    setUploadProgress(0)
 
     try {
-      // Encrypt message
-      const encryptedMessage = await encrypt(message, password, 'text')
+      const encryptedData: any = {}
       
-      // Upload to server
+      // Encrypt message if present
+      if (message) {
+        setUploadProgress(10)
+        const encryptedMessage = await encrypt(message, password, 'text')
+        encryptedData.message = {
+          ciphertext: encryptedMessage.ciphertext,
+          iv: encryptedMessage.iv,
+          salt: encryptedMessage.salt,
+          isHtml: true
+        }
+      }
+
+      // Encrypt files if present
+      if (filesToEncrypt.length > 0) {
+        encryptedData.files = []
+        const progressPerFile = (message ? 80 : 90) / filesToEncrypt.length
+        let currentProgress = message ? 10 : 0
+
+        for (const fileItem of filesToEncrypt) {
+          const file = fileItem.file
+          currentProgress += progressPerFile / 2
+          setUploadProgress(Math.round(currentProgress))
+
+          // Read file
+          const arrayBuffer = await file.arrayBuffer()
+          
+          // Encrypt file
+          const encryptedFile = await encrypt(arrayBuffer, password, 'file', file.name)
+          
+          encryptedData.files.push({
+            filename: file.name,
+            mimetype: file.type || 'application/octet-stream',
+            ciphertext: encryptedFile.ciphertext,
+            iv: encryptedFile.iv,
+            salt: encryptedFile.salt
+          })
+
+          currentProgress += progressPerFile / 2
+          setUploadProgress(Math.round(currentProgress))
+        }
+      }
+
+      setUploadProgress(90)
+
+      // Prepare upload data
+      const jsonString = JSON.stringify(encryptedData)
+      const encodedData = safeBase64Encode(jsonString)
+      
+      // Check size after encoding
+      const totalSize = encodedData.length
+      if (totalSize > uploadLimitBytes) {
+        throw new Error(`Combined encrypted data exceeds ${uploadLimitMB}MB limit`)
+      }
+
+      // Upload combined encrypted data
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       }
@@ -74,35 +167,31 @@ export default function EncryptPage() {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          encrypted_data: btoa(JSON.stringify({
-            message: {
-              ciphertext: encryptedMessage.ciphertext,
-              iv: encryptedMessage.iv,
-              salt: encryptedMessage.salt,
-              isHtml: true
-            }
-          })),
+          encrypted_data: encodedData,
           password: password,
           mime_type: 'application/json',
-          filename: 'encrypted_message.json',
-          iv: encryptedMessage.iv,
+          filename: 'encrypted_data.json',
+          iv: encryptedData.message?.iv || encryptedData.files?.[0]?.iv || '',
           ttl_hours: 24
         })
       })
 
       if (!response.ok) {
-        throw new Error('Upload failed')
+        const error = await response.json().catch(() => ({ error: 'Upload failed' }))
+        throw new Error(error.error || 'Upload failed')
       }
 
       const result = await response.json()
       const link = `${window.location.origin}/view/${result.file_id}`
-      setShareableLinks([link])
+      setShareableLink(link)
+      setUploadProgress(100)
 
       toast({
         title: "Encryption successful",
-        description: "Your message has been encrypted"
+        description: "Your data has been encrypted and uploaded"
       })
     } catch (error: any) {
+      console.error('Encryption error:', error)
       toast({
         title: "Encryption failed",
         description: error.message,
@@ -110,16 +199,13 @@ export default function EncryptPage() {
       })
     } finally {
       setIsEncrypting(false)
+      setUploadProgress(0)
     }
   }
 
-  const handleFileUploadComplete = (fileId: string, shareableLink: string) => {
-    setShareableLinks(prev => [...prev, shareableLink])
-  }
-
-  const copyToClipboard = async (link: string) => {
+  const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(link)
+      await navigator.clipboard.writeText(shareableLink)
       toast({
         title: "Copied to clipboard",
         description: "The shareable link has been copied"
@@ -136,7 +222,31 @@ export default function EncryptPage() {
   const reset = () => {
     setMessage("")
     setPassword("")
-    setShareableLinks([])
+    setShareableLink("")
+    setFilesToEncrypt([])
+    setUploadProgress(0)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    
+    if (e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
+
+  const getTotalFileSize = () => {
+    return filesToEncrypt.reduce((acc, f) => acc + f.file.size, 0)
   }
 
   return (
@@ -146,13 +256,13 @@ export default function EncryptPage() {
           Encrypt Your Data
         </h1>
         <p className="max-w-[700px] text-center text-lg text-muted-foreground">
-          Encrypt messages and large files with streaming technology.
-          Files are processed in chunks to prevent browser crashes.
+          Encrypt messages and files together in a single secure package.
+          All encryption happens in your browser.
         </p>
       </div>
 
       <div className="mx-auto w-full max-w-4xl">
-        {shareableLinks.length === 0 ? (
+        {!shareableLink ? (
           <div className="space-y-6">
             {/* Upload Limit Notice */}
             {!user && (
@@ -173,7 +283,8 @@ export default function EncryptPage() {
                   Encryption Form
                 </CardTitle>
                 <CardDescription>
-                  Add a message and/or files, then provide a strong password
+                  Add a message and/or files, then provide a strong password.
+                  Everything will be encrypted together as one package.
                   {user && (
                     <span className="block mt-1 text-green-600 dark:text-green-400">
                       Authenticated user - {uploadLimitMB}MB upload limit
@@ -195,7 +306,7 @@ export default function EncryptPage() {
                   />
                 </div>
 
-                {/* Password Input - Moved before file upload */}
+                {/* Password Input */}
                 <div className="space-y-2">
                   <Label htmlFor="password">
                     <Lock className="mr-2 inline size-4" />
@@ -216,37 +327,102 @@ export default function EncryptPage() {
                   )}
                 </div>
 
-                {/* File Upload - Always Visible */}
+                {/* File Upload */}
                 <div className="space-y-2">
                   <Label>
-                    Files (Optional) - Stream Upload
+                    <Upload className="mr-2 inline size-4" />
+                    Files (Optional)
                   </Label>
-                  <StreamingUpload
-                    password={password}
-                    authToken={authToken || undefined}
-                    onUploadComplete={handleFileUploadComplete}
-                    uploadLimitMB={uploadLimitMB}
-                    disabled={!password || validatePassword(password) !== null}
-                  />
-                  {(!password || validatePassword(password) !== null) && (
-                    <p className="text-xs text-muted-foreground">
-                      Please enter a valid password above to enable file uploads
+                  
+                  {/* Drop Zone */}
+                  <div
+                    className={`
+                      relative rounded-lg border-2 border-dashed p-6 text-center transition-colors cursor-pointer
+                      ${isDragging 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                      }
+                    `}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                    />
+                    
+                    <Upload className="mx-auto h-10 w-10 text-muted-foreground" />
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Drag and drop files here, or{' '}
+                      <span className="font-medium text-primary">browse</span>
                     </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      All files will be encrypted together with your message
+                    </p>
+                  </div>
+
+                  {/* File List */}
+                  {filesToEncrypt.length > 0 && (
+                    <div className="space-y-2 mt-4">
+                      <p className="text-sm font-medium">Files to encrypt:</p>
+                      {filesToEncrypt.map((fileItem) => (
+                        <div key={fileItem.id} className="flex items-center justify-between rounded-lg border p-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm truncate">{fileItem.file.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatBytes(fileItem.file.size)}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(fileItem.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <p className="text-xs text-muted-foreground">
+                        Total size: {formatBytes(getTotalFileSize())} / {uploadLimitMB}MB
+                      </p>
+                    </div>
                   )}
                 </div>
 
-                {/* Encrypt Message Button */}
-                {message && (
-                  <Button
-                    onClick={handleEncryptMessage}
-                    disabled={isEncrypting || !password || validatePassword(password) !== null}
-                    className="w-full"
-                  >
-                    {isEncrypting ? "Encrypting..." : "Encrypt Message"}
-                  </Button>
+                {/* Progress Bar */}
+                {isEncrypting && (
+                  <div className="space-y-2">
+                    <Progress value={uploadProgress} />
+                    <p className="text-sm text-center text-muted-foreground">
+                      {uploadProgress < 90 ? 'Encrypting...' : 'Uploading...'} {uploadProgress}%
+                    </p>
+                  </div>
                 )}
+
+                {/* Encrypt Button */}
+                <Button
+                  onClick={handleEncryptAll}
+                  disabled={isEncrypting || !password || (validatePassword(password) !== null) || (!message && filesToEncrypt.length === 0)}
+                  className="w-full"
+                >
+                  {isEncrypting ? "Encrypting..." : "Encrypt All"}
+                </Button>
               </CardContent>
             </Card>
+
+            {/* Info Alert */}
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Your message and all files will be encrypted together into a single package.
+                Recipients will need the password to decrypt everything.
+              </AlertDescription>
+            </Alert>
           </div>
         ) : (
           <Card>
@@ -255,37 +431,32 @@ export default function EncryptPage() {
                 ✓ Encryption Successful
               </CardTitle>
               <CardDescription>
-                Your data has been encrypted and stored. Share these links with recipients.
+                Your data has been encrypted and stored. Share this link with recipients.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Shareable Links</Label>
-                {shareableLinks.map((link, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="rounded-lg border bg-muted p-4 text-center">
-                      <p className="font-mono text-sm">{link}</p>
-                    </div>
-                    <Button
-                      onClick={() => copyToClipboard(link)}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Copy className="mr-2 size-4" />
-                      Copy Link
-                    </Button>
-                  </div>
-                ))}
+                <Label>Shareable Link</Label>
+                <div className="rounded-lg border bg-muted p-4 text-center">
+                  <p className="font-mono text-sm break-all">{shareableLink}</p>
+                </div>
+                <Button
+                  onClick={copyToClipboard}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Copy className="mr-2 size-4" />
+                  Copy Link
+                </Button>
               </div>
 
               <div className="rounded-lg bg-muted p-4">
-                <p className="text-sm font-semibold">Encryption Details:</p>
+                <p className="text-sm font-semibold">What was encrypted:</p>
                 <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  {message && <li>• Text message (formatted)</li>}
+                  {filesToEncrypt.length > 0 && <li>• {filesToEncrypt.length} file{filesToEncrypt.length > 1 ? 's' : ''}</li>}
                   <li>• Encrypted with AES-256-GCM</li>
-                  <li>• Files uploaded in 1MB chunks</li>
-                  <li>• No entire file loaded in memory</li>
                   <li>• Stored on server for 24 hours</li>
-                  <li>• 8-character secure ID</li>
                   {user && <li>• Linked to your account</li>}
                 </ul>
               </div>
