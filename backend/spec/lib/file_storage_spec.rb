@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe FileStorage do
@@ -56,7 +58,7 @@ RSpec.describe FileStorage do
         'application/octet-stream',
         'application/x-custom-type'
       ]
-      
+
       mime_types.each do |mime|
         result = FileStorage.validate_file('test', mime, 1000)
         expect(result[:valid]).to eq(true), "MIME type #{mime} should be accepted but got: #{result[:error]}"
@@ -68,14 +70,14 @@ RSpec.describe FileStorage do
     it 'creates subdirectories based on file ID' do
       file_id = 'abcd1234'
       path = FileStorage.generate_file_path(file_id)
-      
+
       expect(path).to include('/ab/abcd1234.enc')
       expect(Dir.exist?(File.dirname(path))).to be true
     end
 
     it 'handles edge case file IDs' do
-      edge_cases = ['a', 'ab', '12345678', 'UPPERCASE']
-      
+      edge_cases = %w[a ab 12345678 UPPERCASE]
+
       edge_cases.each do |file_id|
         expect { FileStorage.generate_file_path(file_id) }.not_to raise_error
       end
@@ -93,17 +95,17 @@ RSpec.describe FileStorage do
 
     it 'stores encrypted data' do
       path = FileStorage.store_encrypted_file(file_id, data)
-      
+
       expect(File.exist?(path)).to be true
       expect(File.read(path, mode: 'rb')).to eq(data)
     end
 
     it 'raises error if file already exists' do
       FileStorage.store_encrypted_file(file_id, data)
-      
-      expect {
+
+      expect do
         FileStorage.store_encrypted_file(file_id, 'new data')
-      }.to raise_error('File already exists')
+      end.to raise_error('File already exists')
     end
 
     it 'creates necessary subdirectories' do
@@ -114,7 +116,7 @@ RSpec.describe FileStorage do
     it 'stores binary data correctly' do
       binary_data = SecureRandom.random_bytes(1024)
       path = FileStorage.store_encrypted_file(file_id, binary_data)
-      
+
       read_data = File.read(path, mode: 'rb')
       expect(read_data.encoding).to eq(Encoding::ASCII_8BIT)
       expect(read_data).to eq(binary_data)
@@ -141,10 +143,10 @@ RSpec.describe FileStorage do
     it 'reads binary data correctly' do
       binary_data = SecureRandom.random_bytes(1024)
       binary_path = FileStorage.store_encrypted_file('binary123', binary_data)
-      
+
       read_data = FileStorage.read_encrypted_file(binary_path)
       expect(read_data).to eq(binary_data)
-      
+
       FileStorage.delete_file(binary_path)
     end
   end
@@ -155,34 +157,34 @@ RSpec.describe FileStorage do
 
     it 'deletes the file' do
       expect(File.exist?(file_path)).to be true
-      
+
       FileStorage.delete_file(file_path)
-      
+
       expect(File.exist?(file_path)).to be false
     end
 
     it 'removes empty directories' do
       dir = File.dirname(file_path)
       FileStorage.delete_file(file_path)
-      
+
       expect(Dir.exist?(dir)).to be false
     end
 
     it 'handles non-existent files gracefully' do
-      expect {
+      expect do
         FileStorage.delete_file('/non/existent/file')
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'does not remove non-empty directories' do
       # Create another file in same directory
-      another_id = file_id[0..1] + 'other'
+      another_id = "#{file_id[0..1]}other"
       another_path = FileStorage.store_encrypted_file(another_id, 'data')
-      
+
       FileStorage.delete_file(file_path)
-      
+
       expect(Dir.exist?(File.dirname(file_path))).to be true
-      
+
       FileStorage.delete_file(another_path)
     end
   end
@@ -205,7 +207,7 @@ RSpec.describe FileStorage do
         expires_at: Time.now - 3600,
         ip_address: '127.0.0.1'
       )
-      
+
       @active_id = db[:encrypted_files].insert(
         file_id: 'active001',
         password_hash: 'hash',
@@ -223,23 +225,31 @@ RSpec.describe FileStorage do
 
     after do
       # Clean up
-      FileStorage.delete_file(FileStorage.generate_file_path('expired01')) rescue nil
-      FileStorage.delete_file(FileStorage.generate_file_path('active001')) rescue nil
+      begin
+        FileStorage.delete_file(FileStorage.generate_file_path('expired01'))
+      rescue StandardError
+        nil
+      end
+      begin
+        FileStorage.delete_file(FileStorage.generate_file_path('active001'))
+      rescue StandardError
+        nil
+      end
     end
 
     it 'deletes expired files from storage' do
       expired_path = db[:encrypted_files].where(id: @expired_id).first[:file_path]
       active_path = db[:encrypted_files].where(id: @active_id).first[:file_path]
-      
+
       FileStorage.cleanup_expired_files(db)
-      
+
       expect(File.exist?(expired_path)).to be false
       expect(File.exist?(active_path)).to be true
     end
 
     it 'removes expired records from database' do
       FileStorage.cleanup_expired_files(db)
-      
+
       expect(db[:encrypted_files].where(id: @expired_id).count).to eq(0)
       expect(db[:encrypted_files].where(id: @active_id).count).to eq(1)
     end
@@ -248,10 +258,10 @@ RSpec.describe FileStorage do
       # Delete file manually
       expired_record = db[:encrypted_files].where(id: @expired_id).first
       File.delete(expired_record[:file_path]) if File.exist?(expired_record[:file_path])
-      
-      expect {
+
+      expect do
         FileStorage.cleanup_expired_files(db)
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 

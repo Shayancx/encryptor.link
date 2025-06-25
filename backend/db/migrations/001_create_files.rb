@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Sequel.migration do
   change do
     create_table(:encrypted_files) do
@@ -13,7 +15,7 @@ Sequel.migration do
       DateTime :created_at, null: false
       DateTime :expires_at
       String :ip_address, size: 45
-      
+
       index :file_id
       index :expires_at
     end
@@ -23,8 +25,8 @@ Sequel.migration do
       String :ip_address, null: false, size: 45
       String :endpoint, null: false, size: 100
       DateTime :accessed_at, null: false
-      
-      index [:ip_address, :endpoint, :accessed_at]
+
+      index %i[ip_address endpoint accessed_at]
     end
   end
 end

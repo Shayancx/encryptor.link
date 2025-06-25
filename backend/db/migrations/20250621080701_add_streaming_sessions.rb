@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Sequel.migration do
   change do
     create_table?(:streaming_sessions) do
@@ -9,11 +11,11 @@ Sequel.migration do
       String :status, default: 'uploading'
       DateTime :created_at, null: false
       DateTime :updated_at
-      
+
       index :session_id
       index :created_at
     end
-    
+
     # Ensure is_chunked column exists
     unless DB[:encrypted_files].columns.include?(:is_chunked)
       alter_table(:encrypted_files) do

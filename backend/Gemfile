@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 ruby '>= 3.0.0'
@@ -20,12 +22,12 @@ gem 'jwt', '~> 2.7'
 gem 'rack-cors', '~> 2.0'
 
 # Utilities
-gem 'json', '~> 2.6'
 gem 'base64', '~> 0.2.0'
-gem 'logger', '~> 1.6'
-gem 'securerandom', '~> 0.3'
 gem 'benchmark', '~> 0.3'
 gem 'dotenv', '~> 2.8'
+gem 'json', '~> 2.6'
+gem 'logger', '~> 1.6'
+gem 'securerandom', '~> 0.3'
 
 # Email
 gem 'mail', '~> 2.8'
@@ -41,15 +43,15 @@ end
 
 # Testing
 group :test do
-  gem 'rspec', '~> 3.12'
-  gem 'rack-test', '~> 2.1'
+  gem 'database_cleaner-sequel', '~> 2.0'
   gem 'factory_bot', '~> 6.2'
   gem 'faker', '~> 3.2'
-  gem 'database_cleaner-sequel', '~> 2.0'
+  gem 'parallel_tests', '~> 4.2'
+  gem 'rack-test', '~> 2.1'
+  gem 'rspec', '~> 3.12'
+  gem 'rspec-benchmark', '~> 0.6'
+  gem 'rspec-json_expectations', '~> 2.2'
+  gem 'simplecov', '~> 0.22'
   gem 'timecop', '~> 0.9'
   gem 'webmock', '~> 3.18'
-  gem 'simplecov', '~> 0.22'
-  gem 'rspec-json_expectations', '~> 2.2'
-  gem 'parallel_tests', '~> 4.2'
-  gem 'rspec-benchmark', '~> 0.6'
 end

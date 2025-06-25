@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Patch for crypto_spec.rb - handles large files test
 require 'spec_helper'
 
@@ -14,13 +16,13 @@ RSpec.describe Crypto do
       # Test with 1MB instead of 10MB and without strict timing
       large_data = SecureRandom.random_bytes(1 * 1024 * 1024) # 1MB
       large_file = create_test_file(large_data, 'large.bin')
-      
+
       encrypted = Crypto.encrypt_file(large_file, password, salt)
-      
+
       # Just verify it works, not the performance
       expect(encrypted[:data]).to be_a(String)
       expect(encrypted[:data].bytesize).to be >= large_data.bytesize
-      
+
       File.delete(large_file)
     end
   end

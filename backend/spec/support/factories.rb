@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :account, class: Hash do
     email { Faker::Internet.unique.email }
     password_hash { BCrypt::Password.create('TestP@ssw0rd123!') }
     status_id { 'verified' }
     created_at { Time.now }
-    
+
     initialize_with do
       attrs = attributes
       id = TEST_DB[:accounts].insert(attrs)
@@ -22,10 +24,10 @@ FactoryBot.define do
     file_size { Faker::Number.between(from: 100, to: 10_000_000) }
     encryption_iv { Base64.strict_encode64(SecureRandom.random_bytes(16)) }
     created_at { Time.now }
-    expires_at { Time.now + 86400 }
+    expires_at { Time.now + 86_400 }
     ip_address { Faker::Internet.ip_v4_address }
     account_id { nil }
-    
+
     initialize_with do
       attrs = attributes
       FileUtils.mkdir_p(File.dirname(attrs[:file_path]))
@@ -39,7 +41,7 @@ FactoryBot.define do
     ip_address { Faker::Internet.ip_v4_address }
     endpoint { ['/api/upload', '/api/download'].sample }
     accessed_at { Time.now }
-    
+
     initialize_with do
       attrs = attributes
       id = TEST_DB[:access_logs].insert(attrs)
@@ -53,7 +55,7 @@ FactoryBot.define do
     expires_at { Time.now + 3600 }
     created_at { Time.now }
     used { false }
-    
+
     initialize_with do
       attrs = attributes
       id = TEST_DB[:password_reset_tokens].insert(attrs)

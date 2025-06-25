@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simplecov'
 SimpleCov.start do
   add_filter '/spec/'
@@ -43,7 +45,7 @@ Sequel::Migrator.run(TEST_DB, 'db/migrations')
 RSpec.configure do |config|
   config.include Rack::Test::Methods
   config.include RSpec::Benchmark::Matchers
-  
+
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
@@ -54,13 +56,11 @@ RSpec.configure do |config|
 
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.filter_run_when_matching :focus
-  config.example_status_persistence_file_path = "spec/examples.txt"
+  config.example_status_persistence_file_path = 'spec/examples.txt'
   config.disable_monkey_patching!
   config.warnings = true
 
-  if config.files_to_run.one?
-    config.default_formatter = "doc"
-  end
+  config.default_formatter = 'doc' if config.files_to_run.one?
 
   config.profile_examples = 10
   config.order = :random
@@ -91,7 +91,7 @@ RSpec.configure do |config|
   end
 
   # Helper to create test files
-  def create_test_file(content = "test content", filename = "test.txt")
+  def create_test_file(content = 'test content', filename = 'test.txt')
     file_path = "tmp/#{filename}"
     File.write(file_path, content)
     file_path
@@ -118,14 +118,14 @@ Dir[File.join(File.dirname(__FILE__), 'support', '**', '*.rb')].each { |f| requi
 def create_test_user(email = nil)
   email ||= "test_#{SecureRandom.hex(4)}@example.com"
   password_hash = BCrypt::Password.create('TestP@ssw0rd123!')
-  
+
   id = TEST_DB[:accounts].insert(
     email: email,
     password_hash: password_hash,
     status_id: 'verified',
     created_at: Time.now
   )
-  
+
   TEST_DB[:accounts].where(id: id).first
 end
 
@@ -133,13 +133,11 @@ end
 RSpec.configure do |config|
   # Clean storage directory after each test
   config.after(:each) do
-    if Dir.exist?('storage/test')
-      FileUtils.rm_rf('storage/test')
-    end
+    FileUtils.rm_rf('storage/test') if Dir.exist?('storage/test')
     # Ensure tmp directory exists for tests
     FileUtils.mkdir_p('tmp')
   end
-  
+
   # Clear all test data before suite
   config.before(:suite) do
     TEST_DB[:encrypted_files].delete

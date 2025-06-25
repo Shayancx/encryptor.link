@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe Crypto do
@@ -61,7 +63,7 @@ RSpec.describe Crypto do
     it 'raises error on nil inputs' do
       result = Crypto.hash_password(nil, salt)
       expect(result[:valid]).to be false
-      expect(result[:error]).to include("empty")
+      expect(result[:error]).to include('empty')
     end
   end
 
@@ -90,18 +92,18 @@ RSpec.describe Crypto do
 
     it 'is timing-attack resistant' do
       times = []
-      
+
       10.times do
         start_time = Time.now
         Crypto.verify_password('wrong' * 100, salt, hash)
         times << Time.now - start_time
       end
-      
+
       # Check that timing variance is low
       avg_time = times.sum / times.length
-      variance = times.map { |t| (t - avg_time) ** 2 }.sum / times.length
+      variance = times.map { |t| (t - avg_time)**2 }.sum / times.length
       std_dev = Math.sqrt(variance)
-      
+
       # More lenient check - BCrypt + our random delay should keep it under 0.05
       expect(std_dev).to be < 0.06
     end
@@ -115,7 +117,7 @@ RSpec.describe Crypto do
         'C0mpl3x!P@ssw0rd',
         'Secur3$Pass123'
       ]
-      
+
       strong_passwords.each do |pwd|
         result = Crypto.validate_password_strength(pwd)
         expect(result[:valid]).to be(true), "Password '#{pwd}' should be valid but got: #{result[:error]}"
@@ -124,15 +126,15 @@ RSpec.describe Crypto do
 
     it 'rejects weak passwords' do
       test_cases = {
-        nil => "empty",
-        "" => "empty",
-        "short" => "8 characters",
-        "nouppercase123!" => "uppercase",
-        "NOLOWERCASE123!" => "lowercase",
-        "NoNumbers!" => "number",
-        "NoSpecial123" => "special character"
+        nil => 'empty',
+        '' => 'empty',
+        'short' => '8 characters',
+        'nouppercase123!' => 'uppercase',
+        'NOLOWERCASE123!' => 'lowercase',
+        'NoNumbers!' => 'number',
+        'NoSpecial123' => 'special character'
       }
-      
+
       test_cases.each do |pwd, expected_error|
         result = Crypto.validate_password_strength(pwd)
         expect(result[:valid]).to be false
@@ -145,7 +147,7 @@ RSpec.describe Crypto do
       common_passwords.each do |pwd|
         result = Crypto.validate_password_strength(pwd)
         expect(result[:valid]).to be false
-        expect(result[:error]).to include("common")
+        expect(result[:error]).to include('common')
       end
     end
   end
@@ -196,7 +198,7 @@ RSpec.describe Crypto do
       salt_bytes = salt
       key1 = Crypto.derive_key(password, salt_bytes)
       key2 = Crypto.derive_key(password, salt_bytes)
-      
+
       expect(key1).to eq(key2)
     end
   end
@@ -215,7 +217,7 @@ RSpec.describe Crypto do
       expect(encrypted[:data]).not_to eq(test_data)
       expect(encrypted[:iv]).to be_a(String)
       expect(encrypted[:auth_tag]).to be_a(String)
-      
+
       # Decrypt
       decrypted = Crypto.decrypt_file(
         encrypted[:data],
@@ -224,13 +226,13 @@ RSpec.describe Crypto do
         encrypted[:iv],
         encrypted[:auth_tag]
       )
-      
+
       expect(decrypted).to eq(test_data)
     end
 
     it 'fails decryption with wrong password' do
       encrypted = Crypto.encrypt_file(file_path, password, salt)
-      
+
       decrypted = Crypto.decrypt_file(
         encrypted[:data],
         'WrongPassword',
@@ -238,14 +240,14 @@ RSpec.describe Crypto do
         encrypted[:iv],
         encrypted[:auth_tag]
       )
-      
+
       expect(decrypted).to be_nil
     end
 
     it 'fails decryption with tampered data' do
       encrypted = Crypto.encrypt_file(file_path, password, salt)
-      tampered_data = encrypted[:data] + 'tampered'
-      
+      tampered_data = "#{encrypted[:data]}tampered"
+
       decrypted = Crypto.decrypt_file(
         tampered_data,
         password,
@@ -253,7 +255,7 @@ RSpec.describe Crypto do
         encrypted[:iv],
         encrypted[:auth_tag]
       )
-      
+
       expect(decrypted).to be_nil
     end
 
@@ -261,13 +263,13 @@ RSpec.describe Crypto do
       # Test with 1MB instead of 10MB and without strict timing
       large_data = SecureRandom.random_bytes(1 * 1024 * 1024) # 1MB
       large_file = create_test_file(large_data, 'large.bin')
-      
+
       encrypted = Crypto.encrypt_file(large_file, password, salt)
-      
+
       # Just verify it works, not the performance
       expect(encrypted[:data]).to be_a(String)
       expect(encrypted[:data].bytesize).to be >= large_data.bytesize
-      
+
       File.delete(large_file)
     end
   end
@@ -276,7 +278,7 @@ RSpec.describe Crypto do
     it 'creates a short hash for logging' do
       data = 'sensitive-data'
       hash = Crypto.hash_for_logging(data)
-      
+
       expect(hash).to match(/^[a-f0-9]{8}\.\.\./)
       expect(hash).not_to include(data)
     end
@@ -285,7 +287,7 @@ RSpec.describe Crypto do
       data = 'test-data'
       hash1 = Crypto.hash_for_logging(data)
       hash2 = Crypto.hash_for_logging(data)
-      
+
       expect(hash1).to eq(hash2)
     end
   end
