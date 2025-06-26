@@ -1,9 +1,11 @@
 "use client"
+import { parseCombinedPayload } from "@/lib/decrypt-combined"
 
 import { useState, useEffect } from "react"
 import { Download, FileText, Lock, Unlock, FileAudio, AlertCircle } from "lucide-react"
 
-import { retrieveDistributedFile } from "@/lib/distributed-retrieval"
+import { decrypt } from "@/lib/crypto"
+import { streamDownloadAndDecrypt } from "@/lib/streaming-crypto"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,14 +25,15 @@ interface DecryptedFile {
   blobUrl?: string
 }
 
-export default function DistributedViewPage({ params }: { params: { id: string } }) {
+export default function ViewPage({ params }: { params: { id: string } }) {
   const [password, setPassword] = useState("")
   const [decryptedMessage, setDecryptedMessage] = useState<string | null>(null)
   const [decryptedFiles, setDecryptedFiles] = useState<DecryptedFile[]>([])
   const [isDecrypting, setIsDecrypting] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  const [isDistributed, setIsDistributed] = useState<boolean | null>(null)
+  const [isHtmlContent, setIsHtmlContent] = useState(false)
+  const [isChunkedFile, setIsChunkedFile] = useState<boolean | null>(null)
   
   // Player state
   const [songs, setSongs] = useState<Song[]>([])
@@ -44,7 +47,7 @@ export default function DistributedViewPage({ params }: { params: { id: string }
   
   const { toast } = useToast()
 
-  // Check if file is distributed
+  // Check if file is chunked
   useEffect(() => {
     checkFileType()
   }, [params.id])
@@ -52,16 +55,16 @@ export default function DistributedViewPage({ params }: { params: { id: string }
   const checkFileType = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9292/api'}/distributed/map/${params.id}`
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9292/api'}/streaming/info/${params.id}`
       )
       
       if (response.ok) {
-        setIsDistributed(true)
+        setIsChunkedFile(true)
       } else {
-        setIsDistributed(false)
+        setIsChunkedFile(false)
       }
     } catch {
-      setIsDistributed(false)
+      setIsChunkedFile(false)
     }
   }
 
@@ -91,48 +94,112 @@ export default function DistributedViewPage({ params }: { params: { id: string }
     setDownloadProgress(0)
 
     try {
-      if (isDistributed) {
-        // Handle distributed file retrieval
-        const result = await retrieveDistributedFile(
+      if (isChunkedFile) {
+        // Handle chunked file download
+        const result = await streamDownloadAndDecrypt(
           params.id,
           password,
           (progress) => setDownloadProgress(progress)
         )
 
-        // Set message if exists
-        if (result.message) {
-          setDecryptedMessage(result.message)
-        }
-
-        // Process files
-        const processedFiles: DecryptedFile[] = []
-        for (const file of result.files) {
-          let blobUrl: string | undefined
-          
-          // Create blob URL for audio files
-          if (file.mimetype.startsWith('audio/')) {
-            const blob = new Blob([file.data], { type: file.mimetype })
-            blobUrl = URL.createObjectURL(blob)
-          }
-          
-          processedFiles.push({
-            filename: file.filename,
-            mimetype: file.mimetype,
-            size: file.size,
-            data: file.data,
-            blobUrl
-          })
-        }
+        const blobUrl = URL.createObjectURL(result.blob)
         
-        setDecryptedFiles(processedFiles)
+        setDecryptedFiles([{
+          filename: result.filename,
+          mimetype: result.mimetype,
+          size: result.blob.size,
+          data: await result.blob.arrayBuffer(),
+          blobUrl: result.mimetype.startsWith('audio/') ? blobUrl : undefined
+        }])
 
         toast({
           title: "Decryption successful",
-          description: "Your distributed data has been retrieved and decrypted"
+          description: "Your file has been decrypted"
         })
       } else {
-        // Handle regular (non-distributed) files
-        // ... existing decryption logic ...
+        // Handle regular (non-chunked) download
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9292/api'}/download/${params.id}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ password })
+          }
+        )
+        
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to retrieve data')
+        }
+
+        const result = await response.json()
+        
+        // Decode the combined encrypted data
+        const combinedData = parseCombinedPayload(result.encrypted_data)
+        
+        // Decrypt message if present
+        if (combinedData.message) {
+          const messagePayload = {
+            version: 1,
+            type: 'text' as const,
+            iv: combinedData.message.iv,
+            salt: combinedData.message.salt,
+            ciphertext: combinedData.message.ciphertext
+          }
+          
+          const decryptedMsg = await decrypt(messagePayload, password)
+          setDecryptedMessage(decryptedMsg.data as string)
+          setIsHtmlContent(combinedData.message.isHtml === true)
+        }
+        
+        // Decrypt files if present
+        if (combinedData.files && combinedData.files.length > 0) {
+          const decryptedFilesList: DecryptedFile[] = []
+          
+          for (const encFile of combinedData.files) {
+            const filePayload = {
+              version: 1,
+              type: 'file' as const,
+              iv: encFile.iv,
+              salt: encFile.salt,
+              ciphertext: encFile.ciphertext,
+              filename: encFile.filename
+            }
+            
+            const decryptedFile = await decrypt(filePayload, password)
+            let fileData = decryptedFile.data as ArrayBuffer
+            
+            // Ensure we have an ArrayBuffer
+            if (fileData instanceof Uint8Array) {
+              fileData = fileData.buffer.slice(fileData.byteOffset, fileData.byteOffset + fileData.byteLength)
+            }
+            
+            // Create blob URL for audio files
+            let blobUrl: string | undefined
+            if (encFile.mimetype.startsWith('audio/')) {
+              const uint8Array = new Uint8Array(fileData)
+              const blob = new Blob([uint8Array], { type: encFile.mimetype })
+              blobUrl = URL.createObjectURL(blob)
+            }
+            
+            decryptedFilesList.push({
+              filename: encFile.filename,
+              mimetype: encFile.mimetype,
+              size: fileData.byteLength,
+              data: fileData,
+              blobUrl
+            })
+          }
+          
+          setDecryptedFiles(decryptedFilesList)
+        }
+
+        toast({
+          title: "Decryption successful",
+          description: "Your data has been decrypted"
+        })
       }
     } catch (error: any) {
       console.error("Decryption error:", error)
@@ -149,7 +216,8 @@ export default function DistributedViewPage({ params }: { params: { id: string }
   }
 
   const handleDownloadFile = (file: DecryptedFile) => {
-    const blob = new Blob([file.data], { type: file.mimetype })
+    const uint8Array = new Uint8Array(file.data)
+    const blob = new Blob([uint8Array], { type: file.mimetype })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -165,8 +233,98 @@ export default function DistributedViewPage({ params }: { params: { id: string }
     })
   }
 
-  // ... rest of the player functions remain the same ...
+  const handleSongsLoaded = (loadedSongs: Song[]) => {
+    setSongs(loadedSongs)
+  }
 
+  const handlePlaySong = (song: Song, index: number) => {
+    setCurrentSong(song)
+    setCurrentSongIndex(index)
+    setIsPlayerOpen(true)
+    setIsPlaying(true)
+    
+    if (shuffle) {
+      setPlayHistory([...playHistory, index])
+    }
+  }
+
+  const handlePrevious = () => {
+    if (songs.length <= 1) return
+
+    let prevIndex: number
+    
+    if (shuffle && playHistory.length > 1) {
+      // Go back in shuffle history
+      const newHistory = [...playHistory]
+      newHistory.pop()
+      prevIndex = newHistory[newHistory.length - 1]
+      setPlayHistory(newHistory)
+    } else {
+      prevIndex = (currentSongIndex - 1 + songs.length) % songs.length
+    }
+    
+    setCurrentSongIndex(prevIndex)
+    setCurrentSong(songs[prevIndex])
+  }
+
+  const handleNext = () => {
+    if (songs.length <= 1) return
+
+    if (repeat === 'one') {
+      // Restart current song
+      setIsPlaying(false)
+      setTimeout(() => setIsPlaying(true), 100)
+      return
+    }
+
+    let nextIndex: number
+    
+    if (shuffle) {
+      const availableIndices = Array.from({ length: songs.length }, (_, i) => i)
+        .filter(i => i !== currentSongIndex)
+      nextIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)]
+      setPlayHistory([...playHistory, nextIndex])
+    } else {
+      nextIndex = (currentSongIndex + 1) % songs.length
+      if (nextIndex === 0 && repeat !== 'all') {
+        setIsPlaying(false)
+        return
+      }
+    }
+    
+    setCurrentSongIndex(nextIndex)
+    setCurrentSong(songs[nextIndex])
+  }
+
+  const toggleRepeat = () => {
+    const modes: Array<'none' | 'all' | 'one'> = ['none', 'all', 'one']
+    const currentIndex = modes.indexOf(repeat)
+    setRepeat(modes[(currentIndex + 1) % modes.length])
+  }
+
+  const copyToClipboard = async () => {
+    if (!decryptedMessage) return
+
+    try {
+      const textToCopy = isHtmlContent 
+        ? decryptedMessage.replace(/<[^>]*>/g, '') 
+        : decryptedMessage
+      
+      await navigator.clipboard.writeText(textToCopy)
+      toast({
+        title: "Copied to clipboard",
+        description: "The message has been copied (plain text)"
+      })
+    } catch (error) {
+      toast({
+        title: "Copy failed",
+        description: "Failed to copy to clipboard",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Separate audio files from other files
   const audioFiles = decryptedFiles.filter(file => file.mimetype.startsWith('audio/'))
   const otherFiles = decryptedFiles.filter(file => !file.mimetype.startsWith('audio/'))
 
@@ -179,9 +337,6 @@ export default function DistributedViewPage({ params }: { params: { id: string }
           </h1>
           <p className="text-center text-lg text-muted-foreground">
             ID: <span className="font-mono">{params.id}</span>
-            {isDistributed && (
-              <span className="ml-2 text-sm text-primary">(Distributed Storage)</span>
-            )}
           </p>
         </div>
 
@@ -194,11 +349,7 @@ export default function DistributedViewPage({ params }: { params: { id: string }
                   Enter Decryption Password
                 </CardTitle>
                 <CardDescription>
-                  {isDistributed ? (
-                    <>This data is distributed across multiple nodes. Enter your password to retrieve and decrypt it.</>
-                  ) : (
-                    <>This data is encrypted. Enter your password to decrypt it.</>
-                  )}
+                  This data is encrypted. Enter your password to decrypt it.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -226,7 +377,7 @@ export default function DistributedViewPage({ params }: { params: { id: string }
                 {isDecrypting && downloadProgress > 0 && (
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">
-                      {isDistributed ? 'Retrieving chunks from distributed nodes...' : 'Decrypting...'}
+                      {isChunkedFile ? 'Downloading and decrypting chunks...' : 'Decrypting...'}
                     </p>
                     <Progress value={downloadProgress} />
                   </div>
@@ -240,12 +391,12 @@ export default function DistributedViewPage({ params }: { params: { id: string }
                   {isDecrypting ? "Decrypting..." : "Decrypt"}
                 </Button>
 
-                {isDistributed && (
+                {isChunkedFile && (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      This file was split into encrypted chunks and distributed across multiple storage nodes.
-                      The chunks will be retrieved, verified, and reassembled during decryption.
+                      This is a large file that was uploaded in chunks. 
+                      It will be downloaded and decrypted progressively.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -254,13 +405,8 @@ export default function DistributedViewPage({ params }: { params: { id: string }
                   <p className="text-sm font-semibold">Security Process:</p>
                   <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                     <li>• Password sent securely via POST</li>
-                    {isDistributed && (
-                      <>
-                        <li>• Chunks retrieved from distributed nodes</li>
-                        <li>• Automatic failover to replica nodes if needed</li>
-                        <li>• Chunk integrity verified with checksums</li>
-                      </>
-                    )}
+                    <li>• Server verifies against salted hash</li>
+                    {isChunkedFile && <li>• File downloaded in encrypted chunks</li>}
                     <li>• Decryption happens in your browser</li>
                     <li>• No passwords in server logs</li>
                   </ul>
@@ -277,7 +423,7 @@ export default function DistributedViewPage({ params }: { params: { id: string }
                     Decryption Successful
                   </CardTitle>
                   <CardDescription>
-                    Your {isDistributed ? 'distributed' : ''} data has been decrypted successfully.
+                    Your data has been decrypted successfully.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -292,20 +438,23 @@ export default function DistributedViewPage({ params }: { params: { id: string }
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <TiptapEditor
-                      content={decryptedMessage}
-                      readOnly={true}
-                      className="min-h-[150px]"
-                    />
+                    {isHtmlContent ? (
+                      <TiptapEditor
+                        content={decryptedMessage}
+                        readOnly={true}
+                        className="min-h-[150px]"
+                      />
+                    ) : (
+                      <div className="rounded-md border bg-background p-4">
+                        <pre className="whitespace-pre-wrap font-mono text-sm">{decryptedMessage}</pre>
+                      </div>
+                    )}
                     <Button
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(decryptedMessage)
-                        toast({ title: "Copied to clipboard" })
-                      }}
+                      onClick={copyToClipboard}
                       variant="outline"
                       className="w-full"
                     >
-                      Copy Message
+                      Copy Message (Plain Text)
                     </Button>
                   </CardContent>
                 </Card>
@@ -315,15 +464,10 @@ export default function DistributedViewPage({ params }: { params: { id: string }
               {audioFiles.length > 0 && (
                 <SongList 
                   files={audioFiles}
-                  onPlaySong={(song, index) => {
-                    setCurrentSong(song)
-                    setCurrentSongIndex(index)
-                    setIsPlayerOpen(true)
-                    setIsPlaying(true)
-                  }}
+                  onPlaySong={handlePlaySong}
                   currentSongId={currentSong?.id}
                   isPlaying={isPlaying}
-                  onSongsLoaded={setSongs}
+                  onSongsLoaded={handleSongsLoaded}
                 />
               )}
 
@@ -364,7 +508,7 @@ export default function DistributedViewPage({ params }: { params: { id: string }
         </div>
       </section>
 
-      {/* Player Bar - same as before */}
+      {/* Player Bar */}
       <PlayerBar
         currentSong={currentSong}
         isOpen={isPlayerOpen}
@@ -372,8 +516,8 @@ export default function DistributedViewPage({ params }: { params: { id: string }
           setIsPlayerOpen(false)
           setIsPlaying(false)
         }}
-        onPrevious={() => {/* ... */}}
-        onNext={() => {/* ... */}}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
         onDownload={() => {
           const currentFile = audioFiles[currentSongIndex]
           if (currentFile) handleDownloadFile(currentFile)
@@ -381,11 +525,15 @@ export default function DistributedViewPage({ params }: { params: { id: string }
         isPlaying={isPlaying}
         onPlayPause={setIsPlaying}
         shuffle={shuffle}
-        onShuffleToggle={() => setShuffle(!shuffle)}
+        onShuffleToggle={() => {
+          setShuffle(!shuffle)
+          setPlayHistory([currentSongIndex])
+        }}
         repeat={repeat}
-        onRepeatToggle={() => {/* ... */}}
+        onRepeatToggle={toggleRepeat}
       />
 
+      {/* Add padding when player is open */}
       {isPlayerOpen && <div className="h-20" />}
     </>
   )

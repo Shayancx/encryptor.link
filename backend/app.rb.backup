@@ -758,20 +758,38 @@ class EncryptorAPI < Roda
   end
 end
 
-
-# Include distributed storage modules
-require_relative 'lib/distributed_storage'
+# Include distributed storage API
 require_relative 'lib/distributed_api'
+
+class EncryptorAPI
+  include DistributedAPI
+  
+  # Initialize distributed storage on startup
+  DistributedStorage.initialize_nodes
+end
+
+# Include health monitoring modules
 require_relative 'lib/chunk_verification'
 require_relative 'lib/replica_manager'
 require_relative 'lib/health_monitor'
 
+# Start health monitoring
+HealthMonitor.start_monitoring if Environment.production?
+
+# Include distributed storage API
+require_relative 'lib/distributed_api'
+
 class EncryptorAPI
   include DistributedAPI
+  
+  # Initialize distributed storage on startup
+  DistributedStorage.initialize_nodes
 end
 
-# Initialize distributed storage on startup
-DistributedStorage.initialize_nodes if defined?(DistributedStorage)
+# Include health monitoring modules
+require_relative 'lib/chunk_verification'
+require_relative 'lib/replica_manager'
+require_relative 'lib/health_monitor'
 
-# Start health monitoring in production
-HealthMonitor.start_monitoring if defined?(HealthMonitor) && Environment.production?
+# Start health monitoring
+HealthMonitor.start_monitoring if Environment.production?

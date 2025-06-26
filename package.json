@@ -12,7 +12,11 @@
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
-    "dev:debug": "NODE_OPTIONS=\"--inspect\" next dev",    "backend:test": "cd backend && bundle exec ruby test_streaming_complete.rb"
+    "dev:debug": "NODE_OPTIONS=\"--inspect\" next dev",
+    "backend:test": "cd backend && bundle exec ruby test_streaming_complete.rb",
+    "test:distributed": "node test_distributed_storage.js",
+    "backend:nodes": "cd backend && ruby scripts/node_manager.rb",
+    "backend:migrate": "cd backend && bundle exec sequel -m db/migrations sqlite://db/encryptor.db"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.15",
