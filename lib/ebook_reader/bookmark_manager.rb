@@ -12,14 +12,8 @@ module EbookReader
 
     def self.add(path, chapter, line_offset, text)
       bookmarks = load_all
-      bookmarks[path] ||= []
-      bookmarks[path] << {
-        'chapter' => chapter,
-        'line_offset' => line_offset,
-        'text' => text,
-        'timestamp' => Time.now.iso8601
-      }
-      bookmarks[path].sort_by! { |b| [b['chapter'], b['line_offset']] }
+      entry = build_entry(chapter, line_offset, text)
+      bookmarks[path] = append_bookmark(bookmarks[path], entry)
       save_all(bookmarks)
     end
 
@@ -31,8 +25,23 @@ module EbookReader
       bookmarks = load_all
       return unless bookmarks[path]
 
-      bookmarks[path].reject! { |b| b['timestamp'] == bookmark_to_delete['timestamp'] }
+      bookmarks[path].reject! { |bookmark| bookmark['timestamp'] == bookmark_to_delete['timestamp'] }
       save_all(bookmarks)
+    end
+
+    def self.build_entry(chapter, line_offset, text)
+      {
+        'chapter' => chapter,
+        'line_offset' => line_offset,
+        'text' => text,
+        'timestamp' => Time.now.iso8601
+      }
+    end
+
+    private_class_method def self.append_bookmark(list, entry)
+      list ||= []
+      list << entry
+      list.sort_by { |bm| [bm['chapter'], bm['line_offset']] }
     end
 
     def self.load_all

@@ -13,28 +13,42 @@ module EbookReader
       end
 
       def self.html_to_text(html)
-        text = html.dup
+        text = remove_scripts_and_styles(html.dup)
+        text = replace_block_elements(text)
+        text = strip_tags(text)
+        text = CGI.unescapeHTML(text)
+        clean_whitespace(text)
+      end
 
-        # Remove scripts and styles completely
+      BLOCK_REPLACEMENTS = {
+        %r{</p>}i => "\n\n",
+        /<p[^>]*>/i => "\n\n",
+        /<br[^>]*>/i => "\n",
+        %r{</h[1-6]>}i => "\n\n",
+        /<h[1-6][^>]*>/i => "\n\n",
+        %r{</div>}i => "\n",
+        /<div[^>]*>/i => "\n"
+      }.freeze
+
+      private_constant :BLOCK_REPLACEMENTS
+
+      private_class_method def self.remove_scripts_and_styles(text)
         text.gsub!(%r{<script[^>]*>.*?</script>}mi, '')
         text.gsub!(%r{<style[^>]*>.*?</style>}mi, '')
+        text
+      end
 
-        # Convert block elements to line breaks
-        text.gsub!(%r{</p>}i, "\n\n")
-        text.gsub!(/<p[^>]*>/i, "\n\n")
-        text.gsub!(/<br[^>]*>/i, "\n")
-        text.gsub!(%r{</h[1-6]>}i, "\n\n")
-        text.gsub!(/<h[1-6][^>]*>/i, "\n\n")
-        text.gsub!(%r{</div>}i, "\n")
-        text.gsub!(/<div[^>]*>/i, "\n")
+      private_class_method def self.replace_block_elements(text)
+        BLOCK_REPLACEMENTS.each { |pattern, rep| text.gsub!(pattern, rep) }
+        text
+      end
 
-        # Remove all other tags
+      private_class_method def self.strip_tags(text)
         text.gsub!(/<[^>]+>/, '')
+        text
+      end
 
-        # Decode HTML entities
-        text = CGI.unescapeHTML(text)
-
-        # Clean up whitespace
+      private_class_method def self.clean_whitespace(text)
         text.gsub!("\r", '')
         text.gsub!(/\n{3,}/, "\n\n")
         text.gsub!(/[ \t]+/, ' ')

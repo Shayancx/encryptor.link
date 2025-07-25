@@ -41,22 +41,22 @@ module EbookReader
       end
 
       def render_split_view_footer(height, width, doc, chapter, view_mode, line_spacing, bookmarks)
-        footer1 = [height - 1, 3].max
+        footer_row1 = [height - 1, 3].max
 
         left_prog = "[#{chapter + 1}/#{doc.chapter_count}]"
-        Terminal.write(footer1, 1, BLUE + left_prog + RESET)
+        Terminal.write(footer_row1, 1, BLUE + left_prog + RESET)
 
         mode_text = view_mode == :split ? '[SPLIT]' : '[SINGLE]'
-        Terminal.write(footer1, [(width / 2) - 10, 20].max, YELLOW + mode_text + RESET)
+        Terminal.write(footer_row1, [(width / 2) - 10, 20].max, YELLOW + mode_text + RESET)
 
         right_prog = "L#{line_spacing.to_s[0]} B#{bookmarks.count}"
-        Terminal.write(footer1, [width - right_prog.length - 1, 40].max,
+        Terminal.write(footer_row1, [width - right_prog.length - 1, 40].max,
                        BLUE + right_prog + RESET)
 
-        render_footer_line2(height, width, doc) if height > 3
+        render_second_footer_line(height, width, doc) if height > 3
       end
 
-      def render_footer_line2(height, width, doc)
+      def render_second_footer_line(height, width, doc)
         Terminal.write(height, 1, WHITE + "[#{doc.title[0, width - 15]}]" + RESET)
         Terminal.write(height, [width - 10, 50].max,
                        WHITE + "[#{doc.language}]" + RESET)

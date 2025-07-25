@@ -9,14 +9,16 @@ RSpec.describe EbookReader::Helpers::LineWrapper do
     end
 
     it "writes short text directly" do
+      pos = described_class::Coordinates.new(5, 10)
       expect(EbookReader::Terminal).to receive(:write).with(5, 10, "Short text")
-      described_class.wrap_terminal_write(5, 10, "Short text")
+      described_class.wrap_terminal_write(pos, "Short text")
     end
 
     it "wraps long text across multiple lines" do
       long_text = "a" * 150
+      pos = described_class::Coordinates.new(5, 10)
       expect(EbookReader::Terminal).to receive(:write).exactly(2).times
-      described_class.wrap_terminal_write(5, 10, long_text, 120)
+      described_class.wrap_terminal_write(pos, long_text, 120)
     end
   end
 
