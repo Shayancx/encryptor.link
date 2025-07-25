@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::ProgressManager, fake_fs: true do
@@ -13,7 +15,7 @@ RSpec.describe EbookReader::ProgressManager, fake_fs: true do
     it "saves progress for a book" do
       described_class.save(book_path, 2, 15)
       progress = described_class.load(book_path)
-      
+
       expect(progress['chapter']).to eq(2)
       expect(progress['line_offset']).to eq(15)
       expect(progress['timestamp']).to be_a(String)
@@ -22,7 +24,7 @@ RSpec.describe EbookReader::ProgressManager, fake_fs: true do
     it "overwrites existing progress" do
       described_class.save(book_path, 1, 10)
       described_class.save(book_path, 2, 20)
-      
+
       progress = described_class.load(book_path)
       expect(progress['chapter']).to eq(2)
       expect(progress['line_offset']).to eq(20)
@@ -33,7 +35,7 @@ RSpec.describe EbookReader::ProgressManager, fake_fs: true do
     it "loads progress for a book" do
       described_class.save(book_path, 3, 25)
       progress = described_class.load(book_path)
-      
+
       expect(progress).to be_a(Hash)
       expect(progress['chapter']).to eq(3)
     end
@@ -48,7 +50,7 @@ RSpec.describe EbookReader::ProgressManager, fake_fs: true do
     it "loads all progress data" do
       described_class.save("/book1.epub", 1, 10)
       described_class.save("/book2.epub", 2, 20)
-      
+
       all_progress = described_class.load_all
       expect(all_progress.keys).to contain_exactly("/book1.epub", "/book2.epub")
     end

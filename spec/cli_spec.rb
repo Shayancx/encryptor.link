@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::CLI do
@@ -12,7 +14,7 @@ RSpec.describe EbookReader::CLI do
     it "creates and runs a main menu" do
       expect(EbookReader::MainMenu).to receive(:new).and_return(main_menu)
       expect(main_menu).to receive(:run)
-      
+
       described_class.run
     end
   end

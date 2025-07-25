@@ -9,7 +9,7 @@ gem 'rubocop'
 gem 'rubyzip'
 
 group :test do
+  gem 'fakefs', require: 'fakefs/spec_helpers'
   gem 'rspec'
   gem 'simplecov', require: false
-  gem 'fakefs', require: 'fakefs/spec_helpers'
 end

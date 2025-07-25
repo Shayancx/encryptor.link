@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::Helpers::EPUBScanner do
@@ -14,8 +16,8 @@ RSpec.describe EbookReader::Helpers::EPUBScanner do
   describe "#load_cached" do
     before do
       allow(EbookReader::EPUBFinder).to receive(:scan_system).and_return([
-        { 'name' => 'Book 1', 'path' => '/book1.epub' }
-      ])
+                                                                           { 'name' => 'Book 1', 'path' => '/book1.epub' }
+                                                                         ])
     end
 
     it "loads cached epubs" do
@@ -27,7 +29,7 @@ RSpec.describe EbookReader::Helpers::EPUBScanner do
     it "handles cache load errors" do
       allow(EbookReader::EPUBFinder).to receive(:scan_system).and_raise(StandardError)
       scanner.load_cached
-      
+
       expect(scanner.scan_status).to eq(:error)
       expect(scanner.epubs).to eq([])
     end
@@ -37,17 +39,17 @@ RSpec.describe EbookReader::Helpers::EPUBScanner do
     it "starts a background scan" do
       allow(Thread).to receive(:new).and_yield
       allow(EbookReader::EPUBFinder).to receive(:scan_system).and_return([])
-      
+
       scanner.start_scan
       sleep 0.1
-      
+
       expect(scanner.scan_status).to eq(:scanning)
     end
 
     it "doesn't start if already scanning" do
       thread = instance_double(Thread, alive?: true)
       scanner.instance_variable_set(:@scan_thread, thread)
-      
+
       expect(Thread).not_to receive(:new)
       scanner.start_scan
     end
@@ -61,11 +63,11 @@ RSpec.describe EbookReader::Helpers::EPUBScanner do
     it "processes queued results" do
       queue = scanner.instance_variable_get(:@scan_results_queue)
       queue.push({
-        status: :done,
-        epubs: [{ 'name' => 'Book' }],
-        message: 'Found 1 book'
-      })
-      
+                   status: :done,
+                   epubs: [{ 'name' => 'Book' }],
+                   message: 'Found 1 book'
+                 })
+
       epubs = scanner.process_results
       expect(epubs).to eq([{ 'name' => 'Book' }])
       expect(scanner.scan_status).to eq(:done)
@@ -76,7 +78,7 @@ RSpec.describe EbookReader::Helpers::EPUBScanner do
     it "kills scan thread if alive" do
       thread = instance_double(Thread)
       scanner.instance_variable_set(:@scan_thread, thread)
-      
+
       expect(thread).to receive(:kill)
       scanner.cleanup
     end

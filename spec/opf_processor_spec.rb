@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
@@ -55,7 +57,7 @@ RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
     it "handles missing metadata" do
       File.write('/empty.opf', '<package/>')
       processor = described_class.new('/empty.opf')
-      
+
       metadata = processor.extract_metadata
       expect(metadata).to eq({})
     end
@@ -65,10 +67,10 @@ RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
     it "builds manifest id to href map" do
       manifest = processor.build_manifest_map
       expect(manifest).to eq({
-        'ch1' => 'chapter1.html',
-        'ch2' => 'chapter2.html',
-        'ncx' => 'toc.ncx'
-      })
+                               'ch1' => 'chapter1.html',
+                               'ch2' => 'chapter2.html',
+                               'ncx' => 'toc.ncx'
+                             })
     end
   end
 
@@ -76,18 +78,18 @@ RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
     it "extracts titles from NCX file" do
       manifest = processor.build_manifest_map
       titles = processor.extract_chapter_titles(manifest)
-      
+
       expect(titles).to eq({
-        'chapter1.html' => 'Chapter 1 Title',
-        'chapter2.html' => 'Chapter 2 Title'
-      })
+                             'chapter1.html' => 'Chapter 1 Title',
+                             'chapter2.html' => 'Chapter 2 Title'
+                           })
     end
 
     it "handles missing NCX file" do
       FileUtils.rm('/book/toc.ncx')
       manifest = processor.build_manifest_map
       titles = processor.extract_chapter_titles(manifest)
-      
+
       expect(titles).to eq({})
     end
   end
@@ -97,11 +99,11 @@ RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
       manifest = processor.build_manifest_map
       titles = processor.extract_chapter_titles(manifest)
       chapters = []
-      
+
       processor.process_spine(manifest, titles) do |path, num, title|
         chapters << { path: path, num: num, title: title }
       end
-      
+
       expect(chapters.size).to eq(2)
       expect(chapters[0][:num]).to eq(1)
       expect(chapters[0][:title]).to eq('Chapter 1 Title')

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::UI::MainMenuRenderer do
@@ -30,14 +32,14 @@ RSpec.describe EbookReader::UI::MainMenuRenderer do
     it "renders selected item with highlight" do
       expect(EbookReader::Terminal).to receive(:write).with(10, 20, /▸/)
       expect(EbookReader::Terminal).to receive(:write).with(10, 22, /Find Book/)
-      
+
       renderer.render_menu_item(10, 20, 22, item, true)
     end
 
     it "renders unselected item normally" do
       expect(EbookReader::Terminal).to receive(:write).with(10, 20, /  /)
       expect(EbookReader::Terminal).to receive(:write).with(10, 22, /Find Book/)
-      
+
       renderer.render_menu_item(10, 20, 22, item, false)
     end
   end
@@ -46,7 +48,7 @@ RSpec.describe EbookReader::UI::MainMenuRenderer do
     it "renders footer text centered" do
       text = "Test footer"
       expect(EbookReader::Terminal).to receive(:write).with(23, anything, /Test footer/)
-      
+
       renderer.render_footer(24, 80, text)
     end
   end

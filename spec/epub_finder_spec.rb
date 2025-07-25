@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::EPUBFinder do
@@ -22,7 +24,7 @@ RSpec.describe EbookReader::EPUBFinder do
     it "uses cache when not forced" do
       # First scan
       described_class.scan_system(force_refresh: true)
-      
+
       # Second scan should use cache
       allow(described_class).to receive(:cache_expired?).and_return(false)
       expect(described_class).not_to receive(:perform_scan)

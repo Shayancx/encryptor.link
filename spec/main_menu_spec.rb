@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::MainMenu do
@@ -48,8 +50,8 @@ RSpec.describe EbookReader::MainMenu do
     before do
       menu.instance_variable_set(:@mode, :browse)
       menu.instance_variable_set(:@filtered_epubs, [
-        { 'name' => 'Book 1', 'path' => '/book1.epub' }
-      ])
+                                   { 'name' => 'Book 1', 'path' => '/book1.epub' }
+                                 ])
     end
 
     it "opens selected book on enter" do
@@ -60,13 +62,13 @@ RSpec.describe EbookReader::MainMenu do
 
     it "filters books on search" do
       menu.instance_variable_set(:@scanner, double(epubs: [
-        { 'name' => 'Book 1', 'path' => '/book1.epub' },
-        { 'name' => 'Another', 'path' => '/another.epub' }
-      ]))
-      
+                                                     { 'name' => 'Book 1', 'path' => '/book1.epub' },
+                                                     { 'name' => 'Another', 'path' => '/another.epub' }
+                                                   ]))
+
       menu.send(:handle_browse_input, 'b')
       menu.send(:handle_browse_input, 'o')
-      
+
       filtered = menu.instance_variable_get(:@filtered_epubs)
       expect(filtered.size).to eq(1)
       expect(filtered.first['name']).to eq('Book 1')

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::Reader do
@@ -5,10 +7,9 @@ RSpec.describe EbookReader::Reader do
   let(:config) { instance_double(EbookReader::Config, view_mode: :split) }
   let(:doc) do
     instance_double(EbookReader::EPUBDocument,
-      title: "Test Book",
-      chapters: [{ title: "Ch1", lines: ["Line 1", "Line 2"] }],
-      chapter_count: 1
-    )
+                    title: "Test Book",
+                    chapters: [{ title: "Ch1", lines: ["Line 1", "Line 2"] }],
+                    chapter_count: 1)
   end
 
   let(:reader) { described_class.new(epub_path, config) }

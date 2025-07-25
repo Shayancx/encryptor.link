@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
@@ -23,7 +25,7 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
       described_class.add(book_path, 1, 20, "Text 2")
       described_class.add(book_path, 1, 10, "Text 1")
       described_class.add(book_path, 0, 30, "Text 0")
-      
+
       bookmarks = described_class.get(book_path)
       expect(bookmarks[0]['chapter']).to eq(0)
       expect(bookmarks[1]['line_offset']).to eq(10)
@@ -49,7 +51,7 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
     it "removes a specific bookmark" do
       described_class.add(book_path, 0, 10, "Sample text")
       bookmarks = described_class.get(book_path)
-      
+
       described_class.delete(book_path, bookmarks.first)
       expect(described_class.get(book_path)).to be_empty
     end
@@ -59,7 +61,7 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
     it "loads all bookmarks from file" do
       bookmarks_data = { book_path => [{ 'chapter' => 0, 'line_offset' => 10 }] }
       File.write(bookmarks_file, JSON.pretty_generate(bookmarks_data))
-      
+
       expect(described_class.load_all).to eq(bookmarks_data)
     end
 

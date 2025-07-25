@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::UI::BrowseScreen do
@@ -11,7 +13,7 @@ RSpec.describe EbookReader::UI::BrowseScreen do
     it "renders header with title and controls" do
       expect(EbookReader::Terminal).to receive(:write).with(1, 2, /Browse Books/)
       expect(EbookReader::Terminal).to receive(:write).with(1, anything, /Refresh.*Back/)
-      
+
       browse_screen.render_header(80)
     end
   end
@@ -20,7 +22,7 @@ RSpec.describe EbookReader::UI::BrowseScreen do
     it "renders search input" do
       expect(EbookReader::Terminal).to receive(:write).with(3, 2, /Search:/)
       expect(EbookReader::Terminal).to receive(:write).with(3, 10, /test_query_/)
-      
+
       browse_screen.render_search_bar("test_query")
     end
   end

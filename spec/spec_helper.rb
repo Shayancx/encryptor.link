@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simplecov'
 SimpleCov.start do
   add_filter '/spec/'
@@ -37,13 +39,13 @@ RSpec.configure do |config|
   config.default_formatter = 'doc'
   config.example_status_persistence_file_path = ".rspec_status"
   config.disable_monkey_patching!
-  
+
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
-  
+
   config.include FakeFS::SpecHelpers, fake_fs: true
-  
+
   # Ensure Terminal doesn't interfere with tests
   config.before(:each) do
     allow(EbookReader::Terminal).to receive(:setup)
@@ -55,7 +57,7 @@ RSpec.configure do |config|
     allow(EbookReader::Terminal).to receive(:size).and_return([24, 80])
     allow(EbookReader::Terminal).to receive(:read_key).and_return(nil)
   end
-  
+
   # Mock $stdout for tests that print
   config.before(:each) do
     allow($stdout).to receive(:print)

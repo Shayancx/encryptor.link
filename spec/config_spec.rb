@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::Config, fake_fs: true do
@@ -25,7 +27,7 @@ RSpec.describe EbookReader::Config, fake_fs: true do
         show_page_numbers: false
       }
       File.write(config_file, JSON.pretty_generate(config_data))
-      
+
       config = described_class.new
       expect(config.view_mode).to eq(:single)
       expect(config.theme).to eq(:light)
@@ -38,7 +40,7 @@ RSpec.describe EbookReader::Config, fake_fs: true do
       config = described_class.new
       config.view_mode = :single
       config.save
-      
+
       saved_data = JSON.parse(File.read(config_file))
       expect(saved_data["view_mode"]).to eq("single")
     end
@@ -47,7 +49,7 @@ RSpec.describe EbookReader::Config, fake_fs: true do
       FileUtils.rm_rf(config_dir)
       config = described_class.new
       config.save
-      
+
       expect(File.exist?(config_dir)).to be true
     end
   end
@@ -56,7 +58,7 @@ RSpec.describe EbookReader::Config, fake_fs: true do
     it "returns config as hash" do
       config = described_class.new
       hash = config.to_h
-      
+
       expect(hash).to include(
         view_mode: :split,
         theme: :dark,

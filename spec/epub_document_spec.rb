@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
   let(:epub_path) { '/test.epub' }
   let(:document) { described_class.new(epub_path) }
-  
+
   before do
     # Instead of creating actual zip files, let's mock the behavior
     # Create the extracted structure that EPUBDocument expects
     FileUtils.mkdir_p('/tmp/extracted/META-INF')
-    
+
     # Create container.xml
     File.write('/tmp/extracted/META-INF/container.xml', <<-XML)
       <container>
@@ -17,7 +19,7 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
         </rootfiles>
       </container>
     XML
-    
+
     # Create content.opf
     File.write('/tmp/extracted/content.opf', <<-XML)
       <package>
@@ -33,7 +35,7 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
         </spine>
       </package>
     XML
-    
+
     # Create chapter HTML
     File.write('/tmp/extracted/ch1.html', <<-HTML)
       <html>
@@ -44,13 +46,13 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
         </body>
       </html>
     HTML
-    
+
     # Mock Dir.mktmpdir to return our prepared directory
     allow(Dir).to receive(:mktmpdir).and_yield('/tmp/extracted')
-    
+
     # Create a simple zip file for the EPUB (just a marker file)
     File.write(epub_path, "FAKE_ZIP_FILE")
-    
+
     # Mock Zip::File if it's loaded
     if defined?(Zip)
       allow(Zip::File).to receive(:open).with(epub_path).and_yield(
@@ -58,15 +60,15 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
           allow(zip).to receive(:each) do |&block|
             # Simulate entries
             [
-              double('entry', name: 'META-INF/container.xml', 
-                extract: nil, 
-                :'directory?' => false),
-              double('entry', name: 'content.opf', 
-                extract: nil,
-                :'directory?' => false),
+              double('entry', name: 'META-INF/container.xml',
+                              extract: nil,
+                              directory?: false),
+              double('entry', name: 'content.opf',
+                              extract: nil,
+                              directory?: false),
               double('entry', name: 'ch1.html',
-                extract: nil,
-                :'directory?' => false)
+                              extract: nil,
+                              directory?: false)
             ].each(&block)
           end
         end
@@ -87,7 +89,7 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
     it "handles corrupted epub" do
       # For corrupted EPUB, the error handling creates an error chapter
       allow(Dir).to receive(:mktmpdir).and_raise(StandardError.new("Invalid zip"))
-      
+
       doc = described_class.new('/bad.epub')
       expect(doc.chapter_count).to eq(1)
       expect(doc.chapters.first[:title]).to eq("Error Loading")

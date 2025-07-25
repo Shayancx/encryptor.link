@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe "EPUB Zip Handling" do
   # Test the actual zip extraction logic by mocking Zip module
   before do
     # Define a mock Zip module if it doesn't exist
-    unless defined?(::Zip)
+    unless defined?(Zip)
       module ::Zip
         class File
           def self.open(path)

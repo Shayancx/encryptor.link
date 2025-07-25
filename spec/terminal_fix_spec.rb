@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe "Terminal Fix" do
@@ -10,9 +12,9 @@ RSpec.describe "Terminal Fix" do
         end
       end
     end
-    
+
     # Apply the fix
-    load File.expand_path('../../lib/ebook_reader/terminal_fix.rb', __FILE__)
+    load File.expand_path('../lib/ebook_reader/terminal_fix.rb', __dir__)
   end
 
   it "aliases get_key to read_key" do
