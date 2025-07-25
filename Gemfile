@@ -13,3 +13,5 @@ group :test do
   gem 'rspec'
   gem 'simplecov', require: false
 end
+
+gem "code-scanning-rubocop", "= 0.3.0"
