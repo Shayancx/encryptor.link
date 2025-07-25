@@ -2,11 +2,14 @@
 
 source 'https://rubygems.org'
 
-gem 'fakefs', require: 'fakefs/spec_helpers'
 gem 'io-console'
 gem 'reek'
 gem 'rexml'
-gem 'rspec'
 gem 'rubocop'
-gem 'simplecov', require: false
 gem 'zip'
+
+group :test do
+  gem 'rspec'
+  gem 'simplecov', require: false
+  gem 'fakefs', require: 'fakefs/spec_helpers'
+end

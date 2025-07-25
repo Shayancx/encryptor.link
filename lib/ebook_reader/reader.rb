@@ -59,7 +59,8 @@ module EbookReader
     def main_loop
       while @running
         draw_screen
-        process_input(Terminal.read_key) if Terminal.read_key
+        key = Terminal.read_key
+        process_input(key) if key
         sleep 0.02
       end
     end
