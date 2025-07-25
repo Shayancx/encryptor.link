@@ -25,3 +25,10 @@ Style/StringLiterals:
   Enabled: false
 Style/RedundantStringEscape:
   Enabled: false
+Metrics/BlockLength:
+  AllowedMethods:
+    - describe
+    - context
+    - feature
+    - scenario
+    - before

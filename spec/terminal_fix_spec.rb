@@ -4,14 +4,12 @@ require 'spec_helper'
 
 RSpec.describe "Terminal Fix" do
   before do
-    # Create a test class with get_key method
-    module EbookReader
-      class Terminal
-        def self.get_key
-          "test_key"
-        end
+    stub_const(
+      "EbookReader::Terminal",
+      Class.new do
+        define_singleton_method(:get_key) { "test_key" }
       end
-    end
+    )
 
     # Apply the fix
     load File.expand_path('../lib/ebook_reader/terminal_fix.rb', __dir__)

@@ -10,8 +10,9 @@ RSpec.describe "Edge Cases" do
     let(:helper) { test_class.new }
 
     it "handles nil word in wrap_line" do
-      lines = ["word nil word"]
-      allow(lines.first).to receive(:split).and_return(["word", nil, "word"])
+      line = "word nil word".dup
+      allow(line).to receive(:split).and_return(["word", nil, "word"])
+      lines = [line]
 
       wrapped = helper.wrap_lines(lines, 50)
       expect(wrapped).to be_an(Array)
