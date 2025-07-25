@@ -56,7 +56,7 @@ module EbookReader
     def cleanup_and_exit(code, message, error = nil)
       Terminal.cleanup
       puts message
-      puts error.backtrace if error && DEBUG_MODE
+      puts error.backtrace if error && EPUBFinder::DEBUG_MODE
       exit code
     end
 
@@ -127,7 +127,7 @@ module EbookReader
     end
 
     def calculate_visible_range(list_height)
-      visible_start = [@browse_selected - list_height / 2, 0].max
+      visible_start = [@browse_selected - (list_height / 2), 0].max
       visible_end = [visible_start + list_height, @filtered_epubs.length].min
 
       if visible_end == @filtered_epubs.length && @filtered_epubs.length > list_height
@@ -163,7 +163,7 @@ module EbookReader
     end
 
     def render_book_path(book, row, width)
-      path = (book['dir'] || '').sub(ENV['HOME'], '~')
+      path = (book['dir'] || '').sub(Dir.home, '~')
       path = "#{path[0, 30]}..." if path.length > 33
       Terminal.write(row, [width - 35, 45].max,
                      Terminal::ANSI::DIM + Terminal::ANSI::GRAY + path + Terminal::ANSI::RESET)
@@ -178,7 +178,7 @@ module EbookReader
     def render_browse_footer(height, _width)
       Terminal.write(height - 1, 2,
                      Terminal::ANSI::DIM + "#{@filtered_epubs.length} books • " \
-                       '↑↓ Navigate • Enter Open • / Search • r Refresh • ESC Back' + Terminal::ANSI::RESET)
+                                           '↑↓ Navigate • Enter Open • / Search • r Refresh • ESC Back' + Terminal::ANSI::RESET)
     end
 
     def draw_recent_screen(height, width)
@@ -218,7 +218,7 @@ module EbookReader
     end
 
     def render_recent_item(book, index, list_start, height, width)
-      row_base = list_start + index * 2
+      row_base = list_start + (index * 2)
       return if row_base >= height - 2
 
       render_recent_title(book, index, row_base)
@@ -244,7 +244,7 @@ module EbookReader
     end
 
     def render_recent_path(book, row, width)
-      path = (book['path'] || '').sub(ENV['HOME'], '~')
+      path = (book['path'] || '').sub(Dir.home, '~')
       Terminal.write(row, 6,
                      Terminal::ANSI::DIM + Terminal::ANSI::GRAY + path[0, width - 8] + Terminal::ANSI::RESET)
     end
@@ -301,7 +301,7 @@ module EbookReader
     def render_settings_list(settings, height)
       start_row = 5
       settings.each_with_index do |setting, i|
-        row_base = start_row + i * 3
+        row_base = start_row + (i * 3)
         next if row_base >= height - 4
 
         render_setting_item(setting, row_base, height)
@@ -321,7 +321,7 @@ module EbookReader
 
     def render_settings_status
       settings_count = 5
-      row = 5 + settings_count * 3 + 1
+      row = 5 + (settings_count * 3) + 1
       Terminal.write(row, 4, Terminal::ANSI::YELLOW + @scanner.scan_message + Terminal::ANSI::RESET)
     end
 

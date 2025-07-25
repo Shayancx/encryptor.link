@@ -82,7 +82,7 @@ module EbookReader
       end
 
       def write(row, col, text)
-        @buffer << ANSI.move(row, col) + text.to_s
+        @buffer << (ANSI.move(row, col) + text.to_s)
       end
 
       def start_frame

@@ -89,7 +89,7 @@ module EbookReader
         col_width = [(width - 3) / 2, 20].max - 2
         content_height = [height - 4, 1].max
       else
-        col_width = [[(width * 0.9).to_i, 120].min, 30].max
+        col_width = (width * 0.9).to_i.clamp(30, 120)
         content_height = [height - 2, 1].max
       end
       [col_width, content_height]
@@ -104,10 +104,10 @@ module EbookReader
 
       @current_chapter = 0 if @current_chapter >= @doc.chapter_count
 
-      set_page_offsets(line_offset)
+      self.page_offsets = line_offset
     end
 
-    def set_page_offsets(offset)
+    def page_offsets=(offset)
       @single_page = offset
       @left_page = offset
       @right_page = offset
@@ -301,9 +301,10 @@ module EbookReader
 
     def calculate_actual_height(height)
       case @config.line_spacing
-      when :relaxed then [height / 2, 1].max
-      when :compact then height
-      else height
+      when :relaxed
+        [height / 2, 1].max
+      else
+        height
       end
     end
 
@@ -443,7 +444,7 @@ module EbookReader
     end
 
     def calculate_toc_visible_range(list_height, chapter_count)
-      visible_start = [@toc_selected - list_height / 2, 0].max
+      visible_start = [@toc_selected - (list_height / 2), 0].max
       visible_end = [visible_start + list_height, chapter_count].min
       visible_start...visible_end
     end
@@ -489,7 +490,7 @@ module EbookReader
     def draw_empty_bookmarks(height, width)
       Terminal.write(height / 2, (width - 20) / 2,
                      "#{Terminal::ANSI::DIM}No bookmarks yet.#{Terminal::ANSI::RESET}")
-      Terminal.write(height / 2 + 1, (width - 30) / 2,
+      Terminal.write((height / 2) + 1, (width - 30) / 2,
                      "#{Terminal::ANSI::DIM}Press 'b' while reading to add one.#{Terminal::ANSI::RESET}")
     end
 
@@ -502,7 +503,7 @@ module EbookReader
     end
 
     def calculate_bookmark_visible_range(list_height)
-      visible_start = [@bookmark_selected - list_height / 2, 0].max
+      visible_start = [@bookmark_selected - (list_height / 2), 0].max
       visible_end = [visible_start + list_height, @bookmarks.length].min
       visible_start...visible_end
     end
@@ -512,7 +513,7 @@ module EbookReader
         bookmark = @bookmarks[idx]
         chapter_title = @doc.get_chapter(bookmark['chapter'])&.[](:title) || "Chapter #{bookmark['chapter'] + 1}"
 
-        draw_bookmark_item(bookmark, chapter_title, idx, list_start + row_idx * 2, width)
+        draw_bookmark_item(bookmark, chapter_title, idx, list_start + (row_idx * 2), width)
       end
     end
 
@@ -744,7 +745,7 @@ module EbookReader
       return unless bookmark
 
       @current_chapter = bookmark['chapter']
-      set_page_offsets(bookmark['line_offset'])
+      self.page_offsets = bookmark['line_offset']
       save_progress
       @mode = :read
     end
@@ -760,7 +761,7 @@ module EbookReader
     end
 
     def reset_pages
-      set_page_offsets(0)
+      self.page_offsets = 0
     end
 
     def next_chapter

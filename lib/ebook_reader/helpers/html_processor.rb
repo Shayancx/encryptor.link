@@ -7,11 +7,9 @@ module EbookReader
     # Processes HTML content
     class HTMLProcessor
       def self.extract_title(html)
-        if (match = html.match(%r{<title[^>]*>([^<]+)</title>}i))
-          clean_html(match[1])
-        elsif (match = html.match(%r{<h[1-3][^>]*>([^<]+)</h[1-3]>}i))
-          clean_html(match[1])
-        end
+        match = html.match(%r{<title[^>]*>([^<]+)</title>}i) ||
+                html.match(%r{<h[1-3][^>]*>([^<]+)</h[1-3]>}i)
+        clean_html(match[1]) if match
       end
 
       def self.html_to_text(html)
@@ -37,7 +35,7 @@ module EbookReader
         text = CGI.unescapeHTML(text)
 
         # Clean up whitespace
-        text.gsub!(/\\r/, '')
+        text.gsub!('\\r', '')
         text.gsub!(/\\n{3,}/, "\n\n")
         text.gsub!(/[ \t]+/, ' ')
         text.strip

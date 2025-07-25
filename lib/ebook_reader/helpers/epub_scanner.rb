@@ -4,7 +4,7 @@ module EbookReader
   module Helpers
     # Handles EPUB scanning operations
     class EPUBScanner
-      attr_reader :scan_status, :scan_message, :epubs
+      attr_accessor :scan_status, :scan_message, :epubs
 
       def initialize
         @epubs = []

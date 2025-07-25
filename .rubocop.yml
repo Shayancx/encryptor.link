@@ -1,0 +1,27 @@
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'bin/**/*'
+    - 'vendor/**/*'
+  SuggestExtensions: false
+
+Metrics/ClassLength:
+  Max: 700
+Metrics/MethodLength:
+  Max: 35
+Metrics/AbcSize:
+  Max: 40
+Metrics/CyclomaticComplexity:
+  Max: 15
+Metrics/PerceivedComplexity:
+  Max: 15
+Metrics/ParameterLists:
+  Max: 9
+Layout/LineLength:
+  Max: 130
+Style/Documentation:
+  Enabled: false
+Style/StringLiterals:
+  Enabled: false
+Style/RedundantStringEscape:
+  Enabled: false

@@ -45,14 +45,14 @@ module EbookReader
       def render_scanning_message(height, width)
         Terminal.write(height / 2, [(width - 30) / 2, 1].max,
                        "#{YELLOW}⟳ Scanning for books...#{RESET}")
-        Terminal.write(height / 2 + 2, [(width - 40) / 2, 1].max,
+        Terminal.write((height / 2) + 2, [(width - 40) / 2, 1].max,
                        "#{DIM}This may take a moment on first run#{RESET}")
       end
 
       def render_no_files_message(height, width)
         Terminal.write(height / 2, [(width - 30) / 2, 1].max,
                        "#{DIM}No EPUB files found#{RESET}")
-        Terminal.write(height / 2 + 2, [(width - 35) / 2, 1].max,
+        Terminal.write((height / 2) + 2, [(width - 35) / 2, 1].max,
                        "#{DIM}Press [r] to refresh scan#{RESET}")
       end
 

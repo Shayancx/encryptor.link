@@ -14,7 +14,7 @@ module EbookReader
     MAX_FILES = 500
     CONFIG_DIR = File.expand_path('~/.config/simple-novel-reader')
     CACHE_FILE = File.join(CONFIG_DIR, 'epub_cache.json')
-    DEBUG_MODE = ARGV.include?('--debug') || ENV['DEBUG']
+    DEBUG_MODE = ARGV.include?('--debug') || ENV.fetch('DEBUG', nil)
 
     class << self
       def scan_system(force_refresh: false)
@@ -24,7 +24,7 @@ module EbookReader
       end
 
       def clear_cache
-        File.delete(CACHE_FILE) if File.exist?(CACHE_FILE)
+        FileUtils.rm_f(CACHE_FILE)
       rescue StandardError
         nil
       end
