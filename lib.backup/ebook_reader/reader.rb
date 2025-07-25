@@ -1,14 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'reader_modes/reading_mode'
-require_relative 'reader_modes/help_mode'
-require_relative 'reader_modes/toc_mode'
-require_relative 'reader_modes/bookmarks_mode'
-require_relative 'constants/ui_constants'
-require_relative 'errors'
-
-# frozen_string_literal: true
-
 require_relative 'helpers/reader_helpers'
 require_relative 'ui/reader_renderer'
 require_relative 'concerns/input_handler'
@@ -16,7 +7,6 @@ require_relative 'concerns/input_handler'
 module EbookReader
   # Enhanced reader with single/split view
   class Reader
-    include Constants::UIConstants
     include Helpers::ReaderHelpers
     include Concerns::InputHandler
 
@@ -35,108 +25,6 @@ module EbookReader
     ensure
       Terminal.cleanup
     end
-
-    def switch_mode(mode)
-      @mode = mode
-    end
-
-    def scroll_down
-      if @config.view_mode == :split
-        @left_page = [@left_page + 1, @max_page || 0].min
-        @right_page = [@right_page + 1, @max_page || 0].min
-      else
-        @single_page = [@single_page + 1, @max_page || 0].min
-      end
-    end
-
-    def scroll_up
-      if @config.view_mode == :split
-        @left_page = [@left_page - 1, 0].max
-        @right_page = [@right_page - 1, 0].max
-      else
-        @single_page = [@single_page - 1, 0].max
-      end
-    end
-
-    def next_page
-      height, width = Terminal.size
-      col_width, content_height = get_layout_metrics(width, height)
-      content_height = adjust_for_line_spacing(content_height)
-
-      chapter = @doc.get_chapter(@current_chapter)
-      return unless chapter
-
-      wrapped = wrap_lines(chapter[:lines] || [], col_width)
-      max_page = [wrapped.size - content_height, 0].max
-
-      if @config.view_mode == :split
-        if @right_page < max_page
-          @left_page = @right_page
-          @right_page = [@right_page + content_height, max_page].min
-        elsif @current_chapter < @doc.chapter_count - 1
-          next_chapter
-        end
-      elsif @single_page < max_page
-        @single_page = [@single_page + content_height, max_page].min
-      elsif @current_chapter < @doc.chapter_count - 1
-        next_chapter
-      end
-    end
-
-    def prev_page
-      height, width = Terminal.size
-      _, content_height = get_layout_metrics(width, height)
-      content_height = adjust_for_line_spacing(content_height)
-
-      if @config.view_mode == :split
-        if @left_page.positive?
-          @right_page = @left_page
-          @left_page = [@left_page - content_height, 0].max
-        elsif @current_chapter.positive?
-          prev_chapter(go_to_end: true)
-        end
-      elsif @single_page.positive?
-        @single_page = [@single_page - content_height, 0].max
-      elsif @current_chapter.positive?
-        prev_chapter(go_to_end: true)
-      end
-    end
-
-    def go_to_start
-      reset_pages
-    end
-
-    def go_to_end
-      height, width = Terminal.size
-      col_width, content_height = get_layout_metrics(width, height)
-      content_height = adjust_for_line_spacing(content_height)
-
-      chapter = @doc.get_chapter(@current_chapter)
-      return unless chapter
-
-      wrapped = wrap_lines(chapter[:lines] || [], col_width)
-      max_page = [wrapped.size - content_height, 0].max
-
-      if @config.view_mode == :split
-        @right_page = max_page
-        @left_page = [max_page - content_height, 0].max
-      else
-        @single_page = max_page
-      end
-    end
-
-    def quit_to_menu
-      save_progress
-      @running = false
-    end
-
-    def quit_application
-      save_progress
-      Terminal.cleanup
-      exit 0
-    end
-
-    attr_reader :current_chapter, :doc, :config
 
     private
 
@@ -173,7 +61,7 @@ module EbookReader
         draw_screen
         key = Terminal.read_key
         process_input(key) if key
-        sleep KEY_REPEAT_DELAY / 1000.0
+        sleep 0.02
       end
     end
 
@@ -199,7 +87,7 @@ module EbookReader
 
     def get_layout_metrics(width, height)
       if @config.view_mode == :split
-        col_width = [(width - 3) / 2, MIN_COLUMN_WIDTH].max
+        col_width = [(width - 3) / 2, 20].max
         content_height = [height - 2, 1].max
       else
         col_width = (width * 0.9).to_i.clamp(30, 120)
@@ -599,7 +487,7 @@ module EbookReader
     end
 
     def draw_empty_bookmarks(height, width)
-      Terminal.write(height / 2, (width - MIN_COLUMN_WIDTH) / 2,
+      Terminal.write(height / 2, (width - 20) / 2,
                      "#{Terminal::ANSI::DIM}No bookmarks yet.#{Terminal::ANSI::RESET}")
       Terminal.write((height / 2) + 1, (width - 30) / 2,
                      "#{Terminal::ANSI::DIM}Press 'b' while reading to add one.#{Terminal::ANSI::RESET}")

@@ -1,11 +1,5 @@
 # frozen_string_literal: true
 
-# Add these requires to the top of lib/ebook_reader.rb
-
-require_relative 'ebook_reader/errors'
-require_relative 'ebook_reader/constants/ui_constants'
-# frozen_string_literal: true
-
 require_relative 'ebook_reader/version'
 require_relative 'ebook_reader/terminal'
 require_relative 'ebook_reader/config'

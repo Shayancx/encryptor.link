@@ -2,37 +2,22 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::Constants do
-  it "defines CONFIG_DIR" do
-    expect(described_class::CONFIG_DIR).to eq(File.expand_path("~/.config/simple-novel-reader"))
+RSpec.describe EbookReader::Constants::UIConstants do
+  it 'defines terminal defaults' do
+    expect(described_class::DEFAULT_HEIGHT).to eq(24)
+    expect(described_class::DEFAULT_WIDTH).to eq(80)
+    expect(described_class::MIN_HEIGHT).to eq(10)
+    expect(described_class::MIN_WIDTH).to eq(40)
   end
 
-  it "defines ESCAPE_CHAR" do
-    expect(described_class::ESCAPE_CHAR).to eq("\e")
+  it 'defines layout constants' do
+    expect(described_class::HEADER_HEIGHT).to eq(2)
+    expect(described_class::FOOTER_HEIGHT).to eq(2)
+    expect(described_class::SPLIT_VIEW_DIVIDER_WIDTH).to eq(5)
   end
 
-  it "defines ESCAPE_CODE" do
-    expect(described_class::ESCAPE_CODE).to eq("\x1B")
-  end
-
-  it "defines SCAN_TIMEOUT" do
-    expect(described_class::SCAN_TIMEOUT).to eq(20)
-  end
-
-  it "defines MAX_DEPTH" do
-    expect(described_class::MAX_DEPTH).to eq(3)
-  end
-
-  it "defines MAX_FILES" do
-    expect(described_class::MAX_FILES).to eq(500)
-  end
-
-  it "defines MAX_LINE_LENGTH" do
-    expect(described_class::MAX_LINE_LENGTH).to eq(120)
-  end
-
-  it "defines SKIP_DIRS" do
-    expect(described_class::SKIP_DIRS).to be_an(Array)
-    expect(described_class::SKIP_DIRS).to include('node_modules', 'vendor', 'cache')
+  it 'defines visual indicators' do
+    expect(described_class::POINTER_SYMBOL).to eq('▸')
+    expect(described_class::DIVIDER_SYMBOL).to eq('│')
   end
 end
