@@ -58,9 +58,9 @@ RSpec.describe "Integration Edge Cases" do
     end
   end
 
-  describe "OPFProcessor namespace handling" do
+  describe "OPFProcessor namespace handling", fake_fs: true do
     it 'handles OPF files with various namespaces' do
-      FileUtils.mkdir_p('/book')
+      FileUtils.mkdir_p('book')
       opf_content = <<-XML
         <package xmlns="http://www.idpf.org/2007/opf" 
                  xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -71,9 +71,9 @@ RSpec.describe "Integration Edge Cases" do
           </metadata>
         </package>
       XML
-      File.write('/book/content.opf', opf_content)
+      File.write('book/content.opf', opf_content)
       
-      processor = EbookReader::Helpers::OPFProcessor.new('/book/content.opf')
+      processor = EbookReader::Helpers::OPFProcessor.new('book/content.opf')
       metadata = processor.extract_metadata
       
       expect(metadata[:title]).to eq("Test")

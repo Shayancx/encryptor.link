@@ -13,7 +13,10 @@ module EbookReader
       end
 
       def self.html_to_text(html)
-        text = remove_scripts_and_styles(html.dup)
+        text = html.dup
+        # Handle CDATA sections BEFORE removing other tags
+        text = handle_cdata_sections(text)
+        text = remove_scripts_and_styles(text)
         text = replace_block_elements(text)
         text = strip_tags(text)
         text = CGI.unescapeHTML(text)
@@ -31,6 +34,11 @@ module EbookReader
       }.freeze
 
       private_constant :BLOCK_REPLACEMENTS
+
+      private_class_method def self.handle_cdata_sections(text)
+        # Extract CDATA content before other processing
+        text.gsub(/<!\[CDATA\[(.*?)\]\]>/m, '\1')
+      end
 
       private_class_method def self.remove_scripts_and_styles(text)
         text.gsub!(%r{<script[^>]*>.*?</script>}mi, '')
