@@ -19,20 +19,20 @@ RSpec.describe EbookReader::MainMenu, "edge cases" do
         { 'name' => 'Book (1)', 'path' => '/book1.epub' },
         { 'name' => 'Book [2]', 'path' => '/book2.epub' }
       ]
-      
+
       menu.instance_variable_set(:@search_query, '(1)')
       menu.send(:filter_books)
       filtered = menu.instance_variable_get(:@filtered_epubs)
-      
+
       expect(filtered.size).to eq(1)
     end
 
     it 'handles empty search query after adding characters' do
       menu.instance_variable_set(:@mode, :browse)
       menu.instance_variable_set(:@search_query, 'test')
-      
+
       4.times { menu.send(:handle_backspace) }
-      
+
       expect(menu.instance_variable_get(:@search_query)).to eq('')
     end
   end
@@ -49,7 +49,7 @@ RSpec.describe EbookReader::MainMenu, "edge cases" do
     end
 
     it 'handles path with nested quotes' do
-      allow(menu).to receive(:gets).and_return(%Q{"'/path/to/book.epub'"\n})
+      allow(menu).to receive(:gets).and_return(%("'/path/to/book.epub'"\n))
       expect(menu).to receive(:handle_file_path).with("'/path/to/book.epub'")
       menu.send(:open_file_dialog)
     end
@@ -83,7 +83,7 @@ RSpec.describe EbookReader::MainMenu, "edge cases" do
     it 'handles navigation with empty epubs list' do
       menu.instance_variable_set(:@mode, :browse)
       menu.instance_variable_set(:@filtered_epubs, [])
-      
+
       expect { menu.send(:handle_browse_input, 'j') }.not_to raise_error
       expect { menu.send(:handle_browse_input, "\r") }.not_to raise_error
     end

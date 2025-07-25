@@ -13,7 +13,7 @@ RSpec.describe EbookReader::Terminal do
       described_class.start_frame
       described_class.move(1, 1)
       described_class.write(1, 1, 'Hi')
-      buffer = described_class.instance_variable_get(:@buffer).dup
+      described_class.instance_variable_get(:@buffer).dup
       described_class.end_frame
     end
   end
@@ -35,6 +35,7 @@ RSpec.describe EbookReader::Terminal do
       allow($stdin).to receive(:read_nonblock) do
         call += 1
         raise IO::EAGAINWaitReadable if call > 1
+
         "\e"
       end
       expect(described_class.read_key).to eq("\e")

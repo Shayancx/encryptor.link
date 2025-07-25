@@ -7,7 +7,7 @@ RSpec.describe EbookReader::EPUBFinder, "edge cases" do
     it 'handles directory access errors' do
       allow(Dir).to receive(:exist?).and_return(true)
       allow(Dir).to receive(:entries).and_raise(Errno::EACCES)
-      
+
       result = described_class.scan_system(force_refresh: true)
       expect(result).to be_an(Array)
     end
@@ -15,7 +15,7 @@ RSpec.describe EbookReader::EPUBFinder, "edge cases" do
     it 'handles symbolic link loops' do
       allow(Dir).to receive(:exist?).and_return(true)
       allow(Dir).to receive(:entries).and_raise(Errno::ELOOP)
-      
+
       result = described_class.scan_system(force_refresh: true)
       expect(result).to be_an(Array)
     end
@@ -24,7 +24,7 @@ RSpec.describe EbookReader::EPUBFinder, "edge cases" do
       cache_data = { 'files' => nil, 'timestamp' => Time.now.iso8601 }
       allow(File).to receive(:exist?).with(described_class::CACHE_FILE).and_return(true)
       allow(File).to receive(:read).with(described_class::CACHE_FILE).and_return(cache_data.to_json)
-      
+
       result = described_class.scan_system
       expect(result).to be_an(Array)
     end
@@ -36,7 +36,7 @@ RSpec.describe EbookReader::EPUBFinder, "edge cases" do
       allow(File).to receive(:readable?).and_return(true)
       allow(File).to receive(:size).and_return(1000)
       allow(File).to receive(:mtime).and_return(Time.now)
-      
+
       result = described_class.scan_system(force_refresh: true)
       expect(result.map { |f| f['name'] }).to include('book[special]', 'book with spaces')
     end
@@ -49,7 +49,7 @@ RSpec.describe EbookReader::EPUBFinder, "edge cases" do
       allow(File).to receive(:size).with(/empty/).and_return(0)
       allow(File).to receive(:size).with(/valid/).and_return(1000)
       allow(File).to receive(:mtime).and_return(Time.now)
-      
+
       result = described_class.scan_system(force_refresh: true)
       expect(result.map { |f| f['name'] }).to include('valid')
       expect(result.map { |f| f['name'] }).not_to include('empty')

@@ -13,7 +13,7 @@ RSpec.describe EbookReader::Config, "edge cases", fake_fs: true do
       another_unknown: 123
     }
     File.write(config_file, JSON.pretty_generate(config_data))
-    
+
     config = described_class.new
     expect(config.view_mode).to eq(:split)
   end
@@ -26,7 +26,7 @@ RSpec.describe EbookReader::Config, "edge cases", fake_fs: true do
       line_spacing: true
     }
     File.write(config_file, JSON.pretty_generate(config_data))
-    
+
     config = described_class.new
     # Should use defaults for invalid values
     expect(config.view_mode).to eq(:split)
@@ -35,14 +35,14 @@ RSpec.describe EbookReader::Config, "edge cases", fake_fs: true do
   it 'handles readonly filesystem when saving' do
     config = described_class.new
     allow(File).to receive(:write).and_raise(Errno::EROFS)
-    
+
     expect { config.save }.not_to raise_error
   end
 
   it 'handles disk full error when saving' do
     config = described_class.new
     allow(File).to receive(:write).and_raise(Errno::ENOSPC)
-    
+
     expect { config.save }.not_to raise_error
   end
 end

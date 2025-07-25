@@ -36,7 +36,7 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
     it 'calculates row correctly for different line spacings' do
       config.line_spacing = :relaxed
       expect(reader.send(:calculate_row, 5, 2)).to eq(9)
-      
+
       config.line_spacing = :normal
       expect(reader.send(:calculate_row, 5, 2)).to eq(7)
     end
@@ -44,10 +44,10 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
     it 'handles terminal boundary checks' do
       allow(EbookReader::Terminal).to receive(:size).and_return([10, 80])
       allow(EbookReader::Terminal).to receive(:write)
-      
+
       # Should not write past terminal height
       reader.send(:draw_lines, ["Line 1"] * 20, 0, 20, 1, 1, 80, 20)
-      
+
       # Verify it respects boundaries
       expect(EbookReader::Terminal).to have_received(:write).at_most(8).times
     end
@@ -62,7 +62,7 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
     it 'handles chapter boundaries during prev_page' do
       reader.instance_variable_set(:@current_chapter, 1)
       reader.instance_variable_set(:@single_page, 0)
-      
+
       reader.send(:prev_page, 10)
       expect(reader.instance_variable_get(:@current_chapter)).to eq(0)
     end
@@ -71,11 +71,11 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
   describe 'error document creation' do
     it 'creates proper error document structure' do
       error_doc = reader.send(:create_error_document, "Test error")
-      
+
       expect(error_doc.title).to eq('Error Loading EPUB')
       expect(error_doc.language).to eq('en_US')
       expect(error_doc.chapter_count).to eq(1)
-      
+
       chapter = error_doc.get_chapter(0)
       expect(chapter[:lines]).to include("Test error")
       expect(chapter[:lines]).to include("Press 'q' to return to the menu")
@@ -85,14 +85,14 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
   describe 'bookmark handling' do
     it 'handles bookmark deletion when selected index becomes invalid' do
       reader.instance_variable_set(:@bookmarks, [
-        { 'chapter' => 0, 'line_offset' => 0, 'text' => 'B1' },
-        { 'chapter' => 0, 'line_offset' => 5, 'text' => 'B2' }
-      ])
+                                     { 'chapter' => 0, 'line_offset' => 0, 'text' => 'B1' },
+                                     { 'chapter' => 0, 'line_offset' => 5, 'text' => 'B2' }
+                                   ])
       reader.instance_variable_set(:@bookmark_selected, 1)
-      
+
       allow(EbookReader::BookmarkManager).to receive(:delete)
       allow(EbookReader::BookmarkManager).to receive(:get).and_return([])
-      
+
       reader.send(:delete_selected_bookmark)
       expect(reader.instance_variable_get(:@bookmark_selected)).to eq(0)
     end

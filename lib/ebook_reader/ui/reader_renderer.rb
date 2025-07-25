@@ -13,9 +13,8 @@ module EbookReader
       def render_header(doc, width, view_mode, mode)
         if view_mode == :single && mode == :read
           title_text = doc.title
-          title_with_underline = "\e[4m#{title_text}\e[24m" # Add underline ANSI codes
           centered_col = [(width - title_text.length) / 2, 1].max
-          Terminal.write(1, centered_col, WHITE + title_with_underline + RESET)
+          Terminal.write(1, centered_col, WHITE + title_text + RESET)
         else
           title_text = 'Simple Novel Reader'
           Terminal.write(1, 1, WHITE + title_text + RESET)

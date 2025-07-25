@@ -4,7 +4,7 @@ require 'spec_helper'
 
 RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
   let(:epub_path) { '/edge_case.epub' }
-  
+
   before do
     FileUtils.mkdir_p('/tmp/extracted/META-INF')
     FileUtils.touch(epub_path)
@@ -26,7 +26,7 @@ RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
         </rootfiles>
       </container>
     XML
-    
+
     File.write('/tmp/extracted/content.opf', <<-XML)
       <package>
         <metadata>
@@ -38,7 +38,7 @@ RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
         </spine>
       </package>
     XML
-    
+
     doc = described_class.new(epub_path)
     expect(doc.chapters).not_to be_empty
   end
@@ -51,7 +51,7 @@ RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
         </rootfiles>
       </container>
     XML
-    
+
     File.write('/tmp/extracted/content.opf', <<-XML)
       <package>
         <manifest>
@@ -62,10 +62,10 @@ RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
         </spine>
       </package>
     XML
-    
+
     # Write file with BOM - the BOM is stripped by read_file_content
     File.write('/tmp/extracted/ch1.html', "\uFEFF<html><body>Test</body></html>")
-    
+
     doc = described_class.new(epub_path)
     # The chapter should exist, even if empty due to processing
     expect(doc.chapters).not_to be_empty
@@ -82,7 +82,7 @@ RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
   it 'handles file read errors in chapters' do
     allow(File).to receive(:read).and_call_original
     allow(File).to receive(:read).with(/ch1\.html/).and_raise(Errno::ENOENT)
-    
+
     File.write('/tmp/extracted/META-INF/container.xml', <<-XML)
       <container>
         <rootfiles>
@@ -90,7 +90,7 @@ RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
         </rootfiles>
       </container>
     XML
-    
+
     File.write('/tmp/extracted/content.opf', <<-XML)
       <package>
         <manifest>
@@ -101,7 +101,7 @@ RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
         </spine>
       </package>
     XML
-    
+
     doc = described_class.new(epub_path)
     expect(doc.chapters).not_to be_empty
   end

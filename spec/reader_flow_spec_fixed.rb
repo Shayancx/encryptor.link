@@ -21,8 +21,9 @@ RSpec.describe EbookReader::Reader, 'flow test fixed', fake_fs: true do
     allow(EbookReader::EPUBDocument).to receive(:new).and_return(doc)
     allow(doc).to receive(:get_chapter) { |i| doc.chapters[i] if i >= 0 && i < doc.chapters.size }
     allow(EbookReader::BookmarkManager).to receive(:get).and_return([
-      { 'chapter' => 0, 'line_offset' => 5, 'text' => 'test bookmark', 'timestamp' => Time.now.iso8601 }
-    ])
+                                                                      { 'chapter' => 0, 'line_offset' => 5,
+                                                                        'text' => 'test bookmark', 'timestamp' => Time.now.iso8601 }
+                                                                    ])
     allow(EbookReader::BookmarkManager).to receive(:add)
     allow(EbookReader::BookmarkManager).to receive(:delete)
     allow(EbookReader::ProgressManager).to receive(:load).and_return(nil)
@@ -38,22 +39,20 @@ RSpec.describe EbookReader::Reader, 'flow test fixed', fake_fs: true do
   it 'exercises multiple code paths through user interaction' do
     keys = ['t', 'j', 'j', "\r", 'B', 'j', 'd', 'B', "\e", 'v', '+', '-', 'n', 'p', 'G', 'g', '?', 'q']
     key_index = 0
-    
+
     allow(EbookReader::Terminal).to receive(:read_key) do
       if key_index < keys.size
         key = keys[key_index]
         key_index += 1
         key
-      else
-        nil
       end
     end
-    
+
     allow(reader).to receive(:sleep)
-    
+
     # Should complete without errors
     expect { reader.run }.not_to raise_error
-    
+
     # Verify some state changes occurred
     expect(reader.instance_variable_get(:@running)).to be false
   end

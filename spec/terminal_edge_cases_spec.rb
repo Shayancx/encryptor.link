@@ -7,7 +7,7 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
     it 'handles partial escape sequences' do
       allow(IO.console).to receive(:raw).and_yield
       attempts = 0
-      allow($stdin).to receive(:read_nonblock) do |size|
+      allow($stdin).to receive(:read_nonblock) do |_size|
         attempts += 1
         case attempts
         when 1 then "\e"
@@ -15,7 +15,7 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
         else raise IO::WaitReadable
         end
       end
-      
+
       key = described_class.read_key
       expect(key).to start_with("\e")
     end
@@ -24,7 +24,7 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
       allow(IO.console).to receive(:raw).and_yield
       allow($stdin).to receive(:read_nonblock).with(1).and_return("\e")
       allow($stdin).to receive(:read_nonblock).with(3).and_return("[1~")
-      
+
       expect(described_class.read_key).to eq("\e[1~")
     end
   end
@@ -54,7 +54,7 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
       allow(described_class).to receive(:trap).with("INT") { |&block| handler = block }
       allow(described_class).to receive(:trap).with("TERM")
       allow(described_class).to receive(:cleanup)
-      
+
       described_class.send(:setup_signal_handlers)
       expect(described_class).to receive(:cleanup)
       expect { handler.call }.to raise_error(SystemExit)

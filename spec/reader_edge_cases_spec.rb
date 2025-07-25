@@ -67,7 +67,7 @@ RSpec.describe EbookReader::Reader, "edge cases" do
       reader.instance_variable_set(:@current_chapter, 1)
       reader.instance_variable_set(:@single_page, 0)
       allow(doc).to receive(:chapter_count).and_return(2)
-      
+
       reader.send(:prev_page, 10)
       expect(reader.instance_variable_get(:@current_chapter)).to eq(0)
     end
@@ -76,10 +76,10 @@ RSpec.describe EbookReader::Reader, "edge cases" do
   describe 'progress edge cases' do
     it 'handles corrupted progress data' do
       allow(EbookReader::ProgressManager).to receive(:load).and_return({
-        'chapter' => 999,
-        'line_offset' => -1
-      })
-      
+                                                                         'chapter' => 999,
+                                                                         'line_offset' => -1
+                                                                       })
+
       reader = described_class.new(epub_path, config)
       expect(reader.instance_variable_get(:@current_chapter)).to eq(0)
     end

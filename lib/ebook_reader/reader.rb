@@ -87,11 +87,11 @@ module EbookReader
 
     def get_layout_metrics(width, height)
       if @config.view_mode == :split
-        col_width = [(width - 3) / 2, 20].max - 2
-        content_height = [height - 4, 1].max
+        col_width = [(width - 3) / 2, 20].max
+        content_height = [height - 2, 1].max
       else
         col_width = (width * 0.9).to_i.clamp(30, 120)
-        content_height = [height - 2, 1].max
+        content_height = [height - 4, 1].max
       end
       [col_width, content_height]
     end
@@ -303,12 +303,7 @@ module EbookReader
     end
 
     def calculate_actual_height(height)
-      case @config.line_spacing
-      when :relaxed
-        [height / 2, 1].max
-      else
-        height
-      end
+      height
     end
 
     def draw_lines(lines, start_offset, end_offset, start_row, start_col, width, actual_height)
@@ -543,12 +538,7 @@ module EbookReader
     end
 
     def adjust_for_line_spacing(height)
-      case @config.line_spacing
-      when :compact then height
-      when :relaxed then [height / 2, 1].max
-      # Use more vertical space by changing 0.8 to 0.95
-      else [(height * 0.95).to_i, 1].max
-      end
+      height
     end
 
     def process_input(key)

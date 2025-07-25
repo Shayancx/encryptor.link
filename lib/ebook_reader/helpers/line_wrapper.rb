@@ -11,8 +11,9 @@ module EbookReader
       def self.wrap_terminal_write(position, text, max_length = DEFAULT_MAX_LENGTH)
         # Handle edge cases
         return if text.nil? || text.empty?
+
         max_length = DEFAULT_MAX_LENGTH if max_length <= 0
-        
+
         if text.length > max_length
           split_long_text(text, max_length).each_with_index do |part, index|
             Terminal.write(position.row + index, position.col, part)

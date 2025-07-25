@@ -4,7 +4,7 @@ require 'spec_helper'
 
 RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
   let(:epub_path) { '/comprehensive.epub' }
-  
+
   before do
     FileUtils.mkdir_p('/tmp/extracted/META-INF')
     FileUtils.touch(epub_path)
@@ -21,7 +21,7 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
 
     it 'ensures at least one chapter exists even with empty spine' do
       allow(Zip::File).to receive(:open).and_yield(double('zip_file', each: nil))
-      
+
       File.write('/tmp/extracted/META-INF/container.xml', <<-XML)
         <container>
           <rootfiles>
@@ -29,7 +29,7 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
           </rootfiles>
         </container>
       XML
-      
+
       File.write('/tmp/extracted/content.opf', <<-XML)
         <package>
           <metadata></metadata>
@@ -37,7 +37,7 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
           <spine></spine>
         </package>
       XML
-      
+
       doc = described_class.new(epub_path)
       expect(doc.chapters).not_to be_empty
       expect(doc.chapters.first[:title]).to match(/Empty Book/)
@@ -47,7 +47,7 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
   describe 'metadata extraction' do
     it 'handles missing title gracefully' do
       allow(Zip::File).to receive(:open).and_yield(double('zip_file', each: nil))
-      
+
       File.write('/tmp/extracted/META-INF/container.xml', <<-XML)
         <container>
           <rootfiles>
@@ -55,7 +55,7 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
           </rootfiles>
         </container>
       XML
-      
+
       File.write('/tmp/extracted/content.opf', <<-XML)
         <package>
           <metadata>
@@ -65,7 +65,7 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
           <spine></spine>
         </package>
       XML
-      
+
       doc = described_class.new(epub_path)
       expect(doc.title).to eq("comprehensive") # Falls back to filename
       expect(doc.language).to eq("fr_FR")

@@ -45,7 +45,7 @@ RSpec.describe "Uncovered methods comprehensive" do
     it 'handles OA/OB terminal variants' do
       result = handler.handle_navigation_keys("\eOA", 5, 10)
       expect(result).to eq(4)
-      
+
       result = handler.handle_navigation_keys("\eOB", 5, 10)
       expect(result).to eq(6)
     end
@@ -55,7 +55,7 @@ RSpec.describe "Uncovered methods comprehensive" do
     it 'handles file write errors silently' do
       allow(FileUtils).to receive(:mkdir_p)
       allow(File).to receive(:write).and_raise(Errno::ENOSPC)
-      
+
       expect { described_class.add("/book.epub") }.not_to raise_error
     end
   end
@@ -64,7 +64,7 @@ RSpec.describe "Uncovered methods comprehensive" do
     it 'uses proper time format' do
       path = '/book.epub'
       described_class.save(path, 1, 10)
-      
+
       progress = described_class.load(path)
       expect { Time.iso8601(progress['timestamp']) }.not_to raise_error
     end
@@ -73,7 +73,7 @@ RSpec.describe "Uncovered methods comprehensive" do
   describe EbookReader::BookmarkManager do
     it 'handles save_all errors gracefully' do
       allow(File).to receive(:write).and_raise(Errno::EIO)
-      
+
       result = described_class.save_all({})
       expect(result).to be_nil
     end

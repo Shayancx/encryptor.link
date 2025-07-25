@@ -18,14 +18,14 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
     it 'handles arrow key variations' do
       menu.instance_variable_set(:@mode, :browse)
       menu.instance_variable_set(:@filtered_epubs, [
-        { 'name' => 'Book 1' },
-        { 'name' => 'Book 2' }
-      ])
-      
+                                   { 'name' => 'Book 1' },
+                                   { 'name' => 'Book 2' }
+                                 ])
+
       # Test OA/OB variants (some terminals)
       menu.send(:handle_browse_input, "\eOA")
       expect(menu.instance_variable_get(:@browse_selected)).to eq(0)
-      
+
       menu.send(:handle_browse_input, "\eOB")
       expect(menu.instance_variable_get(:@browse_selected)).to eq(1)
     end
@@ -34,7 +34,7 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
       menu.instance_variable_set(:@mode, :browse)
       scanner.epubs = []
       menu.instance_variable_set(:@search_query, '')
-      
+
       menu.send(:add_to_search, 'a')
       expect(menu.instance_variable_get(:@search_query)).to eq('a')
       expect(menu.instance_variable_get(:@filtered_epubs)).to eq([])
@@ -44,12 +44,12 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
   describe 'recent files handling' do
     it 'handles recent files with missing paths' do
       allow(EbookReader::RecentFiles).to receive(:load).and_return([
-        { 'path' => '/exists.epub', 'name' => 'Exists' },
-        { 'path' => nil, 'name' => 'No Path' },
-        { 'name' => 'Missing Path Key' }
-      ])
+                                                                     { 'path' => '/exists.epub', 'name' => 'Exists' },
+                                                                     { 'path' => nil, 'name' => 'No Path' },
+                                                                     { 'name' => 'Missing Path Key' }
+                                                                   ])
       allow(File).to receive(:exist?).with('/exists.epub').and_return(true)
-      
+
       recent = menu.send(:load_recent_books)
       expect(recent.size).to eq(1)
       expect(recent.first['name']).to eq('Exists')
@@ -63,9 +63,9 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
     end
 
     it 'sanitizes various quote styles' do
-      expect(menu.send(:sanitize_input_path, %Q{"path"})).to eq("path")
+      expect(menu.send(:sanitize_input_path, %("path"))).to eq("path")
       expect(menu.send(:sanitize_input_path, "'path'")).to eq("path")
-      expect(menu.send(:sanitize_input_path, %Q{"'nested'"})).to eq("'nested'")
+      expect(menu.send(:sanitize_input_path, %("'nested'"))).to eq("'nested'")
     end
   end
 
@@ -74,7 +74,7 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
       menu.instance_variable_set(:@mode, :browse)
       allow(File).to receive(:exist?).and_return(true)
       allow(EbookReader::Reader).to receive(:new).and_raise(StandardError.new("Init failed"))
-      
+
       menu.send(:open_book, '/error.epub')
       expect(scanner.scan_status).to eq(:error)
       expect(scanner.scan_message).to include("Failed")

@@ -5,7 +5,7 @@ require 'spec_helper'
 RSpec.describe "Integration Edge Cases" do
   describe "ReaderHelpers wrap_lines" do
     let(:helper) { Class.new { include EbookReader::Helpers::ReaderHelpers }.new }
-    
+
     it 'handles very long words that exceed width' do
       lines = ["supercalifragilisticexpialidocious"]
       wrapped = helper.wrap_lines(lines, 10)
@@ -31,27 +31,27 @@ RSpec.describe "Integration Edge Cases" do
     let(:reader) do
       config = EbookReader::Config.new
       doc = instance_double(EbookReader::EPUBDocument,
-                          title: "Test",
-                          language: "en",
-                          chapter_count: 1,
-                          chapters: [{ title: "Ch1", lines: ["Line"] }])
+                            title: "Test",
+                            language: "en",
+                            chapter_count: 1,
+                            chapters: [{ title: "Ch1", lines: ["Line"] }])
       allow(EbookReader::EPUBDocument).to receive(:new).and_return(doc)
       allow(doc).to receive(:get_chapter).and_return(doc.chapters.first)
       allow(EbookReader::BookmarkManager).to receive(:get).and_return([])
       allow(EbookReader::ProgressManager).to receive(:load).and_return(nil)
-      
+
       EbookReader::Reader.new('/test.epub', config)
     end
 
     it 'handles terminal resize during reading' do
       allow(EbookReader::Terminal).to receive(:size).and_return([24, 80], [30, 100])
-      
+
       reader.send(:update_page_map, 80, 24)
-      first_map = reader.instance_variable_get(:@page_map).dup
-      
+      reader.instance_variable_get(:@page_map).dup
+
       reader.send(:update_page_map, 100, 30)
-      second_map = reader.instance_variable_get(:@page_map)
-      
+      reader.instance_variable_get(:@page_map)
+
       # Page map should be recalculated
       expect(reader.instance_variable_get(:@last_width)).to eq(100)
       expect(reader.instance_variable_get(:@last_height)).to eq(30)
@@ -62,7 +62,7 @@ RSpec.describe "Integration Edge Cases" do
     it 'handles OPF files with various namespaces' do
       FileUtils.mkdir_p('book')
       opf_content = <<-XML
-        <package xmlns="http://www.idpf.org/2007/opf" 
+        <package xmlns="http://www.idpf.org/2007/opf"#{' '}
                  xmlns:dc="http://purl.org/dc/elements/1.1/"
                  xmlns:opf="http://www.idpf.org/2007/opf">
           <metadata>
@@ -72,10 +72,10 @@ RSpec.describe "Integration Edge Cases" do
         </package>
       XML
       File.write('book/content.opf', opf_content)
-      
+
       processor = EbookReader::Helpers::OPFProcessor.new('book/content.opf')
       metadata = processor.extract_metadata
-      
+
       expect(metadata[:title]).to eq("Test")
     end
   end
