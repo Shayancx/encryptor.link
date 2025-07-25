@@ -80,7 +80,7 @@ module EbookReader
     end
 
     def process_opf(opf_path)
-      processor = OPFProcessor.new(opf_path)
+      processor = Helpers::OPFProcessor.new(opf_path)
 
       # Extract metadata
       metadata = processor.extract_metadata

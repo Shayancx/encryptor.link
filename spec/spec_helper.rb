@@ -34,6 +34,7 @@ require 'ebook_reader/ui/main_menu_renderer'
 require 'ebook_reader/ui/reader_renderer'
 
 RSpec.configure do |config|
+  config.default_formatter = 'doc'
   config.example_status_persistence_file_path = ".rspec_status"
   config.disable_monkey_patching!
   

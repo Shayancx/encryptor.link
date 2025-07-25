@@ -35,8 +35,8 @@ module EbookReader
         text = CGI.unescapeHTML(text)
 
         # Clean up whitespace
-        text.gsub!('\\r', '')
-        text.gsub!(/\\n{3,}/, "\n\n")
+        text.gsub!("\r", '')
+        text.gsub!(/\n{3,}/, "\n\n")
         text.gsub!(/[ \t]+/, ' ')
         text.strip
       end
