@@ -283,7 +283,9 @@ module EbookReader
       content_height = adjust_for_line_spacing(content_height)
       wrapped = wrap_lines(chapter[:lines] || [], col_width)
 
-      draw_column(2, col_start, col_width, content_height, wrapped, @single_page, false)
+      # Correctly center the text block within the available space (between header and footer)
+      start_row = [2 + ((height - 2 - content_height) / 2), 2].max
+      draw_column(start_row, col_start, col_width, content_height, wrapped, @single_page, false)
     end
 
     def draw_column(start_row, start_col, width, height, lines, offset, show_page_num)
@@ -544,7 +546,8 @@ module EbookReader
       case @config.line_spacing
       when :compact then height
       when :relaxed then [height / 2, 1].max
-      else [(height * 0.8).to_i, 1].max
+      # Use more vertical space by changing 0.8 to 0.95
+      else [(height * 0.95).to_i, 1].max
       end
     end
 
