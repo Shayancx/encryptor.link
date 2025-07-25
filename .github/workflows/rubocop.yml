@@ -18,6 +18,9 @@ on:
 jobs:
   rubocop:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      security-events: write
     strategy:
       fail-fast: false
 
@@ -43,7 +46,10 @@ jobs:
       run: |
         bash -c "
           bundle exec rubocop --require code_scanning --format CodeScanning::SarifFormatter -o rubocop.sarif
-          [[ $? -ne 2 ]]
+          status=$?
+          if [ $status -gt 1 ]; then
+            exit $status
+          fi
         "
 
     - name: Upload Sarif output
