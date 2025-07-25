@@ -1,45 +1,52 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/ui/reader_renderer'
 
-describe EbookReader::Ui::ReaderRenderer do
-  let(:terminal) { double("EbookReader::Terminal", width: 80, height: 24, clear: nil, move_to: nil, print: nil) }
-  let(:reader) do
-    double(
-      "EbookReader::Reader",
-      document: double("EbookReader::EpubDocument", path: "/book.epub", current_page_index: 0, total_pages: 10),
-      percentage_finished: 10,
-      bookmarked?: false
+RSpec.describe EbookReader::UI::ReaderRenderer do
+  let(:config) { instance_double(EbookReader::Config, show_page_numbers: true) }
+  let(:renderer) { described_class.new(config) }
+  let(:doc) do
+    instance_double(EbookReader::EPUBDocument,
+      title: "Test Book",
+      chapter_count: 10,
+      language: "en_US"
     )
   end
-  let(:renderer) { described_class.new(reader, terminal) }
 
   before do
-    allow(reader.document).to receive(:page_content).and_return("Page content")
+    allow(EbookReader::Terminal).to receive(:write)
   end
 
-  describe "#render" do
-    it "clears the terminal" do
-      expect(terminal).to receive(:clear)
-      renderer.render
+  describe "#render_header" do
+    it "renders title in single view read mode" do
+      expect(EbookReader::Terminal).to receive(:write).with(1, 2, /Test Book/)
+      renderer.render_header(doc, 80, :single, :read)
     end
 
-    it "prints the page content" do
-      expect(terminal).to receive(:print).with("Page content")
-      renderer.render
+    it "renders controls in other modes" do
+      expect(EbookReader::Terminal).to receive(:write).with(1, 1, /Simple Novel Reader/)
+      expect(EbookReader::Terminal).to receive(:write).with(1, anything, /q:Quit/)
+      renderer.render_header(doc, 80, :split, :read)
+    end
+  end
+
+  describe "#render_footer" do
+    let(:pages) { { current: 5, total: 100 } }
+    let(:bookmarks) { [] }
+
+    it "renders page numbers in single view" do
+      expect(EbookReader::Terminal).to receive(:write).with(24, 2, /5 \/ 100/)
+      renderer.render_footer(24, 80, doc, 0, pages, :single, :read, :normal, bookmarks)
     end
 
-    it "prints the status bar" do
-      expect(terminal).to receive(:print).with(/book.epub/)
-      expect(terminal).to receive(:print).with(/1\/10/)
-      expect(terminal).to receive(:print).with(/10%/)
-      renderer.render
+    it "renders full footer in split view" do
+      expect(EbookReader::Terminal).to receive(:write).with(23, 1, /\[1\/10\]/)
+      expect(EbookReader::Terminal).to receive(:write).with(23, anything, /\[SPLIT\]/)
+      renderer.render_footer(24, 80, doc, 0, pages, :split, :read, :normal, bookmarks)
     end
 
-    it "indicates when a page is bookmarked" do
-      allow(reader).to receive(:bookmarked?).and_return(true)
-      expect(terminal).to receive(:print).with(/\[B\]/)
-      renderer.render
+    it "shows bookmark count" do
+      bookmarks = [1, 2, 3]
+      expect(EbookReader::Terminal).to receive(:write).with(anything, anything, /B3/)
+      renderer.render_footer(24, 80, doc, 0, pages, :split, :read, :normal, bookmarks)
     end
   end
 end

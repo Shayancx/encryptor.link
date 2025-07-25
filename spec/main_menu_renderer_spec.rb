@@ -1,39 +1,53 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/ui/main_menu_renderer'
 
-describe EbookReader::Ui::MainMenuRenderer do
-  let(:terminal) { double("EbookReader::Terminal", width: 80, height: 24) }
-  let(:main_menu) { double("EbookReader::MainMenu", options: ["Open Book", "Recent Files", "Exit"], selected_index: 0) }
-  let(:renderer) { described_class.new(main_menu, terminal) }
+RSpec.describe EbookReader::UI::MainMenuRenderer do
+  let(:config) { instance_double(EbookReader::Config) }
+  let(:renderer) { described_class.new(config) }
 
   before do
-    allow(terminal).to receive(:clear)
-    allow(terminal).to receive(:move_to)
-    allow(terminal).to receive(:print)
+    allow(EbookReader::Terminal).to receive(:write)
   end
 
-  describe "#render" do
-    it "clears the terminal" do
-      expect(terminal).to receive(:clear)
-      renderer.render
+  describe "#render_logo" do
+    it "renders ASCII art logo" do
+      expect(EbookReader::Terminal).to receive(:write).at_least(6).times
+      menu_start = renderer.render_logo(24, 80)
+      expect(menu_start).to be > 0
     end
 
-    it "prints the title" do
-      expect(terminal).to receive(:print).with(/Ebook Reader/)
-      renderer.render
+    it "includes version number" do
+      stub_const("EbookReader::VERSION", "v1.0.0")
+      expect(EbookReader::Terminal).to receive(:write).with(anything, anything, /v1.0.0/)
+      renderer.render_logo(24, 80)
+    end
+  end
+
+  describe "#render_menu_item" do
+    let(:item) do
+      { key: 'f', icon: '📚', text: 'Find Book', desc: 'Browse all EPUBs' }
     end
 
-    it "prints the menu options" do
-      expect(terminal).to receive(:print).with(/Open Book/)
-      expect(terminal).to receive(:print).with(/Recent Files/)
-      expect(terminal).to receive(:print).with(/Exit/)
-      renderer.render
+    it "renders selected item with highlight" do
+      expect(EbookReader::Terminal).to receive(:write).with(10, 20, /▸/)
+      expect(EbookReader::Terminal).to receive(:write).with(10, 22, /Find Book/)
+      
+      renderer.render_menu_item(10, 20, 22, item, true)
     end
 
-    it "highlights the selected option" do
-      expect(terminal).to receive(:print).with(/\e\[7mOpen Book\e\[27m/)
-      renderer.render
+    it "renders unselected item normally" do
+      expect(EbookReader::Terminal).to receive(:write).with(10, 20, /  /)
+      expect(EbookReader::Terminal).to receive(:write).with(10, 22, /Find Book/)
+      
+      renderer.render_menu_item(10, 20, 22, item, false)
+    end
+  end
+
+  describe "#render_footer" do
+    it "renders footer text centered" do
+      text = "Test footer"
+      expect(EbookReader::Terminal).to receive(:write).with(23, anything, /Test footer/)
+      
+      renderer.render_footer(24, 80, text)
     end
   end
 end

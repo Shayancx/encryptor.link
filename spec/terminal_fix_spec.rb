@@ -1,28 +1,26 @@
-# frozen_string_literal: true
 require 'spec_helper'
 
-describe "TerminalFix" do
+RSpec.describe "Terminal Fix" do
   before do
-    # Define a dummy class that the fix can be applied to
-    class EbookReader::Terminal
-      def self.get_key
-        "key"
+    # Create a test class with get_key method
+    module EbookReader
+      class Terminal
+        def self.get_key
+          "test_key"
+        end
       end
     end
-
-    # Load the fix
-    require_relative '../lib/ebook_reader/terminal_fix'
+    
+    # Apply the fix
+    load File.expand_path('../../lib/ebook_reader/terminal_fix.rb', __FILE__)
   end
 
   it "aliases get_key to read_key" do
     expect(EbookReader::Terminal).to respond_to(:read_key)
+    expect(EbookReader::Terminal.read_key).to eq("test_key")
   end
 
-  it "removes the get_key method" do
+  it "removes get_key method" do
     expect(EbookReader::Terminal).not_to respond_to(:get_key)
-  end
-
-  it "read_key returns the correct value" do
-    expect(EbookReader::Terminal.read_key).to eq("key")
   end
 end

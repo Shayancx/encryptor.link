@@ -1,49 +1,69 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/config'
 
-describe EbookReader::Config, fake_fs: true do
-  let(:config_dir) { EbookReader::Constants::CONFIG_DIR }
-  let(:config_file) { EbookReader::Constants::CONFIG_FILE }
+RSpec.describe EbookReader::Config, fake_fs: true do
+  let(:config_dir) { described_class::CONFIG_DIR }
+  let(:config_file) { described_class::CONFIG_FILE }
 
   before do
     FileUtils.mkdir_p(config_dir)
   end
 
-  describe ".load" do
-    it "loads the config file if it exists" do
-      config_data = { "font_size" => 12 }
-      File.write(config_file, config_data.to_yaml)
-      config = described_class.load
-      expect(config.font_size).to eq(12)
+  describe "#initialize" do
+    it "sets default values" do
+      config = described_class.new
+      expect(config.view_mode).to eq(:split)
+      expect(config.theme).to eq(:dark)
+      expect(config.show_page_numbers).to be true
+      expect(config.line_spacing).to eq(:normal)
+      expect(config.highlight_quotes).to be true
     end
 
-    it "returns a default config if the file does not exist" do
-      config = described_class.load
-      expect(config.font_size).to eq(10) # default value
+    it "loads existing config file" do
+      config_data = {
+        view_mode: "single",
+        theme: "light",
+        show_page_numbers: false
+      }
+      File.write(config_file, JSON.pretty_generate(config_data))
+      
+      config = described_class.new
+      expect(config.view_mode).to eq(:single)
+      expect(config.theme).to eq(:light)
+      expect(config.show_page_numbers).to be false
     end
   end
 
   describe "#save" do
-    it "saves the config to a file" do
+    it "saves config to file" do
       config = described_class.new
-      config.font_size = 14
+      config.view_mode = :single
       config.save
-      loaded_config = YAML.load_file(config_file)
-      expect(loaded_config["font_size"]).to eq(14)
+      
+      saved_data = JSON.parse(File.read(config_file))
+      expect(saved_data["view_mode"]).to eq("single")
+    end
+
+    it "creates config directory if it doesn't exist" do
+      FileUtils.rm_rf(config_dir)
+      config = described_class.new
+      config.save
+      
+      expect(File.exist?(config_dir)).to be true
     end
   end
 
-  describe "attributes" do
-    it "allows getting and setting attributes" do
+  describe "#to_h" do
+    it "returns config as hash" do
       config = described_class.new
-      config.font_size = 16
-      expect(config.font_size).to eq(16)
-    end
-
-    it "responds to attribute keys" do
-      config = described_class.new
-      expect(config).to respond_to(:font_size)
+      hash = config.to_h
+      
+      expect(hash).to include(
+        view_mode: :split,
+        theme: :dark,
+        show_page_numbers: true,
+        line_spacing: :normal,
+        highlight_quotes: true
+      )
     end
   end
 end

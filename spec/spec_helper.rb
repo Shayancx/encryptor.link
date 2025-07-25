@@ -2,24 +2,63 @@ require 'simplecov'
 SimpleCov.start do
   add_filter '/spec/'
   add_filter '/vendor/'
+  add_filter '/bin/'
 end
 
 require 'rspec'
 require 'fakefs/spec_helpers'
-require_relative '../lib/ebook_reader'
+require 'zip'
 
-# frozen_string_literal: true
+# Load all application files
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+require 'ebook_reader'
+require 'ebook_reader/constants'
+require 'ebook_reader/terminal'
+require 'ebook_reader/config'
+require 'ebook_reader/epub_finder'
+require 'ebook_reader/recent_files'
+require 'ebook_reader/progress_manager'
+require 'ebook_reader/bookmark_manager'
+require 'ebook_reader/main_menu'
+require 'ebook_reader/epub_document'
+require 'ebook_reader/reader'
+require 'ebook_reader/cli'
+require 'ebook_reader/concerns/input_handler'
+require 'ebook_reader/helpers/epub_scanner'
+require 'ebook_reader/helpers/html_processor'
+require 'ebook_reader/helpers/line_wrapper'
+require 'ebook_reader/helpers/opf_processor'
+require 'ebook_reader/helpers/reader_helpers'
+require 'ebook_reader/ui/browse_screen'
+require 'ebook_reader/ui/main_menu_renderer'
+require 'ebook_reader/ui/reader_renderer'
 
 RSpec.configure do |config|
-  # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
-
-  # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
-
+  
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
-
+  
   config.include FakeFS::SpecHelpers, fake_fs: true
+  
+  # Ensure Terminal doesn't interfere with tests
+  config.before(:each) do
+    allow(EbookReader::Terminal).to receive(:setup)
+    allow(EbookReader::Terminal).to receive(:cleanup)
+    allow(EbookReader::Terminal).to receive(:clear)
+    allow(EbookReader::Terminal).to receive(:write)
+    allow(EbookReader::Terminal).to receive(:start_frame)
+    allow(EbookReader::Terminal).to receive(:end_frame)
+    allow(EbookReader::Terminal).to receive(:size).and_return([24, 80])
+    allow(EbookReader::Terminal).to receive(:read_key).and_return(nil)
+  end
+  
+  # Mock $stdout for tests that print
+  config.before(:each) do
+    allow($stdout).to receive(:print)
+    allow($stdout).to receive(:flush)
+    allow($stdout).to receive(:sync=)
+  end
 end

@@ -1,58 +1,58 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/recent_files'
 
-describe EbookReader::RecentFiles, fake_fs: true do
-  let(:recent_files_file) { EbookReader::Constants::RECENT_FILES_FILE }
-  let(:config_dir) { EbookReader::Constants::CONFIG_DIR }
+RSpec.describe EbookReader::RecentFiles, fake_fs: true do
+  let(:recent_file) { described_class::RECENT_FILE }
+  let(:config_dir) { described_class::CONFIG_DIR }
 
   before do
     FileUtils.mkdir_p(config_dir)
   end
 
+  describe ".add" do
+    it "adds a file to recent list" do
+      described_class.add("/path/to/book.epub")
+      recent = described_class.load
+      
+      expect(recent.size).to eq(1)
+      expect(recent.first['path']).to eq("/path/to/book.epub")
+      expect(recent.first['name']).to eq("book")
+      expect(recent.first['accessed']).to be_a(String)
+    end
+
+    it "moves existing file to top" do
+      described_class.add("/book1.epub")
+      described_class.add("/book2.epub")
+      described_class.add("/book1.epub")
+      
+      recent = described_class.load
+      expect(recent.first['path']).to eq("/book1.epub")
+      expect(recent.size).to eq(2)
+    end
+
+    it "limits to MAX_RECENT_FILES" do
+      15.times { |i| described_class.add("/book#{i}.epub") }
+      recent = described_class.load
+      
+      expect(recent.size).to eq(described_class::MAX_RECENT_FILES)
+    end
+  end
+
   describe ".load" do
-    it "loads the recent files list if it exists" do
-      files = ["/path/to/book1.epub", "/path/to/book2.epub"]
-      File.write(recent_files_file, files.to_yaml)
-      recent_files = described_class.load
-      expect(recent_files.files).to eq(files)
+    it "loads recent files list" do
+      described_class.add("/book.epub")
+      recent = described_class.load
+      
+      expect(recent).to be_an(Array)
+      expect(recent.first).to include('path', 'name', 'accessed')
     end
 
-    it "returns an empty list if the file does not exist" do
-      recent_files = described_class.load
-      expect(recent_files.files).to be_empty
-    end
-  end
-
-  describe "#add" do
-    it "adds a file to the list" do
-      recent_files = described_class.new
-      recent_files.add("/path/to/book.epub")
-      expect(recent_files.files).to include("/path/to/book.epub")
+    it "returns empty array if file doesn't exist" do
+      expect(described_class.load).to eq([])
     end
 
-    it "moves the most recent file to the top" do
-      recent_files = described_class.new
-      recent_files.add("/path/to/book1.epub")
-      recent_files.add("/path/to/book2.epub")
-      recent_files.add("/path/to/book1.epub")
-      expect(recent_files.files.first).to eq("/path/to/book1.epub")
-    end
-
-    it "does not add more than 10 files" do
-      recent_files = described_class.new
-      15.times { |i| recent_files.add("/path/to/book#{i}.epub") }
-      expect(recent_files.files.size).to eq(10)
-    end
-  end
-
-  describe "#save" do
-    it "saves the recent files to a file" do
-      recent_files = described_class.new
-      recent_files.add("/path/to/book.epub")
-      recent_files.save
-      loaded_files = YAML.load_file(recent_files_file)
-      expect(loaded_files).to include("/path/to/book.epub")
+    it "handles corrupted file gracefully" do
+      File.write(recent_file, "invalid json")
+      expect(described_class.load).to eq([])
     end
   end
 end

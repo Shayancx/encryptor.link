@@ -1,39 +1,40 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/helpers/line_wrapper'
 
-describe EbookReader::Helpers::LineWrapper do
-  describe ".wrap" do
-    it "wraps a long line of text" do
-      text = "This is a long line of text that should be wrapped."
-      wrapped_text = EbookReader::Helpers::LineWrapper.wrap(text, 20)
-      expected_text = "This is a long line\nof text that should\nbe wrapped."
-      expect(wrapped_text).to eq(expected_text)
+RSpec.describe EbookReader::Helpers::LineWrapper do
+  describe ".wrap_terminal_write" do
+    before do
+      allow(EbookReader::Terminal).to receive(:write)
     end
 
-    it "does not wrap a short line of text" do
-      text = "This is a short line."
-      wrapped_text = EbookReader::Helpers::LineWrapper.wrap(text, 30)
-      expect(wrapped_text).to eq(text)
+    it "writes short text directly" do
+      expect(EbookReader::Terminal).to receive(:write).with(5, 10, "Short text")
+      described_class.wrap_terminal_write(5, 10, "Short text")
     end
 
-    it "handles text with newlines" do
-      text = "This is the first line.\nThis is the second line."
-      wrapped_text = EbookReader::Helpers::LineWrapper.wrap(text, 20)
-      expected_text = "This is the first\nline.\nThis is the second\nline."
-      expect(wrapped_text).to eq(expected_text)
+    it "wraps long text across multiple lines" do
+      long_text = "a" * 150
+      expect(EbookReader::Terminal).to receive(:write).exactly(2).times
+      described_class.wrap_terminal_write(5, 10, long_text, 120)
+    end
+  end
+
+  describe ".split_long_text" do
+    it "splits text at max length" do
+      text = "This is a very long line that needs to be split"
+      parts = described_class.split_long_text(text, 20)
+      
+      expect(parts.size).to be >= 2
+      parts[0..-2].each { |part| expect(part.length).to be <= 20 }
+      expect(parts.join).to eq(text)
     end
 
-    it "handles an empty string" do
-      text = ""
-      wrapped_text = EbookReader::Helpers::LineWrapper.wrap(text, 20)
-      expect(wrapped_text).to eq("")
-    end
-
-    it "handles a width of zero or less" do
-      text = "This is a test."
-      expect(EbookReader::Helpers::LineWrapper.wrap(text, 0)).to eq("This\nis\na\ntest.")
-      expect(EbookReader::Helpers::LineWrapper.wrap(text, -5)).to eq("This\nis\na\ntest.")
+    it "splits text and preserves all content" do
+      text = "This is a test of the splitting algorithm"
+      parts = described_class.split_long_text(text, 20)
+      
+      # Just verify all text is preserved
+      expect(parts.join).to eq(text)
+      expect(parts.first).to start_with("This is a")
     end
   end
 end

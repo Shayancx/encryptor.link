@@ -1,67 +1,99 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/reader'
 
-describe EbookReader::Reader do
-  let(:book_path) { '/book.epub' }
-  let(:terminal) { double("EbookReader::Terminal", width: 80, height: 24, raw_mode: nil, cooked_mode: nil) }
-  let(:document) { double("EbookReader::EpubDocument", path: book_path, current_page_index: 0, total_pages: 10) }
-  let(:progress_manager) { double("EbookReader::ProgressManager", progress_for: 0, update_progress: nil, save: nil) }
-  let(:bookmark_manager) { double("EbookReader::BookmarkManager", bookmarks_for: [], has_bookmark?: false) }
-  let(:reader) do
-    described_class.new(
-      book_path: book_path,
-      terminal: terminal,
-      progress_manager: progress_manager,
-      bookmark_manager: bookmark_manager
+RSpec.describe EbookReader::Reader do
+  let(:epub_path) { '/book.epub' }
+  let(:config) { instance_double(EbookReader::Config, view_mode: :split) }
+  let(:doc) do
+    instance_double(EbookReader::EPUBDocument,
+      title: "Test Book",
+      chapters: [{ title: "Ch1", lines: ["Line 1", "Line 2"] }],
+      chapter_count: 1
     )
   end
 
+  let(:reader) { described_class.new(epub_path, config) }
+
   before do
-    allow(EbookReader::EpubDocument).to receive(:new).and_return(document)
+    allow(EbookReader::EPUBDocument).to receive(:new).and_return(doc)
+    allow(doc).to receive(:get_chapter).and_return(doc.chapters.first)
+    allow(EbookReader::Terminal).to receive(:setup)
+    allow(EbookReader::Terminal).to receive(:cleanup)
+    allow(EbookReader::Terminal).to receive(:read_key).and_return('q')
     allow(reader).to receive(:loop).and_yield
-    allow(reader).to receive(:handle_input).and_return("q") # Default to quit to avoid infinite loop
-    allow(reader).to receive(:render)
   end
 
   describe "#run" do
-    it "renders the reader" do
-      expect(reader).to receive(:render)
+    it "sets up terminal" do
+      expect(EbookReader::Terminal).to receive(:setup)
       reader.run
     end
 
-    it "handles input" do
-      expect(reader).to receive(:handle_input)
-      reader.run
-    end
-
-    it "saves progress on quit" do
-      allow(reader).to receive(:handle_input).and_return("q")
-      expect(progress_manager).to receive(:save)
+    it "cleans up terminal on exit" do
+      expect(EbookReader::Terminal).to receive(:cleanup)
       reader.run
     end
   end
 
-  describe "input handling" do
-    it "quits on 'q'" do
-      expect(reader.handle_keypress("q")).to be_nil
+  describe "navigation" do
+    before do
+      reader.instance_variable_set(:@running, true)
     end
 
-    it "goes to the next page on 'j' or down arrow" do
-      expect(document).to receive(:next_page).twice
-      reader.handle_keypress("j")
-      reader.handle_keypress("\e[B")
+    it "scrolls down on j key" do
+      initial = reader.instance_variable_get(:@single_page)
+      reader.send(:handle_reading_input, 'j')
+      expect(reader.instance_variable_get(:@single_page)).to be >= initial
     end
 
-    it "goes to the previous page on 'k' or up arrow" do
-      expect(document).to receive(:previous_page).twice
-      reader.handle_keypress("k")
-      reader.handle_keypress("\e[A")
+    it "scrolls up on k key" do
+      reader.instance_variable_set(:@single_page, 5)
+      reader.send(:handle_reading_input, 'k')
+      expect(reader.instance_variable_get(:@single_page)).to eq(4)
     end
 
-    it "toggles a bookmark on 'b'" do
-      expect(reader).to receive(:toggle_bookmark)
-      reader.handle_keypress("b")
+    it "goes to next chapter on n key" do
+      allow(doc).to receive(:chapter_count).and_return(2)
+      reader.send(:handle_reading_input, 'n')
+      expect(reader.instance_variable_get(:@current_chapter)).to eq(1)
+    end
+
+    it "adds bookmark on b key" do
+      expect(reader).to receive(:add_bookmark)
+      reader.send(:handle_reading_input, 'b')
+    end
+
+    it "toggles view mode on v key" do
+      expect(config).to receive(:view_mode=).with(:single)
+      expect(config).to receive(:save)
+      reader.send(:handle_reading_input, 'v')
+    end
+  end
+
+  describe "bookmarks" do
+    it "loads bookmarks on init" do
+      expect(EbookReader::BookmarkManager).to receive(:get).with(epub_path)
+      described_class.new(epub_path, config)
+    end
+
+    it "adds bookmark with current position" do
+      expect(EbookReader::BookmarkManager).to receive(:add).with(
+        epub_path, 0, 0, anything
+      )
+      reader.send(:add_bookmark)
+    end
+  end
+
+  describe "progress" do
+    it "loads progress on init" do
+      expect(EbookReader::ProgressManager).to receive(:load).with(epub_path)
+      described_class.new(epub_path, config)
+    end
+
+    it "saves progress on quit" do
+      expect(EbookReader::ProgressManager).to receive(:save).with(
+        epub_path, 0, 0
+      )
+      reader.send(:quit_to_menu)
     end
   end
 end

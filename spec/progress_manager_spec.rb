@@ -1,58 +1,60 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/progress_manager'
 
-describe EbookReader::ProgressManager, fake_fs: true do
-  let(:progress_file) { EbookReader::Constants::PROGRESS_FILE }
-  let(:config_dir) { EbookReader::Constants::CONFIG_DIR }
+RSpec.describe EbookReader::ProgressManager, fake_fs: true do
+  let(:progress_file) { described_class::PROGRESS_FILE }
+  let(:config_dir) { described_class::CONFIG_DIR }
   let(:book_path) { "/path/to/book.epub" }
 
   before do
     FileUtils.mkdir_p(config_dir)
   end
 
+  describe ".save" do
+    it "saves progress for a book" do
+      described_class.save(book_path, 2, 15)
+      progress = described_class.load(book_path)
+      
+      expect(progress['chapter']).to eq(2)
+      expect(progress['line_offset']).to eq(15)
+      expect(progress['timestamp']).to be_a(String)
+    end
+
+    it "overwrites existing progress" do
+      described_class.save(book_path, 1, 10)
+      described_class.save(book_path, 2, 20)
+      
+      progress = described_class.load(book_path)
+      expect(progress['chapter']).to eq(2)
+      expect(progress['line_offset']).to eq(20)
+    end
+  end
+
   describe ".load" do
-    it "loads the progress if the file exists" do
-      progress_data = { book_path => 5 }
-      File.write(progress_file, progress_data.to_yaml)
-      progress_manager = described_class.load
-      expect(progress_manager.progress).to eq(progress_data)
+    it "loads progress for a book" do
+      described_class.save(book_path, 3, 25)
+      progress = described_class.load(book_path)
+      
+      expect(progress).to be_a(Hash)
+      expect(progress['chapter']).to eq(3)
     end
 
-    it "returns an empty hash if the file does not exist" do
-      progress_manager = described_class.load
-      expect(progress_manager.progress).to be_empty
-    end
-  end
-
-  describe "#update_progress" do
-    it "updates the progress for a book" do
-      progress_manager = described_class.new
-      progress_manager.update_progress(book_path, 10)
-      expect(progress_manager.progress[book_path]).to eq(10)
+    it "returns nil if no progress exists" do
+      progress = described_class.load(book_path)
+      expect(progress).to be_nil
     end
   end
 
-  describe "#progress_for" do
-    it "returns the progress for a book" do
-      progress_manager = described_class.new
-      progress_manager.update_progress(book_path, 10)
-      expect(progress_manager.progress_for(book_path)).to eq(10)
+  describe ".load_all" do
+    it "loads all progress data" do
+      described_class.save("/book1.epub", 1, 10)
+      described_class.save("/book2.epub", 2, 20)
+      
+      all_progress = described_class.load_all
+      expect(all_progress.keys).to contain_exactly("/book1.epub", "/book2.epub")
     end
 
-    it "returns 0 if no progress is found" do
-      progress_manager = described_class.new
-      expect(progress_manager.progress_for(book_path)).to eq(0)
-    end
-  end
-
-  describe "#save" do
-    it "saves the progress to a file" do
-      progress_manager = described_class.new
-      progress_manager.update_progress(book_path, 10)
-      progress_manager.save
-      loaded_progress = YAML.load_file(progress_file)
-      expect(loaded_progress[book_path]).to eq(10)
+    it "returns empty hash if file doesn't exist" do
+      expect(described_class.load_all).to eq({})
     end
   end
 end

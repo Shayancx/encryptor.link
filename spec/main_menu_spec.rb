@@ -1,66 +1,75 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/main_menu'
 
-describe EbookReader::MainMenu do
-  let(:terminal) { double("EbookReader::Terminal", raw_mode: nil, cooked_mode: nil) }
-  let(:config) { double("EbookReader::Config") }
-  let(:main_menu) { described_class.new(config: config, terminal: terminal) }
+RSpec.describe EbookReader::MainMenu do
+  let(:menu) { described_class.new }
 
   before do
-    allow(main_menu).to receive(:loop).and_yield
-    allow(main_menu).to receive(:handle_input).and_return(nil) # Default to no action
-    allow(main_menu).to receive(:render)
-    allow(main_menu).to receive(:exit)
+    allow(EbookReader::Terminal).to receive(:setup)
+    allow(EbookReader::Terminal).to receive(:cleanup)
+    allow(EbookReader::Terminal).to receive(:read_key).and_return('q')
+    allow(menu).to receive(:loop).and_yield
   end
 
   describe "#run" do
-    it "renders the menu" do
-      expect(main_menu).to receive(:render)
-      main_menu.run
+    it "sets up terminal" do
+      expect(EbookReader::Terminal).to receive(:setup)
+      menu.run
     end
 
-    it "handles input" do
-      expect(main_menu).to receive(:handle_input)
-      main_menu.run
-    end
-  end
-
-  describe "input handling" do
-    it "moves selection down" do
-      main_menu.handle_keypress("\e[B")
-      expect(main_menu.selected_index).to eq(1)
-    end
-
-    it "moves selection up" do
-      main_menu.selected_index = 1
-      main_menu.handle_keypress("\e[A")
-      expect(main_menu.selected_index).to eq(0)
-    end
-
-    it "selects an option on enter" do
-      expect(main_menu).to receive(:execute_action)
-      main_menu.handle_keypress("\r")
+    it "starts scanner if no cached epubs" do
+      scanner = menu.instance_variable_get(:@scanner)
+      allow(scanner).to receive(:epubs).and_return([])
+      expect(scanner).to receive(:start_scan)
+      menu.run
     end
   end
 
-  describe "#execute_action" do
-    it "calls browse_for_book when 'Open Book' is selected" do
-      main_menu.selected_index = 0
-      expect(main_menu).to receive(:browse_for_book)
-      main_menu.execute_action
+  describe "navigation" do
+    it "navigates menu with j/k keys" do
+      expect(menu.instance_variable_get(:@selected)).to eq(0)
+      menu.send(:handle_menu_input, 'j')
+      expect(menu.instance_variable_get(:@selected)).to eq(1)
+      menu.send(:handle_menu_input, 'k')
+      expect(menu.instance_variable_get(:@selected)).to eq(0)
     end
 
-    it "calls show_recent_files when 'Recent Files' is selected" do
-      main_menu.selected_index = 1
-      expect(main_menu).to receive(:show_recent_files)
-      main_menu.execute_action
+    it "switches to browse mode on f key" do
+      menu.send(:handle_menu_input, 'f')
+      expect(menu.instance_variable_get(:@mode)).to eq(:browse)
     end
 
-    it "exits when 'Exit' is selected" do
-      main_menu.selected_index = 2
-      expect(main_menu).to receive(:exit)
-      main_menu.execute_action
+    it "exits on q key" do
+      expect(menu).to receive(:cleanup_and_exit).with(0, '')
+      menu.send(:handle_menu_input, 'q')
+    end
+  end
+
+  describe "browse mode" do
+    before do
+      menu.instance_variable_set(:@mode, :browse)
+      menu.instance_variable_set(:@filtered_epubs, [
+        { 'name' => 'Book 1', 'path' => '/book1.epub' }
+      ])
+    end
+
+    it "opens selected book on enter" do
+      allow(File).to receive(:exist?).and_return(true)
+      expect(menu).to receive(:open_book).with('/book1.epub')
+      menu.send(:handle_browse_input, "\r")
+    end
+
+    it "filters books on search" do
+      menu.instance_variable_set(:@scanner, double(epubs: [
+        { 'name' => 'Book 1', 'path' => '/book1.epub' },
+        { 'name' => 'Another', 'path' => '/another.epub' }
+      ]))
+      
+      menu.send(:handle_browse_input, 'b')
+      menu.send(:handle_browse_input, 'o')
+      
+      filtered = menu.instance_variable_get(:@filtered_epubs)
+      expect(filtered.size).to eq(1)
+      expect(filtered.first['name']).to eq('Book 1')
     end
   end
 end

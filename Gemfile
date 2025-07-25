@@ -6,7 +6,7 @@ gem 'io-console'
 gem 'reek'
 gem 'rexml'
 gem 'rubocop'
-gem 'zip'
+gem 'rubyzip'
 
 group :test do
   gem 'rspec'

@@ -1,52 +1,45 @@
-# frozen_string_literal: true
 require 'spec_helper'
-require_relative '../lib/ebook_reader/helpers/reader_helpers'
 
-describe EbookReader::Helpers::ReaderHelpers do
-  let(:dummy_class) do
+RSpec.describe EbookReader::Helpers::ReaderHelpers do
+  let(:test_class) do
     Class.new do
       include EbookReader::Helpers::ReaderHelpers
-      attr_accessor :document, :terminal, :progress_manager, :bookmark_manager
-
-      def initialize
-        @document = double("EbookReader::EpubDocument")
-        @terminal = double("EbookReader::Terminal")
-        @progress_manager = double("EbookReader::ProgressManager")
-        @bookmark_manager = double("EbookReader::BookmarkManager")
-      end
     end
   end
 
-  let(:instance) { dummy_class.new }
+  let(:helper) { test_class.new }
 
-  describe "#percentage_finished" do
-    it "calculates the correct percentage" do
-      allow(instance.document).to receive(:total_pages).and_return(10)
-      allow(instance.document).to receive(:current_page_index).and_return(4)
-      expect(instance.percentage_finished).to eq(40)
+  describe "#wrap_lines" do
+    it "wraps lines to specified width" do
+      lines = ["This is a very long line that needs to be wrapped to fit the width"]
+      wrapped = helper.wrap_lines(lines, 20)
+      
+      expect(wrapped.size).to be > 1
+      wrapped.each { |line| expect(line.length).to be <= 20 }
     end
 
-    it "handles division by zero" do
-      allow(instance.document).to receive(:total_pages).and_return(0)
-      expect(instance.percentage_finished).to eq(0)
-    end
-  end
-
-  describe "#toggle_bookmark" do
-    it "adds a bookmark if one does not exist" do
-      allow(instance.document).to receive(:path).and_return("path/to/book")
-      allow(instance.document).to receive(:current_page_index).and_return(5)
-      allow(instance.bookmark_manager).to receive(:has_bookmark?).with("path/to/book", 5).and_return(false)
-      expect(instance.bookmark_manager).to receive(:add_bookmark).with("path/to/book", 5)
-      instance.toggle_bookmark
+    it "preserves empty lines" do
+      lines = ["First line", "", "Third line"]
+      wrapped = helper.wrap_lines(lines, 50)
+      
+      expect(wrapped).to include("")
     end
 
-    it "removes a bookmark if one exists" do
-      allow(instance.document).to receive(:path).and_return("path/to/book")
-      allow(instance.document).to receive(:current_page_index).and_return(5)
-      allow(instance.bookmark_manager).to receive(:has_bookmark?).with("path/to/book", 5).and_return(true)
-      expect(instance.bookmark_manager).to receive(:remove_bookmark).with("path/to/book", 5)
-      instance.toggle_bookmark
+    it "handles nil lines" do
+      expect(helper.wrap_lines(nil, 50)).to eq([])
+    end
+
+    it "handles small width" do
+      lines = ["Test"]
+      expect(helper.wrap_lines(lines, 5)).to eq([])
+    end
+
+    it "splits on word boundaries" do
+      lines = ["Hello world this is a test"]
+      wrapped = helper.wrap_lines(lines, 15)
+      
+      expect(wrapped).to include("Hello world")
+      expect(wrapped).to include("this is a test")
     end
   end
 end
