@@ -5,6 +5,8 @@ require 'rexml/document'
 require 'tempfile'
 require 'fileutils'
 require 'cgi'
+require_relative 'helpers/html_processor'
+require_relative 'helpers/opf_processor'
 
 module EbookReader
   # EPUB document class
@@ -37,10 +39,14 @@ module EbookReader
         load_epub_content(tmpdir)
       end
     rescue StandardError => e
+      create_error_chapter(e)
+    end
+
+    def create_error_chapter(error)
       @chapters = [{
         number: '1',
         title: 'Error Loading',
-        lines: ["Error: #{e.message}"]
+        lines: ["Error: #{error.message}"]
       }]
     end
 
@@ -55,6 +61,13 @@ module EbookReader
     end
 
     def load_epub_content(tmpdir)
+      opf_path = find_opf_path(tmpdir)
+      return unless opf_path
+
+      process_opf(opf_path)
+    end
+
+    def find_opf_path(tmpdir)
       container_file = File.join(tmpdir, 'META-INF', 'container.xml')
       return unless File.exist?(container_file)
 
@@ -63,69 +76,31 @@ module EbookReader
       return unless rootfile
 
       opf_path = File.join(tmpdir, rootfile.attributes['full-path'])
-      return unless File.exist?(opf_path)
-
-      process_opf(opf_path)
+      opf_path if File.exist?(opf_path)
     end
 
     def process_opf(opf_path)
-      opf_dir = File.dirname(opf_path)
-      opf = REXML::Document.new(File.read(opf_path))
+      processor = OPFProcessor.new(opf_path)
 
-      # Get metadata
-      if (metadata = opf.elements['//metadata'])
-        @title = metadata.elements['*[local-name()="title"]']&.text || @title
-        if (lang = metadata.elements['*[local-name()="language"]']&.text)
-          @language = lang.include?('_') ? lang : "#{lang}_#{lang.upcase}"
-        end
+      # Extract metadata
+      metadata = processor.extract_metadata
+      @title = metadata[:title] || @title
+      @language = metadata[:language] || @language
+
+      # Build manifest and get chapter titles
+      manifest = processor.build_manifest_map
+      chapter_titles = processor.extract_chapter_titles(manifest)
+
+      # Process spine
+      processor.process_spine(manifest, chapter_titles) do |file_path, number, title|
+        chapter = load_chapter(file_path, number, title)
+        @chapters << chapter if chapter
       end
 
-      # Build manifest map
-      manifest = {}
-      opf.elements.each('//manifest/item') do |item|
-        id = item.attributes['id']
-        href = item.attributes['href']
-        manifest[id] = CGI.unescape(href) if id && href
-      end
+      ensure_chapters_exist
+    end
 
-      # Find and parse NCX for chapter titles
-      ncx_id = opf.elements['//spine']&.attributes&.[]('toc')
-      ncx_href = manifest[ncx_id] if ncx_id
-      chapter_titles = {}
-      if ncx_href && File.exist?(File.join(opf_dir, ncx_href))
-        ncx_path = File.join(opf_dir, ncx_href)
-        ncx = REXML::Document.new(File.read(ncx_path))
-        ncx.elements.each('//navMap/navPoint/navLabel/text') do |label|
-          nav_point = label.parent.parent
-          content_src = nav_point.elements['content']&.attributes&.[]('src')
-          next unless content_src
-
-          # Normalize src to match manifest href
-          key = content_src.split('#').first
-          chapter_titles[key] = clean_html(label.text)
-        end
-      end
-
-      # Process spine in order
-      chapter_num = 1
-      opf.elements.each('//spine/itemref') do |itemref|
-        idref = itemref.attributes['idref']
-        next unless idref && manifest[idref]
-
-        href = manifest[idref]
-        file_path = File.join(opf_dir, href)
-        next unless File.exist?(file_path)
-
-        # Use title from NCX if available, otherwise extract from file
-        title = chapter_titles[href]
-        chapter = load_chapter(file_path, chapter_num, title)
-        if chapter
-          @chapters << chapter
-          chapter_num += 1
-        end
-      end
-
-      # Ensure at least one chapter
+    def ensure_chapters_exist
       return unless @chapters.empty?
 
       @chapters << {
@@ -136,16 +111,10 @@ module EbookReader
     end
 
     def load_chapter(path, number, title_from_ncx = nil)
-      content = File.read(path, encoding: 'UTF-8')
-      content = content[1..] if content.start_with?("\uFEFF")
+      content = read_file_content(path)
 
-      # Use title from NCX if provided, otherwise extract from HTML
-      title = title_from_ncx || extract_title(content) || "Chapter #{number}"
-
-      # Convert HTML to text
-      text = html_to_text(content)
-
-      # Split into lines (don't wrap yet)
+      title = title_from_ncx || Helpers::HTMLProcessor.extract_title(content) || "Chapter #{number}"
+      text = Helpers::HTMLProcessor.html_to_text(content)
       lines = text.split("\n").reject { |line| line.strip.empty? }
 
       {
@@ -157,45 +126,10 @@ module EbookReader
       nil
     end
 
-    def extract_title(html)
-      if (match = html.match(%r{<title[^>]*>([^<]+)</title>}i))
-        clean_html(match[1])
-      elsif (match = html.match(%r{<h[1-3][^>]*>([^<]+)</h[1-3]>}i))
-        clean_html(match[1])
-      end
-    end
-
-    def html_to_text(html)
-      text = html.dup
-
-      # Remove scripts and styles completely
-      text.gsub!(%r{<script[^>]*>.*?</script>}mi, '')
-      text.gsub!(%r{<style[^>]*>.*?</style>}mi, '')
-
-      # Convert block elements to line breaks
-      text.gsub!(%r{</p>}i, "\n\n")
-      text.gsub!(/<p[^>]*>/i, "\n\n")
-      text.gsub!(/<br[^>]*>/i, "\n")
-      text.gsub!(%r{</h[1-6]>}i, "\n\n")
-      text.gsub!(/<h[1-6][^>]*>/i, "\n\n")
-      text.gsub!(%r{</div>}i, "\n")
-      text.gsub!(/<div[^>]*>/i, "\n")
-
-      # Remove all other tags
-      text.gsub!(/<[^>]+>/, '')
-
-      # Decode HTML entities
-      text = CGI.unescapeHTML(text)
-
-      # Clean up whitespace
-      text.gsub!(/\\r/, '')
-      text.gsub!(/\\n{3,}/, "\n\n")
-      text.gsub!(/[ \t]+/, ' ')
-      text.strip
-    end
-
-    def clean_html(text)
-      CGI.unescapeHTML(text.strip)
+    def read_file_content(path)
+      content = File.read(path, encoding: 'UTF-8')
+      content = content[1..] if content.start_with?("\uFEFF")
+      content
     end
   end
 end

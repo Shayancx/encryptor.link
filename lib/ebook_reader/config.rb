@@ -12,25 +12,13 @@ module EbookReader
     CONFIG_FILE = File.join(CONFIG_DIR, 'config.json')
 
     def initialize
-      @view_mode = :split # :split or :single
-      @theme = :dark
-      @show_page_numbers = true
-      @line_spacing = :normal # :compact, :normal, :relaxed
-      @highlight_quotes = true
+      set_defaults
       load_config
     end
 
     def save
-      begin
-        FileUtils.mkdir_p(CONFIG_DIR)
-      rescue StandardError
-        nil
-      end
-      begin
-        File.write(CONFIG_FILE, JSON.pretty_generate(to_h))
-      rescue StandardError
-        nil
-      end
+      ensure_config_dir
+      write_config_file
     end
 
     def to_h
@@ -45,17 +33,47 @@ module EbookReader
 
     private
 
+    def set_defaults
+      @view_mode = :split
+      @theme = :dark
+      @show_page_numbers = true
+      @line_spacing = :normal
+      @highlight_quotes = true
+    end
+
+    def ensure_config_dir
+      FileUtils.mkdir_p(CONFIG_DIR)
+    rescue StandardError
+      nil
+    end
+
+    def write_config_file
+      File.write(CONFIG_FILE, JSON.pretty_generate(to_h))
+    rescue StandardError
+      nil
+    end
+
     def load_config
       return unless File.exist?(CONFIG_FILE)
 
-      data = JSON.parse(File.read(CONFIG_FILE), symbolize_names: true)
+      data = parse_config_file
+      apply_config_data(data) if data
+    rescue StandardError
+      # Use defaults on error
+    end
+
+    def parse_config_file
+      JSON.parse(File.read(CONFIG_FILE), symbolize_names: true)
+    rescue StandardError
+      nil
+    end
+
+    def apply_config_data(data)
       @view_mode = data[:view_mode]&.to_sym || @view_mode
       @theme = data[:theme]&.to_sym || @theme
       @show_page_numbers = data.fetch(:show_page_numbers, @show_page_numbers)
       @line_spacing = data[:line_spacing]&.to_sym || @line_spacing
       @highlight_quotes = data.fetch(:highlight_quotes, @highlight_quotes)
-    rescue StandardError
-      # Use defaults on error
     end
   end
 end

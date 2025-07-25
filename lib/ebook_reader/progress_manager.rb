@@ -10,30 +10,40 @@ module EbookReader
     CONFIG_DIR = File.expand_path('~/.config/simple-novel-reader')
     PROGRESS_FILE = File.join(CONFIG_DIR, 'progress.json')
 
-    def self.save(path, chapter, line_offset)
-      progress = load_all
-      progress[path] = {
-        'chapter' => chapter,
-        'line_offset' => line_offset,
-        'timestamp' => Time.now.iso8601
-      }
-      begin
+    class << self
+      def save(path, chapter, line_offset)
+        progress = load_all
+        update_progress(progress, path, chapter, line_offset)
+        write_progress(progress)
+      end
+
+      def load(path)
+        load_all[path]
+      end
+
+      def load_all
+        return {} unless File.exist?(PROGRESS_FILE)
+
+        JSON.parse(File.read(PROGRESS_FILE))
+      rescue StandardError
+        {}
+      end
+
+      private
+
+      def update_progress(progress, path, chapter, line_offset)
+        progress[path] = {
+          'chapter' => chapter,
+          'line_offset' => line_offset,
+          'timestamp' => Time.now.iso8601
+        }
+      end
+
+      def write_progress(progress)
         File.write(PROGRESS_FILE, JSON.pretty_generate(progress))
       rescue StandardError
         nil
       end
-    end
-
-    def self.load(path)
-      load_all[path]
-    end
-
-    def self.load_all
-      return {} unless File.exist?(PROGRESS_FILE)
-
-      JSON.parse(File.read(PROGRESS_FILE))
-    rescue StandardError
-      {}
     end
   end
 end

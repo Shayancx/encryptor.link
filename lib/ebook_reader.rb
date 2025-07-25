@@ -15,5 +15,4 @@ require_relative 'ebook_reader/cli'
 module EbookReader
   # Custom error class for the EbookReader application.
   class Error < StandardError; end
-  # Your code goes here...
 end
