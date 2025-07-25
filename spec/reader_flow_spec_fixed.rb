@@ -20,10 +20,16 @@ RSpec.describe EbookReader::Reader, 'flow test fixed', fake_fs: true do
   before do
     allow(EbookReader::EPUBDocument).to receive(:new).and_return(doc)
     allow(doc).to receive(:get_chapter) { |i| doc.chapters[i] if i >= 0 && i < doc.chapters.size }
-    allow(EbookReader::BookmarkManager).to receive(:get).and_return([
-                                                                      { 'chapter' => 0, 'line_offset' => 5,
-                                                                        'text' => 'test bookmark', 'timestamp' => Time.now.iso8601 }
-                                                                    ])
+    allow(EbookReader::BookmarkManager).to receive(:get).and_return(
+      [
+        {
+          'chapter' => 0,
+          'line_offset' => 5,
+          'text' => 'test bookmark',
+          'timestamp' => Time.now.iso8601
+        }
+      ]
+    )
     allow(EbookReader::BookmarkManager).to receive(:add)
     allow(EbookReader::BookmarkManager).to receive(:delete)
     allow(EbookReader::ProgressManager).to receive(:load).and_return(nil)
