@@ -546,6 +546,10 @@ module EbookReader
       handle_file_path(path) if path && !path.empty?
 
       Terminal.setup
+    rescue Interrupt
+      # User pressed Ctrl-C or similar while entering the file path. Restore the
+      # terminal state and exit the dialog gracefully without raising.
+      Terminal.setup
     rescue StandardError => e
       handle_dialog_error(e)
     end

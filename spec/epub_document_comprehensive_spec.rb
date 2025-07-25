@@ -16,7 +16,9 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
       allow(Zip::File).to receive(:open).and_raise(StandardError.new("Generic error"))
       doc = described_class.new(epub_path)
       expect(doc.chapters.first[:title]).to eq('Error Loading')
-      expect(doc.chapters.first[:lines]).to include("Generic error")
+      # The error chapter should contain the original exception message. Join
+      # the lines to make the expectation independent of formatting.
+      expect(doc.chapters.first[:lines].join("\n")).to include("Generic error")
     end
 
     it 'ensures at least one chapter exists even with empty spine' do
