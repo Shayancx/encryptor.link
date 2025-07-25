@@ -38,6 +38,10 @@ module EbookReader
         extract_epub(tmpdir)
         load_epub_content(tmpdir)
       end
+      # *** THIS IS THE FIX ***
+      # After attempting to parse, if no chapters were loaded for any reason
+      # (e.g., missing OPF), ensure a default chapter exists.
+      ensure_chapters_exist
     rescue StandardError => e
       create_error_chapter(e)
     end
@@ -96,8 +100,6 @@ module EbookReader
         chapter = load_chapter(file_path, number, title)
         @chapters << chapter if chapter
       end
-
-      ensure_chapters_exist
     end
 
     def ensure_chapters_exist
