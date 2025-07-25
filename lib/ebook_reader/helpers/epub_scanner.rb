@@ -36,7 +36,7 @@ module EbookReader
         @filtered_epubs = []
 
         @scan_thread = Thread.new do
-          epubs = EPUBFinder.scan_system(force) || []
+          epubs = EPUBFinder.scan_system(force_refresh: force) || []
           sorted_epubs = epubs.sort_by { |e| (e['name'] || '').downcase }
           @scan_results_queue.push({
                                      status: :done,

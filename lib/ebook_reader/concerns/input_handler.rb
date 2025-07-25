@@ -26,6 +26,10 @@ module EbookReader
       def backspace_key?(key)
         ["\b", "\x7F", "\x08"].include?(key)
       end
+
+      def navigation_key?(key)
+        ['j', 'k', "\e[A", "\e[B", "\eOA", "\eOB"].include?(key)
+      end
     end
   end
 end

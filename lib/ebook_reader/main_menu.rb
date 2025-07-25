@@ -540,13 +540,25 @@ module EbookReader
     def open_file_dialog
       Terminal.cleanup
       print 'Enter EPUB file path: '
-      path = gets&.chomp
+      input = gets
+      path = sanitize_input_path(input)
 
       handle_file_path(path) if path && !path.empty?
 
       Terminal.setup
     rescue StandardError => e
       handle_dialog_error(e)
+    end
+
+    def sanitize_input_path(input)
+      return '' unless input
+
+      path = input.chomp.strip
+      if (path.start_with?("'") && path.end_with?("'")) ||
+         (path.start_with?('"') && path.end_with?('"'))
+        path = path[1..-2]
+      end
+      path
     end
 
     def handle_file_path(path)

@@ -28,6 +28,18 @@ RSpec.describe EbookReader::MainMenu do
       menu.send(:open_file_dialog)
     end
 
+    it 'strips surrounding quotes from input paths' do
+      allow(menu).to receive(:gets).and_return("'/path with spaces/book.epub'\n")
+      expect(menu).to receive(:handle_file_path).with('/path with spaces/book.epub')
+      menu.send(:open_file_dialog)
+    end
+
+    it 'handles paths containing spaces' do
+      allow(menu).to receive(:gets).and_return("/path with spaces/book.epub\n")
+      expect(menu).to receive(:handle_file_path).with('/path with spaces/book.epub')
+      menu.send(:open_file_dialog)
+    end
+
     it 'handles errors gracefully' do
       allow(menu).to receive(:gets).and_raise(StandardError.new('fail'))
       expect(menu).to receive(:handle_dialog_error)
