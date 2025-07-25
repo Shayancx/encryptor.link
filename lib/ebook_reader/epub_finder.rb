@@ -4,7 +4,6 @@ require 'fileutils'
 require 'json'
 require 'time'
 require 'timeout'
-require 'set'
 
 module EbookReader
   # EPUB file finder with robust error handling

@@ -30,7 +30,9 @@ module EbookReader
   # Raised when terminal is too small
   class TerminalSizeError < Error
     def initialize(width, height)
-      super("Terminal too small: #{width}x#{height}. Minimum required: #{Constants::UIConstants::MIN_WIDTH}x#{Constants::UIConstants::MIN_HEIGHT}")
+      min_width = Constants::UIConstants::MIN_WIDTH
+      min_height = Constants::UIConstants::MIN_HEIGHT
+      super("Terminal too small: #{width}x#{height}. Minimum required: #{min_width}x#{min_height}")
     end
   end
 end

@@ -6,9 +6,6 @@ require_relative 'reader_modes/toc_mode'
 require_relative 'reader_modes/bookmarks_mode'
 require_relative 'constants/ui_constants'
 require_relative 'errors'
-
-# frozen_string_literal: true
-
 require_relative 'helpers/reader_helpers'
 require_relative 'ui/reader_renderer'
 require_relative 'concerns/input_handler'
@@ -19,6 +16,8 @@ module EbookReader
     include Constants::UIConstants
     include Helpers::ReaderHelpers
     include Concerns::InputHandler
+
+    attr_reader :current_chapter, :doc, :config
 
     def initialize(epub_path, config = Config.new)
       @path = epub_path
@@ -70,16 +69,9 @@ module EbookReader
       max_page = [wrapped.size - content_height, 0].max
 
       if @config.view_mode == :split
-        if @right_page < max_page
-          @left_page = @right_page
-          @right_page = [@right_page + content_height, max_page].min
-        elsif @current_chapter < @doc.chapter_count - 1
-          next_chapter
-        end
-      elsif @single_page < max_page
-        @single_page = [@single_page + content_height, max_page].min
-      elsif @current_chapter < @doc.chapter_count - 1
-        next_chapter
+        handle_split_next_page(max_page, content_height)
+      else
+        handle_single_next_page(max_page, content_height)
       end
     end
 
@@ -89,16 +81,9 @@ module EbookReader
       content_height = adjust_for_line_spacing(content_height)
 
       if @config.view_mode == :split
-        if @left_page.positive?
-          @right_page = @left_page
-          @left_page = [@left_page - content_height, 0].max
-        elsif @current_chapter.positive?
-          prev_chapter(go_to_end: true)
-        end
-      elsif @single_page.positive?
-        @single_page = [@single_page - content_height, 0].max
-      elsif @current_chapter.positive?
-        prev_chapter(go_to_end: true)
+        handle_split_prev_page(content_height)
+      else
+        handle_single_prev_page(content_height)
       end
     end
 
@@ -136,7 +121,55 @@ module EbookReader
       exit 0
     end
 
-    attr_reader :current_chapter, :doc, :config
+    def next_chapter
+      @current_chapter += 1
+      reset_pages
+      save_progress
+    end
+
+    def prev_chapter
+      @current_chapter -= 1
+      reset_pages
+    end
+
+    def add_bookmark
+      line_offset = @config.view_mode == :split ? @left_page : @single_page
+      chapter = @doc.get_chapter(@current_chapter)
+      return unless chapter
+
+      text_snippet = extract_bookmark_text(chapter, line_offset)
+      BookmarkManager.add(@path, @current_chapter, line_offset, text_snippet)
+      load_bookmarks
+      set_message('Bookmark added!')
+    end
+
+    def toggle_view_mode
+      @config.view_mode = @config.view_mode == :split ? :single : :split
+      @config.save
+      @last_width = 0
+      @last_height = 0
+      reset_pages
+    end
+
+    def increase_line_spacing
+      modes = %i[compact normal relaxed]
+      current = modes.index(@config.line_spacing) || 1
+      return unless current < 2
+
+      @config.line_spacing = modes[current + 1]
+      @config.save
+      @last_width = 0
+    end
+
+    def decrease_line_spacing
+      modes = %i[compact normal relaxed]
+      current = modes.index(@config.line_spacing) || 1
+      return unless current.positive?
+
+      @config.line_spacing = modes[current - 1]
+      @config.save
+      @last_width = 0
+    end
 
     private
 
@@ -175,6 +208,45 @@ module EbookReader
         process_input(key) if key
         sleep KEY_REPEAT_DELAY / 1000.0
       end
+    end
+
+    def handle_split_next_page(max_page, content_height)
+      if @right_page < max_page
+        @left_page = @right_page
+        @right_page = [@right_page + content_height, max_page].min
+      elsif @current_chapter < @doc.chapter_count - 1
+        next_chapter
+      end
+    end
+
+    def handle_single_next_page(max_page, content_height)
+      if @single_page < max_page
+        @single_page = [@single_page + content_height, max_page].min
+      elsif @current_chapter < @doc.chapter_count - 1
+        next_chapter
+      end
+    end
+
+    def handle_split_prev_page(content_height)
+      if @left_page.positive?
+        @right_page = @left_page
+        @left_page = [@left_page - content_height, 0].max
+      elsif @current_chapter.positive?
+        prev_chapter_with_end_position
+      end
+    end
+
+    def handle_single_prev_page(content_height)
+      if @single_page.positive?
+        @single_page = [@single_page - content_height, 0].max
+      elsif @current_chapter.positive?
+        prev_chapter_with_end_position
+      end
+    end
+
+    def prev_chapter_with_end_position
+      @current_chapter -= 1
+      position_at_chapter_end
     end
 
     def update_page_map(width, height)
@@ -235,17 +307,6 @@ module EbookReader
 
     def load_bookmarks
       @bookmarks = BookmarkManager.get(@path)
-    end
-
-    def add_bookmark
-      line_offset = @config.view_mode == :split ? @left_page : @single_page
-      chapter = @doc.get_chapter(@current_chapter)
-      return unless chapter
-
-      text_snippet = extract_bookmark_text(chapter, line_offset)
-      BookmarkManager.add(@path, @current_chapter, line_offset, text_snippet)
-      load_bookmarks
-      set_message('Bookmark added!')
     end
 
     def extract_bookmark_text(chapter, line_offset)
@@ -395,7 +456,6 @@ module EbookReader
       content_height = adjust_for_line_spacing(content_height)
       wrapped = wrap_lines(chapter[:lines] || [], col_width)
 
-      # Correctly center the text block within the available space (between header and footer)
       start_row = [2 + ((height - 2 - content_height) / 2), 2].max
       draw_column(start_row, col_start, col_width, content_height, wrapped, @single_page, false)
     end
@@ -460,7 +520,6 @@ module EbookReader
       Terminal.write(row, start_col, Terminal::ANSI::WHITE + display_line[0, width] + Terminal::ANSI::RESET)
     end
 
-    # :nocov:
     def highlight_keywords(line)
       keywords = /Chinese poets|philosophers|Taoyuen-ming|celebrated|fragrance|plum-blossoms|Linwosing|Chowmushih/
       line.gsub(keywords) { |match| Terminal::ANSI::CYAN + match + Terminal::ANSI::WHITE }
@@ -633,15 +692,23 @@ module EbookReader
       line2 = "  > #{bookmark['text']}"
 
       if idx == @bookmark_selected
-        Terminal.write(row, 2, "#{Terminal::ANSI::BRIGHT_GREEN}▸ #{Terminal::ANSI::RESET}")
-        Terminal.write(row, 4, Terminal::ANSI::BRIGHT_WHITE + line1[0, width - 6] + Terminal::ANSI::RESET)
-        Terminal.write(row + 1, 4,
-                       Terminal::ANSI::ITALIC + Terminal::ANSI::GRAY + line2[0, width - 6] + Terminal::ANSI::RESET)
+        draw_selected_bookmark_item(row, width, line1, line2)
       else
-        Terminal.write(row, 4, Terminal::ANSI::WHITE + line1[0, width - 6] + Terminal::ANSI::RESET)
-        Terminal.write(row + 1, 4,
-                       Terminal::ANSI::DIM + Terminal::ANSI::GRAY + line2[0, width - 6] + Terminal::ANSI::RESET)
+        draw_unselected_bookmark_item(row, width, line1, line2)
       end
+    end
+
+    def draw_selected_bookmark_item(row, width, line1, line2)
+      Terminal.write(row, 2, "#{Terminal::ANSI::BRIGHT_GREEN}▸ #{Terminal::ANSI::RESET}")
+      Terminal.write(row, 4, Terminal::ANSI::BRIGHT_WHITE + line1[0, width - 6] + Terminal::ANSI::RESET)
+      Terminal.write(row + 1, 4,
+                     Terminal::ANSI::ITALIC + Terminal::ANSI::GRAY + line2[0, width - 6] + Terminal::ANSI::RESET)
+    end
+
+    def draw_unselected_bookmark_item(row, width, line1, line2)
+      Terminal.write(row, 4, Terminal::ANSI::WHITE + line1[0, width - 6] + Terminal::ANSI::RESET)
+      Terminal.write(row + 1, 4,
+                     Terminal::ANSI::DIM + Terminal::ANSI::GRAY + line2[0, width - 6] + Terminal::ANSI::RESET)
     end
 
     def draw_bookmarks_footer(height)
@@ -650,7 +717,14 @@ module EbookReader
     end
 
     def adjust_for_line_spacing(height)
-      height
+      case @config.line_spacing
+      when :compact
+        height
+      when :relaxed
+        height / 2
+      else # :normal
+        (height * 0.8).to_i
+      end
     end
 
     def process_input(key)
@@ -679,17 +753,6 @@ module EbookReader
       end
     end
 
-    def quit_to_menu
-      save_progress
-      @running = false
-    end
-
-    def quit_application
-      save_progress
-      Terminal.cleanup
-      exit 0
-    end
-
     def open_toc
       @mode = :toc
       @toc_selected = @current_chapter
@@ -698,34 +761,6 @@ module EbookReader
     def open_bookmarks
       @mode = :bookmarks
       @bookmark_selected = 0
-    end
-
-    def toggle_view_mode
-      @config.view_mode = @config.view_mode == :split ? :single : :split
-      @config.save
-      @last_width = 0
-      @last_height = 0
-      reset_pages
-    end
-
-    def increase_line_spacing
-      modes = %i[compact normal relaxed]
-      current = modes.index(@config.line_spacing) || 1
-      return unless current < 2
-
-      @config.line_spacing = modes[current + 1]
-      @config.save
-      @last_width = 0
-    end
-
-    def decrease_line_spacing
-      modes = %i[compact normal relaxed]
-      current = modes.index(@config.line_spacing) || 1
-      return unless current.positive?
-
-      @config.line_spacing = modes[current - 1]
-      @config.save
-      @last_width = 0
     end
 
     def handle_navigation_input(key)
@@ -744,72 +779,40 @@ module EbookReader
 
     def navigate_by_key(key, content_height, max_page)
       case key
-      when 'j', "\e[B", "\eOB" then scroll_down(max_page)
+      when 'j', "\e[B", "\eOB" then scroll_down_with_max(max_page)
       when 'k', "\e[A", "\eOA" then scroll_up
-      when 'l', ' ', "\e[C", "\eOC" then next_page(content_height, max_page)
-      when 'h', "\e[D", "\eOD" then prev_page(content_height)
-      when 'n', 'N' then next_chapter if @current_chapter < @doc.chapter_count - 1
-      when 'p', 'P' then prev_chapter if @current_chapter.positive?
+      when 'l', ' ', "\e[C", "\eOC" then next_page_with_params(content_height, max_page)
+      when 'h', "\e[D", "\eOD" then prev_page_with_params(content_height)
+      when 'n', 'N' then handle_next_chapter
+      when 'p', 'P' then handle_prev_chapter
       when 'g' then reset_pages
-      when 'G' then go_to_end(content_height, max_page)
+      when 'G' then go_to_end_with_params(content_height, max_page)
       end
     end
 
-    def scroll_down(max_page)
-      if @config.view_mode == :split
-        @left_page = [@left_page + 1, max_page].min
-        @right_page = [@right_page + 1, max_page].min
-      else
-        @single_page = [@single_page + 1, max_page].min
-      end
+    def scroll_down_with_max(max_page)
+      @max_page = max_page
+      scroll_down
     end
 
-    def scroll_up
-      if @config.view_mode == :split
-        @left_page = [@left_page - 1, 0].max
-        @right_page = [@right_page - 1, 0].max
-      else
-        @single_page = [@single_page - 1, 0].max
-      end
+    def next_page_with_params(_content_height, _max_page)
+      next_page
     end
 
-    def next_page(content_height, max_page)
-      if @config.view_mode == :split
-        if @right_page < max_page
-          @left_page = @right_page
-          @right_page = [@right_page + content_height, max_page].min
-        elsif @current_chapter < @doc.chapter_count - 1
-          next_chapter
-        end
-      elsif @single_page < max_page
-        @single_page = [@single_page + content_height, max_page].min
-      elsif @current_chapter < @doc.chapter_count - 1
-        next_chapter
-      end
+    def prev_page_with_params(_content_height)
+      prev_page
     end
 
-    def prev_page(content_height)
-      if @config.view_mode == :split
-        if @left_page.positive?
-          @right_page = @left_page
-          @left_page = [@left_page - content_height, 0].max
-        elsif @current_chapter.positive?
-          prev_chapter(go_to_end: true)
-        end
-      elsif @single_page.positive?
-        @single_page = [@single_page - content_height, 0].max
-      elsif @current_chapter.positive?
-        prev_chapter(go_to_end: true)
-      end
+    def go_to_end_with_params(_content_height, _max_page)
+      go_to_end
     end
 
-    def go_to_end(content_height, max_page)
-      if @config.view_mode == :split
-        @right_page = max_page
-        @left_page = [max_page - content_height, 0].max
-      else
-        @single_page = max_page
-      end
+    def handle_next_chapter
+      next_chapter if @current_chapter < @doc.chapter_count - 1
+    end
+
+    def handle_prev_chapter
+      prev_chapter if @current_chapter.positive?
     end
 
     def handle_toc_input(key)
@@ -871,22 +874,6 @@ module EbookReader
       self.page_offsets = 0
     end
 
-    def next_chapter
-      @current_chapter += 1
-      reset_pages
-      save_progress
-    end
-
-    def prev_chapter(go_to_end: false)
-      @current_chapter -= 1
-
-      if go_to_end
-        position_at_chapter_end
-      else
-        reset_pages
-      end
-    end
-
     def position_at_chapter_end
       chapter = @doc.get_chapter(@current_chapter)
       return unless chapter && chapter[:lines]
@@ -904,6 +891,5 @@ module EbookReader
         @single_page = max_page
       end
     end
-    # :nocov:
   end
 end
