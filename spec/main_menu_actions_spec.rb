@@ -53,9 +53,9 @@ RSpec.describe EbookReader::MainMenu, "actions" do
     before do
       menu.instance_variable_set(:@mode, :browse)
       allow(scanner).to receive(:epubs).and_return([
-        { 'name' => 'A Book', 'path' => '/book_a.epub' },
-        { 'name' => 'B Book', 'path' => '/book_b.epub' }
-      ])
+                                                     { 'name' => 'A Book', 'path' => '/book_a.epub' },
+                                                     { 'name' => 'B Book', 'path' => '/book_b.epub' }
+                                                   ])
       menu.send(:filter_books)
     end
 
@@ -66,16 +66,16 @@ RSpec.describe EbookReader::MainMenu, "actions" do
     end
 
     it 'handles backspace in search query' do
-        menu.send(:add_to_search, 'a')
-        menu.send(:handle_backspace)
-        expect(menu.instance_variable_get(:@search_query)).to eq('')
-        expect(menu.instance_variable_get(:@filtered_epubs).size).to eq(2)
+      menu.send(:add_to_search, 'a')
+      menu.send(:handle_backspace)
+      expect(menu.instance_variable_get(:@search_query)).to eq('')
+      expect(menu.instance_variable_get(:@filtered_epubs).size).to eq(2)
     end
 
     it 'refreshes the scan' do
-        expect(EbookReader::EPUBFinder).to receive(:clear_cache)
-        expect(scanner).to receive(:start_scan).with(force: true)
-        menu.send(:refresh_scan)
+      expect(EbookReader::EPUBFinder).to receive(:clear_cache)
+      expect(scanner).to receive(:start_scan).with(force: true)
+      menu.send(:refresh_scan)
     end
   end
 
@@ -86,19 +86,19 @@ RSpec.describe EbookReader::MainMenu, "actions" do
     end
 
     it 'toggles view mode' do
-      expect { menu.send(:handle_setting_change, '1') }.to change { config.view_mode }
+      expect { menu.send(:handle_setting_change, '1') }.to(change { config.view_mode })
     end
 
     it 'toggles page numbers' do
-      expect { menu.send(:handle_setting_change, '2') }.to change { config.show_page_numbers }
+      expect { menu.send(:handle_setting_change, '2') }.to(change { config.show_page_numbers })
     end
 
     it 'cycles line spacing' do
-      expect { menu.send(:handle_setting_change, '3') }.to change { config.line_spacing }
+      expect { menu.send(:handle_setting_change, '3') }.to(change { config.line_spacing })
     end
 
     it 'toggles highlight quotes' do
-      expect { menu.send(:handle_setting_change, '4') }.to change { config.highlight_quotes }
+      expect { menu.send(:handle_setting_change, '4') }.to(change { config.highlight_quotes })
     end
 
     it 'clears the cache' do

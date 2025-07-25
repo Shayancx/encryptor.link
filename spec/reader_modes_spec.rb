@@ -106,11 +106,11 @@ RSpec.describe EbookReader::Reader, "modes" do
     end
 
     it 'handles empty bookmarks list' do
-        reader.instance_variable_set(:@bookmarks, [])
-        reader.send(:handle_bookmarks_input, 'j')
-        expect(reader.instance_variable_get(:@bookmark_selected)).to eq(0)
-        reader.send(:handle_bookmarks_input, "\r")
-        expect(reader.instance_variable_get(:@mode)).to eq(:bookmarks) # no change
+      reader.instance_variable_set(:@bookmarks, [])
+      reader.send(:handle_bookmarks_input, 'j')
+      expect(reader.instance_variable_get(:@bookmark_selected)).to eq(0)
+      reader.send(:handle_bookmarks_input, "\r")
+      expect(reader.instance_variable_get(:@mode)).to eq(:bookmarks) # no change
     end
   end
 end

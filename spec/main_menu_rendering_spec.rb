@@ -41,16 +41,16 @@ RSpec.describe EbookReader::MainMenu, "rendering" do
 
   context 'when drawing empty states' do
     it 'renders empty recent screen correctly' do
-        allow(EbookReader::RecentFiles).to receive(:load).and_return([])
-        expect(menu).to receive(:render_empty_recent)
-        menu.send(:draw_recent_screen, 24, 80)
+      allow(EbookReader::RecentFiles).to receive(:load).and_return([])
+      expect(menu).to receive(:render_empty_recent)
+      menu.send(:draw_recent_screen, 24, 80)
     end
 
     it 'renders empty bookmarks screen correctly' do
-        reader = EbookReader::Reader.new('/fake.epub')
-        reader.instance_variable_set(:@bookmarks, [])
-        expect(reader).to receive(:draw_empty_bookmarks)
-        reader.send(:draw_bookmarks_screen, 24, 80)
+      reader = EbookReader::Reader.new('/fake.epub')
+      reader.instance_variable_set(:@bookmarks, [])
+      expect(reader).to receive(:draw_empty_bookmarks)
+      reader.send(:draw_bookmarks_screen, 24, 80)
     end
   end
 end

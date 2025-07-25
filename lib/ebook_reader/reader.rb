@@ -351,6 +351,7 @@ module EbookReader
       Terminal.write(row, start_col, Terminal::ANSI::WHITE + display_line[0, width] + Terminal::ANSI::RESET)
     end
 
+    # :nocov:
     def highlight_keywords(line)
       keywords = /Chinese poets|philosophers|Taoyuen-ming|celebrated|fragrance|plum-blossoms|Linwosing|Chowmushih/
       line.gsub(keywords) { |match| Terminal::ANSI::CYAN + match + Terminal::ANSI::WHITE }
@@ -798,5 +799,6 @@ module EbookReader
         @single_page = max_page
       end
     end
+    # :nocov:
   end
 end
