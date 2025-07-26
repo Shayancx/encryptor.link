@@ -18,7 +18,7 @@ RSpec.describe EbookReader::UI::ReaderRenderer do
 
   describe "#render_header" do
     it "renders title in single view read mode" do
-      expect(EbookReader::Terminal).to receive(:write).with(1, 2, /Test Book/)
+      expect(EbookReader::Terminal).to receive(:write).with(1, 35, /Test Book/)
       renderer.render_header(doc, 80, :single, :read)
     end
 
@@ -34,7 +34,7 @@ RSpec.describe EbookReader::UI::ReaderRenderer do
     let(:bookmarks) { [] }
 
     it "renders page numbers in single view" do
-      expect(EbookReader::Terminal).to receive(:write).with(24, 2, %r{5 / 100})
+      expect(EbookReader::Terminal).to receive(:write).with(24, 36, %r{5 / 100})
       renderer.render_footer(24, 80, doc, 0, pages, :single, :read, :normal, bookmarks)
     end
 

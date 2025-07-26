@@ -34,11 +34,12 @@ module EbookReader
 
       private
 
-      def render_single_view_footer(height, _width, pages)
+      def render_single_view_footer(height, width, pages)
         return unless @config.show_page_numbers && pages[:total].positive?
 
         page_text = "#{pages[:current]} / #{pages[:total]}"
-        Terminal.write(height, 2, DIM + GRAY + page_text + RESET)
+        centered_col = [(width - page_text.length) / 2, 1].max
+        Terminal.write(height, centered_col, DIM + GRAY + page_text + RESET)
       end
 
       def render_split_view_footer(height, width, doc, chapter, view_mode, line_spacing, bookmarks)
@@ -47,7 +48,7 @@ module EbookReader
         left_prog = "[#{chapter + 1}/#{doc.chapter_count}]"
         Terminal.write(footer_row1, 1, BLUE + left_prog + RESET)
 
-        mode_text = view_mode == :split ? '[SPLIT]' : '[SINGLE]'
+        mode_text = "#{view_mode == :split ? '[SPLIT]' : '[SINGLE]'} [#{@config.page_numbering_mode.to_s.upcase}]"
         Terminal.write(footer_row1, [(width / 2) - 10, 20].max, YELLOW + mode_text + RESET)
 
         right_prog = "L#{line_spacing.to_s[0]} B#{bookmarks.count}"

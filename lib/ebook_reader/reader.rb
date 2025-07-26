@@ -186,6 +186,12 @@ module EbookReader
       @last_width = 0
     end
 
+    def toggle_page_numbering_mode
+      @config.page_numbering_mode = @config.page_numbering_mode == :absolute ? :dynamic : :absolute
+      @config.save
+      set_message("Page numbering: #{@config.page_numbering_mode}")
+    end
+
     def decrease_line_spacing
       modes = %i[compact normal relaxed]
       current = modes.index(@config.line_spacing) || 1
@@ -300,7 +306,7 @@ module EbookReader
         content_height = [height - 2, 1].max
       else
         col_width = (width * 0.9).to_i.clamp(30, 120)
-        content_height = [height - 4, 1].max
+        content_height = [height - 2, 1].max
       end
       [col_width, content_height]
     end
@@ -417,23 +423,41 @@ module EbookReader
     end
 
     def draw_footer(height, width)
-      pages = calculate_current_pages(height, width)
+      pages = calculate_current_pages(width, height)
       @renderer.render_footer(height, width, @doc, @current_chapter, pages,
                               @config.view_mode, @mode, @config.line_spacing, @bookmarks)
     end
 
-    def calculate_current_pages(height, width)
-      return { current: 0, total: 0 } unless @config.show_page_numbers && @total_pages.positive?
+    def calculate_current_pages
+      return { current: 0, total: 0 } unless @config.show_page_numbers
 
-      _, content_height = get_layout_metrics(width, height)
+      height, width = Terminal.size
+      col_width, content_height = get_layout_metrics(width, height)
       actual_height = adjust_for_line_spacing(content_height)
       return { current: 0, total: 0 } if actual_height <= 0
 
-      page_in_chapter = (@single_page / actual_height) + 1
-      pages_before = @page_map[0...@current_chapter].sum
-      current_global_page = pages_before + page_in_chapter
+      if @config.page_numbering_mode == :dynamic
+        chapter = @doc.get_chapter(@current_chapter)
+        return { current: 0, total: 0 } unless chapter && chapter[:lines]
 
-      { current: current_global_page, total: @total_pages }
+        wrapped = wrap_lines(chapter[:lines] || [], col_width)
+        total_pages_in_chapter = [(wrapped.size.to_f / actual_height).ceil, 1].max
+
+        line_offset = @config.view_mode == :split ? @left_page : @single_page
+        current_page_in_chapter = (line_offset / actual_height).floor + 1
+        current_page_in_chapter = [current_page_in_chapter, total_pages_in_chapter].min
+
+        { current: current_page_in_chapter, total: total_pages_in_chapter }
+      else
+        return { current: 0, total: 0 } unless @total_pages.positive?
+
+        pages_before = @page_map[0...@current_chapter].sum
+        line_offset = @config.view_mode == :split ? @left_page : @single_page
+        page_in_chapter = (line_offset.to_f / actual_height).floor + 1
+        current_global_page = pages_before + page_in_chapter
+
+        { current: current_global_page, total: @total_pages }
+      end
     end
 
     def draw_message(height, width)
@@ -478,11 +502,14 @@ module EbookReader
 
       col_width, content_height = get_layout_metrics(width, height)
       col_start = [(width - col_width) / 2, 1].max
-      content_height = adjust_for_line_spacing(content_height)
+      displayable_lines = adjust_for_line_spacing(content_height)
       wrapped = wrap_lines(chapter[:lines] || [], col_width)
 
-      start_row = [2 + ((height - 2 - content_height) / 2), 2].max
-      draw_column(start_row, col_start, col_width, content_height, wrapped, @single_page, false)
+      lines_in_page = wrapped.slice(@single_page, displayable_lines) || []
+      padding = (content_height - lines_in_page.size)
+      start_row = [2 + (padding / 2), 2].max
+
+      draw_column(start_row, col_start, col_width, displayable_lines, wrapped, @single_page, false)
     end
 
     def draw_column(start_row, start_col, width, height, lines, offset, show_page_num)
@@ -509,20 +536,16 @@ module EbookReader
         break if line_count >= actual_height
 
         line = lines[line_idx] || ''
-        row = calculate_row(start_row, line_count)
+        row = start_row + if @config.line_spacing == :relaxed
+                            line_count * 2
+                          else
+                            line_count
+                          end
 
         next if row >= Terminal.size[0] - 2
 
         draw_line(line, row, start_col, width)
         line_count += 1
-      end
-    end
-
-    def calculate_row(start_row, line_count)
-      if @config.line_spacing == :relaxed
-        start_row + (line_count * 2)
-      else
-        start_row + line_count
       end
     end
 
@@ -566,7 +589,8 @@ module EbookReader
 
       return if page_row >= Terminal.size[0] - 2
 
-      Terminal.write(page_row, [start_col + width - page_text.length, start_col].max,
+      col = start_col + [(width - page_text.length) / 2, 0].max
+      Terminal.write(page_row, col,
                      Terminal::ANSI::DIM + Terminal::ANSI::GRAY + page_text + Terminal::ANSI::RESET)
     end
 
@@ -599,6 +623,7 @@ module EbookReader
         '',
         'View Options:',
         '  v         Toggle split/single view',
+        '  P         Toggle page numbering mode (Absolute/Dynamic)',
         '  + / -     Adjust line spacing',
         '',
         'Features:',
@@ -665,13 +690,15 @@ module EbookReader
     end
 
     def adjust_for_line_spacing(height)
+      return 1 if height <= 0
+
       case @config.line_spacing
       when :compact
         height
       when :relaxed
-        height / 2
+        [height / 2, 1].max
       else # :normal
-        (height * 0.8).to_i
+        height
       end
     end
 
@@ -695,6 +722,7 @@ module EbookReader
       when 'b' then add_bookmark
       when 'B' then open_bookmarks
       when 'v', 'V' then toggle_view_mode
+      when 'P' then toggle_page_numbering_mode
       when '+' then increase_line_spacing
       when '-' then decrease_line_spacing
       else handle_navigation_input(key)

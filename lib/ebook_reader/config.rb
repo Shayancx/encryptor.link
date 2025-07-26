@@ -6,7 +6,7 @@ require 'json'
 module EbookReader
   # Configuration manager
   class Config
-    attr_accessor :view_mode, :theme, :show_page_numbers, :line_spacing, :highlight_quotes
+    attr_accessor :view_mode, :theme, :show_page_numbers, :line_spacing, :highlight_quotes, :page_numbering_mode
 
     CONFIG_DIR = File.expand_path('~/.config/reader')
     CONFIG_FILE = File.join(CONFIG_DIR, 'config.json')
@@ -37,7 +37,8 @@ module EbookReader
         theme: @theme,
         show_page_numbers: @show_page_numbers,
         line_spacing: @line_spacing,
-        highlight_quotes: @highlight_quotes
+        highlight_quotes: @highlight_quotes,
+        page_numbering_mode: @page_numbering_mode
       }
     end
 
@@ -49,6 +50,7 @@ module EbookReader
       @show_page_numbers = true
       @line_spacing = :normal
       @highlight_quotes = true
+      @page_numbering_mode = :absolute
     end
 
     def ensure_config_dir
@@ -84,6 +86,7 @@ module EbookReader
       @show_page_numbers = data.fetch(:show_page_numbers, @show_page_numbers)
       @line_spacing = data[:line_spacing]&.to_sym || @line_spacing
       @highlight_quotes = data.fetch(:highlight_quotes, @highlight_quotes)
+      @page_numbering_mode = data[:page_numbering_mode]&.to_sym || @page_numbering_mode
     end
   end
 end

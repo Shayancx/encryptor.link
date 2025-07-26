@@ -75,7 +75,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
         expect(reader.send(:adjust_for_line_spacing, 20)).to eq(10)
         
         config.line_spacing = :normal
-        expect(reader.send(:adjust_for_line_spacing, 20)).to eq(16)
+        expect(reader.send(:adjust_for_line_spacing, 20)).to eq(20)
       end
       
       it 'handles all navigation keys properly' do

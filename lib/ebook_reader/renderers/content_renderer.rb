@@ -137,7 +137,8 @@ module EbookReader
 
         return if page_row >= Terminal.size[0] - 2
 
-        write(page_row, [start_col + width - page_text.length, start_col].max,
+        col = start_col + [(width - page_text.length) / 2, 0].max
+        write(page_row, col,
               with_color(Terminal::ANSI::DIM + Terminal::ANSI::GRAY, page_text))
       end
 
