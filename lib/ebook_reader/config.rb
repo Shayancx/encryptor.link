@@ -16,6 +16,16 @@ module EbookReader
       load_config
     end
 
+    # Save current configuration to disk.
+    #
+    # Creates the configuration directory if it doesn't exist and writes
+    # the current settings to config.json. Fails silently if the file system
+    # is read-only or other IO errors occur.
+    #
+    # @return [void]
+    # @example
+    #   config.view_mode = :single
+    #   config.save  # Persists the change
     def save
       ensure_config_dir
       write_config_file

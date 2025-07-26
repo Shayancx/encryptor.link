@@ -66,6 +66,15 @@ module EbookReader
     @buffer = []
 
     class << self
+      # Get current terminal dimensions.
+      #
+      # Falls back to default size (24x80) if terminal size cannot be determined.
+      # This can happen in non-interactive environments or when IO.console is not available.
+      #
+      # @return [Array<Integer>] Terminal height and width as [rows, columns]
+      # @example
+      #   height, width = Terminal.size
+      #   puts "Terminal is #{width}x#{height}"
       def size
         IO.console.winsize || [24, 80]
       rescue StandardError

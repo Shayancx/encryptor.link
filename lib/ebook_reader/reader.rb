@@ -11,8 +11,39 @@ require_relative 'ui/reader_renderer'
 require_relative 'concerns/input_handler'
 require_relative 'concerns/bookmarks_ui'
 
+require_relative "reader_modes/reading_mode"
+require_relative "reader_modes/help_mode"
+require_relative "reader_modes/toc_mode"
+require_relative "reader_modes/bookmarks_mode"
+require_relative "constants/ui_constants"
+require_relative "errors"
+require_relative "helpers/reader_helpers"
+require_relative "ui/reader_renderer"
+require_relative "concerns/input_handler"
+require_relative "concerns/bookmarks_ui"
+require_relative "core/reader_state"
+require_relative "services/reader_navigation"
+require_relative "renderers/components/text_renderer"
+
 module EbookReader
-  # Enhanced reader with single/split view
+  # Main reader interface for displaying EPUB content.
+  #
+  # This class coordinates the reading experience, managing the display,
+  # navigation, bookmarks, and user input. It follows the Model-View-Controller
+  # pattern where:
+  # - Model: EPUBDocument and state management
+  # - View: Renderers and display components
+  # - Controller: Input handling and navigation
+  #
+  # @example Basic usage
+  #   reader = Reader.new("/path/to/book.epub")
+  #   reader.run
+  #
+  # @example With custom configuration
+  #   config = Config.new
+  #   config.view_mode = :single
+  #   reader = Reader.new("/path/to/book.epub", config)
+  #   reader.run
   class Reader
     include Constants::UIConstants
     include Helpers::ReaderHelpers

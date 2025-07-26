@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+require_relative "infrastructure/logger"
+require_relative "infrastructure/performance_monitor"
 
 require 'zip'
 require 'rexml/document'
@@ -34,6 +36,8 @@ module EbookReader
     private
 
     def parse_epub
+      Infrastructure::Logger.info("Parsing EPUB", path: @path)
+      Infrastructure::PerformanceMonitor.time("epub_parsing") do
       Dir.mktmpdir do |tmpdir|
         extract_epub(tmpdir)
         load_epub_content(tmpdir)
@@ -44,6 +48,7 @@ module EbookReader
       ensure_chapters_exist
     rescue StandardError => e
       create_error_chapter(e)
+      end
     end
 
     def create_error_chapter(error)

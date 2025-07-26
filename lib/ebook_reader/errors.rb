@@ -36,3 +36,44 @@ module EbookReader
     end
   end
 end
+
+  # Raised when reader state is invalid
+  class InvalidStateError < Error
+    attr_reader :state
+
+    def initialize(message, state)
+      super("Invalid reader state: #{message}")
+      @state = state
+    end
+  end
+
+  # Raised when navigation is not possible
+  class NavigationError < Error
+    attr_reader :direction, :reason
+
+    def initialize(direction, reason)
+      super("Cannot navigate #{direction}: #{reason}")
+      @direction = direction
+      @reason = reason
+    end
+  end
+
+  # Raised when bookmark operation fails
+  class BookmarkError < Error
+    attr_reader :operation
+
+    def initialize(operation, message)
+      super("Bookmark #{operation} failed: #{message}")
+      @operation = operation
+    end
+  end
+
+  # Raised when rendering fails
+  class RenderError < Error
+    attr_reader :component
+
+    def initialize(component, message)
+      super("Rendering failed in #{component}: #{message}")
+      @component = component
+    end
+  end
