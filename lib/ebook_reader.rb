@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Simple Novel Reader - A fast, keyboard-driven terminal EPUB reader
+# Reader - A fast, keyboard-driven terminal EPUB reader
 #
 # This is the main entry point for the EbookReader gem. It loads all
 # necessary components in the correct order to ensure dependencies are

@@ -9,12 +9,12 @@ module EbookReader
     CONFIG_VERSION = 1
 
     # Application metadata
-    APP_NAME = 'Simple Novel Reader'
+    APP_NAME = 'Reader'
     APP_AUTHOR = 'Your Name'
-    APP_HOMEPAGE = 'https://github.com/yourusername/simple-novel-reader'
+    APP_HOMEPAGE = 'https://github.com/yourusername/reader'
 
     # File system constants
-    CONFIG_DIR = File.expand_path('~/.config/simple-novel-reader')
+    CONFIG_DIR = File.expand_path('~/.config/reader')
     CACHE_DIR = File.join(CONFIG_DIR, 'cache')
     LOG_DIR = File.join(CONFIG_DIR, 'logs')
 

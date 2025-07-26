@@ -16,7 +16,7 @@ module EbookReader
           centered_col = [(width - title_text.length) / 2, 1].max
           Terminal.write(1, centered_col, WHITE + title_text + RESET)
         else
-          title_text = 'Simple Novel Reader'
+          title_text = 'Reader'
           Terminal.write(1, 1, WHITE + title_text + RESET)
           right_text = 'q:Quit ?:Help t:ToC B:Bookmarks'
           Terminal.write(1, [width - right_text.length + 1, 1].max,

@@ -179,8 +179,8 @@ For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
 ### Setup Development Environment
 
 ```bash
-git clone https://github.com/yourusername/simple-novel-reader.git
-cd simple-novel-reader
+git clone https://github.com/yourusername/reader.git
+cd reader
 bundle install
 ```
 
@@ -255,6 +255,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/simple-novel-reader/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/simple-novel-reader/discussions)
-- **Wiki**: [Project Wiki](https://github.com/yourusername/simple-novel-reader/wiki)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/reader/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/reader/discussions)
+- **Wiki**: [Project Wiki](https://github.com/yourusername/reader/wiki)

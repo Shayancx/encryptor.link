@@ -1,6 +1,6 @@
 # Development Guide
 
-This guide covers the development setup, architecture, and best practices for contributing to Simple Novel Reader.
+This guide covers the development setup, architecture, and best practices for contributing to Reader.
 
 ## Table of Contents
 
@@ -25,8 +25,8 @@ This guide covers the development setup, architecture, and best practices for co
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/simple-novel-reader.git
-   cd simple-novel-reader
+   git clone https://github.com/yourusername/reader.git
+   cd reader
    ```
 
 2. **Install dependencies**
@@ -48,7 +48,7 @@ This guide covers the development setup, architecture, and best practices for co
 ## Project Structure
 
 ```
-simple-novel-reader/
+reader/
 ├── bin/                    # Executable files
 │   └── ebook_reader       # Main executable
 ├── lib/                   # Library code
@@ -295,12 +295,12 @@ We follow [Semantic Versioning](https://semver.org/):
 
 4. **Build gem**
    ```bash
-   gem build simple-novel-reader.gemspec
+   gem build reader.gemspec
    ```
 
 5. **Test gem locally**
    ```bash
-   gem install ./simple-novel-reader-x.y.z.gem
+   gem install ./reader-x.y.z.gem
    ```
 
 6. **Tag release**
@@ -311,7 +311,7 @@ We follow [Semantic Versioning](https://semver.org/):
 
 7. **Push to RubyGems**
    ```bash
-   gem push simple-novel-reader-x.y.z.gem
+   gem push reader-x.y.z.gem
    ```
 
 ### Post-Release

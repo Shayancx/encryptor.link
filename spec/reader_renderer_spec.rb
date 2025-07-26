@@ -23,7 +23,7 @@ RSpec.describe EbookReader::UI::ReaderRenderer do
     end
 
     it "renders controls in other modes" do
-      expect(EbookReader::Terminal).to receive(:write).with(1, 1, /Simple Novel Reader/)
+      expect(EbookReader::Terminal).to receive(:write).with(1, 1, /Reader/)
       expect(EbookReader::Terminal).to receive(:write).with(1, anything, /q:Quit/)
       renderer.render_header(doc, 80, :split, :read)
     end

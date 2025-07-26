@@ -7,7 +7,7 @@ require 'time'
 module EbookReader
   # Progress manager
   class ProgressManager
-    CONFIG_DIR = File.expand_path('~/.config/simple-novel-reader')
+    CONFIG_DIR = File.expand_path('~/.config/reader')
     PROGRESS_FILE = File.join(CONFIG_DIR, 'progress.json')
 
     class << self

@@ -11,7 +11,7 @@ module EbookReader
     SCAN_TIMEOUT = 20
     MAX_DEPTH = 3
     MAX_FILES = 500
-    CONFIG_DIR = File.expand_path('~/.config/simple-novel-reader')
+    CONFIG_DIR = File.expand_path('~/.config/reader')
     CACHE_FILE = File.join(CONFIG_DIR, 'epub_cache.json')
     DEBUG_MODE = ARGV.include?('--debug') || ENV.fetch('DEBUG', nil)
 

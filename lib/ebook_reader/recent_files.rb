@@ -7,7 +7,7 @@ require 'time'
 module EbookReader
   # Manages a list of recently opened files.
   class RecentFiles
-    CONFIG_DIR = File.expand_path('~/.config/simple-novel-reader')
+    CONFIG_DIR = File.expand_path('~/.config/reader')
     RECENT_FILE = File.join(CONFIG_DIR, 'recent.json')
     MAX_RECENT_FILES = 10
 

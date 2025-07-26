@@ -3,14 +3,14 @@
 require_relative 'lib/ebook_reader/version'
 
 Gem::Specification.new do |spec|
-  spec.name = 'simple-novel-reader'
+  spec.name = 'reader'
   spec.version = EbookReader::VERSION
   spec.authors = ['Your Name']
   spec.email = ['your.email@example.com']
 
   spec.summary = 'A fast, keyboard-driven terminal EPUB reader'
-  spec.description = 'Simple Novel Reader provides a distraction-free reading experience for EPUB files in your terminal with Vim-style navigation.'
-  spec.homepage = 'https://github.com/yourusername/simple-novel-reader'
+  spec.description = 'Reader provides a distraction-free reading experience for EPUB files in your terminal with Vim-style navigation.'
+  spec.homepage = 'https://github.com/yourusername/reader'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 3.0.0'
 

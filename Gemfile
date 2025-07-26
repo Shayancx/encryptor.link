@@ -7,6 +7,7 @@ gem 'reek'
 gem 'rexml'
 gem 'rubocop'
 gem 'rubyzip'
+gem 'rake'
 
 group :test do
   gem 'fakefs', require: 'fakefs/spec_helpers'

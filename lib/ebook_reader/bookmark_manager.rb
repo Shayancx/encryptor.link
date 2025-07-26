@@ -7,7 +7,7 @@ require 'time'
 module EbookReader
   # Bookmark manager
   class BookmarkManager
-    CONFIG_DIR = File.expand_path('~/.config/simple-novel-reader')
+    CONFIG_DIR = File.expand_path('~/.config/reader')
     BOOKMARKS_FILE = File.join(CONFIG_DIR, 'bookmarks.json')
 
     def self.add(path, chapter, line_offset, text)

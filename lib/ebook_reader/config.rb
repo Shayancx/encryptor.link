@@ -8,7 +8,7 @@ module EbookReader
   class Config
     attr_accessor :view_mode, :theme, :show_page_numbers, :line_spacing, :highlight_quotes
 
-    CONFIG_DIR = File.expand_path('~/.config/simple-novel-reader')
+    CONFIG_DIR = File.expand_path('~/.config/reader')
     CONFIG_FILE = File.join(CONFIG_DIR, 'config.json')
 
     def initialize
