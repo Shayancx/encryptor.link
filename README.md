@@ -1,4 +1,4 @@
-# Simple Novel Reader
+# Reader
 
 A fast, keyboard-driven terminal EPUB reader written in Ruby.
 
@@ -30,7 +30,7 @@ A fast, keyboard-driven terminal EPUB reader written in Ruby.
 ### Via RubyGems
 
 ```bash
-gem install simple-novel-reader
+gem install Reader
 ```
 
 ### Via Bundler
@@ -38,7 +38,7 @@ gem install simple-novel-reader
 Add to your Gemfile:
 
 ```ruby
-gem 'simple-novel-reader'
+gem 'Reader'
 ```
 
 Then run:
@@ -50,8 +50,8 @@ bundle install
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/simple-novel-reader.git
-cd simple-novel-reader
+git clone https://github.com/Shayancx/Reader.git
+cd Reader
 bundle install
 rake install
 ```
@@ -75,7 +75,7 @@ ebook_reader /path/to/book.epub  # Open specific book
 ### First Time Setup
 
 On first run, the application will:
-1. Create configuration directory at `~/.config/simple-novel-reader/`
+1. Create configuration directory at `~/.config/Reader/`
 2. Scan your system for EPUB files (this may take a moment)
 3. Cache the results for faster subsequent launches
 
@@ -117,7 +117,7 @@ On first run, the application will:
 
 ## Configuration
 
-Configuration is stored in `~/.config/simple-novel-reader/config.json`:
+Configuration is stored in `~/.config/Reader/config.json`:
 
 ```json
 {

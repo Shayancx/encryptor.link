@@ -35,7 +35,6 @@ module EbookReader
       super("Terminal too small: #{width}x#{height}. Minimum required: #{min_width}x#{min_height}")
     end
   end
-end
 
   # Raised when reader state is invalid
   class InvalidStateError < Error
@@ -77,3 +76,4 @@ end
       @component = component
     end
   end
+end

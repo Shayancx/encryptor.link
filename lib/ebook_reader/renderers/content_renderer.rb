@@ -44,7 +44,13 @@ module EbookReader
 
       def calculate_content_height(height, mode)
         base_height = height - HEADER_HEIGHT - FOOTER_HEIGHT
-        mode == :single ? base_height - 2 : base_height
+
+        if @config.line_spacing == :relaxed
+          # In relaxed mode, each line takes up two rows.
+          (base_height / 2.0).floor
+        else
+          base_height
+        end
       end
 
       def center_column(width, col_width)
@@ -52,7 +58,16 @@ module EbookReader
       end
 
       def center_vertically(height, content_height)
-        [HEADER_HEIGHT + ((height - HEADER_HEIGHT - FOOTER_HEIGHT - content_height) / 2), HEADER_HEIGHT].max
+        content_rows = if @config.line_spacing == :relaxed
+                         content_height * 2
+                       else
+                         content_height
+                       end
+
+        available_rows = height - HEADER_HEIGHT - FOOTER_HEIGHT
+        padding = available_rows - content_rows
+
+        [HEADER_HEIGHT + (padding / 2), HEADER_HEIGHT].max
       end
 
       def draw_chapter_header(chapter, width)

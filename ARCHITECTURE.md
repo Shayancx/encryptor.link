@@ -1,8 +1,8 @@
-# Simple Novel Reader - Architecture
+# Reader - Architecture
 
 ## Overview
 
-Simple Novel Reader follows a modular, object-oriented architecture designed for maintainability and extensibility.
+Reader follows a modular, object-oriented architecture designed for maintainability and extensibility.
 
 ## Core Design Patterns
 
