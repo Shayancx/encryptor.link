@@ -83,10 +83,10 @@ module EbookReader
 
     def build_menu_items
       [
-        { key: 'f', icon: '', text: 'Find Book', desc: 'Browse all EPUBs' },
+        { key: 'f', icon: '', text: 'Find Book', desc: 'Browse all EPUBs' },
         { key: 'r', icon: '󰁯', text: 'Recent', desc: 'Recently opened books' },
         { key: 'o', icon: '󰷏', text: 'Open File', desc: 'Enter path manually' },
-        { key: 's', icon: '', text: 'Settings', desc: 'Configure reader' },
+        { key: 's', icon: '', text: 'Settings', desc: 'Configure reader' },
         { key: 'q', icon: '󰿅', text: 'Quit', desc: 'Exit application' }
       ]
     end
