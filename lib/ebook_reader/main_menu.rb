@@ -580,7 +580,8 @@ module EbookReader
          (path.start_with?('"') && path.end_with?('"'))
         path = path[1..-2]
       end
-      path.delete('"')
+      path = path.delete('"')
+      File.expand_path(path)
     end
 
     def handle_file_path(path)

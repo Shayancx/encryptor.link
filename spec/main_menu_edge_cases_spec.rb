@@ -50,7 +50,8 @@ RSpec.describe EbookReader::MainMenu, "edge cases" do
 
     it 'handles path with nested quotes' do
       allow(menu).to receive(:gets).and_return(%("'/path/to/book.epub'"\n))
-      expect(menu).to receive(:handle_file_path).with("'/path/to/book.epub'")
+      expanded = File.expand_path("'/path/to/book.epub'")
+      expect(menu).to receive(:handle_file_path).with(expanded)
       menu.send(:open_file_dialog)
     end
   end

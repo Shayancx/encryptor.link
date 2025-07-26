@@ -63,9 +63,15 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
     end
 
     it 'sanitizes various quote styles' do
-      expect(menu.send(:sanitize_input_path, %("path"))).to eq("path")
-      expect(menu.send(:sanitize_input_path, "'path'")).to eq("path")
-      expect(menu.send(:sanitize_input_path, %("'nested'"))).to eq("'nested'")
+      expect(menu.send(:sanitize_input_path, %("path"))).to eq(File.expand_path('path'))
+      expect(menu.send(:sanitize_input_path, "'path'")).to eq(File.expand_path('path'))
+      expect(menu.send(:sanitize_input_path, %("'nested'"))).to eq(File.expand_path("'nested'"))
+    end
+
+    it 'expands home directory' do
+      input = "~/book.epub"
+      expanded = File.expand_path('~/book.epub')
+      expect(menu.send(:sanitize_input_path, input)).to eq(expanded)
     end
   end
 
