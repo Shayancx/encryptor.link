@@ -555,8 +555,10 @@ module EbookReader
         reader = Reader.new(path, @config)
         reader.run
       rescue StandardError => e
-        @scanner.scan_message = "Failed: #{e.message[0..30]}"
+        Infrastructure::Logger.error('Failed to open book', error: e.message, path: path)
+        @scanner.scan_message = "Failed: #{e.class}: #{e.message[0, 60]}"
         @scanner.scan_status = :error
+        puts e.backtrace.join("\n") if EPUBFinder::DEBUG_MODE
       ensure
         Terminal.setup
       end

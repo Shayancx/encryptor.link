@@ -42,15 +42,15 @@ module EbookReader
     include Concerns::InputHandler
     include Concerns::BookmarksUI
 
-    attr_reader :current_chapter, :doc, :config
+    attr_reader :state
 
     def initialize(epub_path, config = Config.new)
-      @path = epub_path
-      @config = config
-      @renderer = UI::ReaderRenderer.new(@config)
-      initialize_state
-      load_document
-      load_data
+      @state = Core::ReaderState.new(epub_path, config)
+      @renderer = UI::ReaderRenderer.new(@state.config)
+      @navigation = Services::ReaderNavigation.new(@state, @state.doc, @state.config)
+
+      load_progress
+      load_bookmarks
     end
 
     def run
@@ -137,7 +137,7 @@ module EbookReader
 
     def quit_to_menu
       save_progress
-      @running = false
+      @state.running = false
     end
 
     def quit_application
@@ -158,12 +158,12 @@ module EbookReader
     end
 
     def add_bookmark
-      line_offset = @config.view_mode == :split ? @left_page : @single_page
-      chapter = @doc.get_chapter(@current_chapter)
+      line_offset = @state.current_page_offset(@state.config.view_mode)
+      chapter = @state.doc.get_chapter(@state.current_chapter)
       return unless chapter
 
       text_snippet = extract_bookmark_text(chapter, line_offset)
-      BookmarkManager.add(@path, @current_chapter, line_offset, text_snippet)
+      BookmarkManager.add(@state.path, @state.current_chapter, line_offset, text_snippet)
       load_bookmarks
       set_message('Bookmark added!')
     end
@@ -202,38 +202,18 @@ module EbookReader
       @last_width = 0
     end
 
-    private
-
-    def initialize_state
-      @current_chapter = 0
-      @left_page = 0
-      @right_page = 0
-      @single_page = 0
-      @running = true
-      @mode = :read
-      @toc_selected = 0
-      @bookmarks = []
-      @bookmark_selected = 0
-      @message = nil
-      @page_map = []
-      @total_pages = 0
-      @last_width = 0
-      @last_height = 0
-    end
+    
 
     def load_document
-      @doc = EPUBDocument.new(@path)
+      @state.doc = EPUBDocument.new(@state.path)
     rescue StandardError => e
-      @doc = create_error_document(e.message)
+      @state.doc = create_error_document(e.message)
     end
 
-    def load_data
-      load_progress
-      load_bookmarks
-    end
+    
 
     def main_loop
-      while @running
+      while @state.running
         draw_screen
         key = Terminal.read_key
         process_input(key) if key
@@ -312,15 +292,15 @@ module EbookReader
     end
 
     def load_progress
-      progress = ProgressManager.load(@path)
+      progress = ProgressManager.load(@state.path)
       return unless progress
 
-      @current_chapter = progress['chapter'] || 0
+      @state.current_chapter = progress['chapter'] || 0
       line_offset = progress['line_offset'] || 0
 
-      @current_chapter = 0 if @current_chapter >= @doc.chapter_count
+      @state.current_chapter = 0 if @state.current_chapter >= @state.doc.chapter_count
 
-      self.page_offsets = line_offset
+      @state.set_page_offset(line_offset)
     end
 
     def page_offsets=(offset)
@@ -330,14 +310,14 @@ module EbookReader
     end
 
     def save_progress
-      return unless @path && @doc
+      return unless @state.path && @state.doc
 
-      line_offset = @config.view_mode == :split ? @left_page : @single_page
-      ProgressManager.save(@path, @current_chapter, line_offset)
+      line_offset = @state.current_page_offset(@state.config.view_mode)
+      ProgressManager.save(@state.path, @state.current_chapter, line_offset)
     end
 
     def load_bookmarks
-      @bookmarks = BookmarkManager.get(@path)
+      @state.bookmarks = BookmarkManager.get(@state.path)
     end
 
     def extract_bookmark_text(chapter, line_offset)
@@ -391,22 +371,20 @@ module EbookReader
       Terminal.start_frame
       height, width = Terminal.size
 
-      update_page_map(width, height) if size_changed?(width, height)
+      update_page_map(width, height) if @state.terminal_size_changed?(width, height)
 
-      @renderer.render_header(@doc, width, @config.view_mode, @mode)
+      @renderer.render_header(@state.doc, width, @state.config.view_mode, @state.mode)
       draw_content(height, width)
       draw_footer(height, width)
-      draw_message(height, width) if @message
+      draw_message(height, width) if @state.message
 
       Terminal.end_frame
     end
 
-    def size_changed?(width, height)
-      width != @last_width || height != @last_height
-    end
+    
 
     def draw_content(height, width)
-      case @mode
+      case @state.mode
       when :help then draw_help_screen(height, width)
       when :toc then draw_toc_screen(height, width)
       when :bookmarks then draw_bookmarks_screen(height, width)
@@ -415,7 +393,7 @@ module EbookReader
     end
 
     def draw_reading_content(height, width)
-      if @config.view_mode == :split
+      if @state.config.view_mode == :split
         draw_split_screen(height, width)
       else
         draw_single_screen(height, width)
@@ -424,51 +402,51 @@ module EbookReader
 
     def draw_footer(height, width)
       pages = calculate_current_pages(width, height)
-      @renderer.render_footer(height, width, @doc, @current_chapter, pages,
-                              @config.view_mode, @mode, @config.line_spacing, @bookmarks)
+      @renderer.render_footer(height, width, @state.doc, @state.current_chapter, pages,
+                              @state.config.view_mode, @state.mode, @state.config.line_spacing, @state.bookmarks)
     end
 
     def calculate_current_pages
-      return { current: 0, total: 0 } unless @config.show_page_numbers
+      return { current: 0, total: 0 } unless @state.config.show_page_numbers
 
       height, width = Terminal.size
       col_width, content_height = get_layout_metrics(width, height)
       actual_height = adjust_for_line_spacing(content_height)
       return { current: 0, total: 0 } if actual_height <= 0
 
-      if @config.page_numbering_mode == :dynamic
-        chapter = @doc.get_chapter(@current_chapter)
+      if @state.config.page_numbering_mode == :dynamic
+        chapter = @state.doc.get_chapter(@state.current_chapter)
         return { current: 0, total: 0 } unless chapter && chapter[:lines]
 
         wrapped = wrap_lines(chapter[:lines] || [], col_width)
         total_pages_in_chapter = [(wrapped.size.to_f / actual_height).ceil, 1].max
 
-        line_offset = @config.view_mode == :split ? @left_page : @single_page
+        line_offset = @state.current_page_offset(@state.config.view_mode)
         current_page_in_chapter = (line_offset / actual_height).floor + 1
         current_page_in_chapter = [current_page_in_chapter, total_pages_in_chapter].min
 
         { current: current_page_in_chapter, total: total_pages_in_chapter }
       else
-        return { current: 0, total: 0 } unless @total_pages.positive?
+        return { current: 0, total: 0 } unless @state.total_pages.positive?
 
-        pages_before = @page_map[0...@current_chapter].sum
-        line_offset = @config.view_mode == :split ? @left_page : @single_page
+        pages_before = @state.page_map[0...@state.current_chapter].sum
+        line_offset = @state.current_page_offset(@state.config.view_mode)
         page_in_chapter = (line_offset.to_f / actual_height).floor + 1
         current_global_page = pages_before + page_in_chapter
 
-        { current: current_global_page, total: @total_pages }
+        { current: current_global_page, total: @state.total_pages }
       end
     end
 
     def draw_message(height, width)
-      msg_len = @message.length
+      msg_len = @state.message.length
       Terminal.write(height / 2, (width - msg_len) / 2,
-                     "#{Terminal::ANSI::BG_DARK}#{Terminal::ANSI::BRIGHT_YELLOW} #{@message} " \
+                     "#{Terminal::ANSI::BG_DARK}#{Terminal::ANSI::BRIGHT_YELLOW} #{@state.message} " \
                      "#{Terminal::ANSI::RESET}")
     end
 
     def draw_split_screen(height, width)
-      chapter = @doc.get_chapter(@current_chapter)
+      chapter = @state.doc.get_chapter(@state.current_chapter)
       return unless chapter
 
       col_width, content_height = get_layout_metrics(width, height)
@@ -480,14 +458,14 @@ module EbookReader
     end
 
     def draw_chapter_info(chapter, width)
-      chapter_info = "[#{@current_chapter + 1}] #{chapter[:title] || 'Unknown'}"
+      chapter_info = "[#{@state.current_chapter + 1}] #{chapter[:title] || 'Unknown'}"
       Terminal.write(2, 1, Terminal::ANSI::BLUE + chapter_info[0, width - 2] + Terminal::ANSI::RESET)
     end
 
     def draw_split_columns(wrapped, col_width, content_height, height)
-      draw_column(3, 1, col_width, content_height, wrapped, @left_page, true)
+      draw_column(3, 1, col_width, content_height, wrapped, @state.left_page, true)
       draw_divider(height, col_width)
-      draw_column(3, col_width + 5, col_width, content_height, wrapped, @right_page, false)
+      draw_column(3, col_width + 5, col_width, content_height, wrapped, @state.right_page, false)
     end
 
     def draw_divider(height, col_width)
@@ -497,7 +475,7 @@ module EbookReader
     end
 
     def draw_single_screen(height, width)
-      chapter = @doc.get_chapter(@current_chapter)
+      chapter = @state.doc.get_chapter(@state.current_chapter)
       return unless chapter
 
       col_width, content_height = get_layout_metrics(width, height)
@@ -505,11 +483,11 @@ module EbookReader
       displayable_lines = adjust_for_line_spacing(content_height)
       wrapped = wrap_lines(chapter[:lines] || [], col_width)
 
-      lines_in_page = wrapped.slice(@single_page, displayable_lines) || []
+      lines_in_page = wrapped.slice(@state.single_page, displayable_lines) || []
       padding = (content_height - lines_in_page.size)
       start_row = [2 + (padding / 2), 2].max
 
-      draw_column(start_row, col_start, col_width, displayable_lines, wrapped, @single_page, false)
+      draw_column(start_row, col_start, col_width, displayable_lines, wrapped, @state.single_page, false)
     end
 
     def draw_column(start_row, start_col, width, height, lines, offset, show_page_num)
@@ -558,7 +536,7 @@ module EbookReader
     end
 
     def should_highlight_line?(line)
-      @config.highlight_quotes &&
+      @state.config.highlight_quotes &&
         line =~ /"[^"]+"|'[^']+'|Chinese poets|philosophers|Taoyuen-ming|celebrated|fragrance|plum-blossoms|Linwosing|Chowmushih/
     end
 
@@ -580,14 +558,14 @@ module EbookReader
     end
 
     def draw_page_number(start_row, start_col, width, height, offset, actual_height, lines)
-      return unless @config.show_page_numbers && lines.size.positive? && actual_height.positive?
+      return unless @state.config.show_page_numbers && lines.size.positive? && actual_height.positive?
 
       page_num = (offset / actual_height) + 1
       total_pages = [(lines.size.to_f / actual_height).ceil, 1].max
       page_text = "#{page_num}/#{total_pages}"
       page_row = start_row + height - 1
 
-      return if page_row >= Terminal.size[0] - 2
+      return if page_row >= Terminal.size[0] - Constants::PAGE_NUMBER_PADDING
 
       col = start_col + [(width - page_text.length) / 2, 0].max
       Terminal.write(page_row, col,
@@ -656,7 +634,7 @@ module EbookReader
     def draw_toc_list(height, width)
       list_start = 4
       list_height = height - 6
-      chapters = @doc.chapters
+      chapters = @state.doc.chapters
       return if chapters.empty?
 
       visible_range = calculate_toc_visible_range(list_height, chapters.length)
@@ -664,7 +642,7 @@ module EbookReader
     end
 
     def calculate_toc_visible_range(list_height, chapter_count)
-      visible_start = [@toc_selected - (list_height / 2), 0].max
+      visible_start = [@state.toc_selected - (list_height / 2), 0].max
       visible_end = [visible_start + list_height, chapter_count].min
       visible_start...visible_end
     end
@@ -674,7 +652,7 @@ module EbookReader
         chapter = chapters[idx]
         line = "#{idx + 1}. #{chapter[:title] || 'Untitled'}"
 
-        if idx == @toc_selected
+        if idx == @state.toc_selected
           Terminal.write(list_start + row, 2, "#{Terminal::ANSI::BRIGHT_GREEN}▸ #{Terminal::ANSI::RESET}")
           Terminal.write(list_start + row, 4,
                          Terminal::ANSI::BRIGHT_WHITE + line[0, width - 6] + Terminal::ANSI::RESET)
@@ -692,7 +670,7 @@ module EbookReader
     def adjust_for_line_spacing(height)
       return 1 if height <= 0
 
-      case @config.line_spacing
+      case @state.config.line_spacing
       when :compact
         height
       when :relaxed
@@ -705,8 +683,8 @@ module EbookReader
     def process_input(key)
       return unless key
 
-      case @mode
-      when :help then @mode = :read
+      case @state.mode
+      when :help then @state.mode = :read
       when :toc then handle_toc_input(key)
       when :bookmarks then handle_bookmarks_input(key)
       else handle_reading_input(key)
@@ -717,7 +695,7 @@ module EbookReader
       case key
       when 'q' then quit_to_menu
       when 'Q' then quit_application
-      when '?' then @mode = :help
+      when '?' then @state.mode = :help
       when 't', 'T' then open_toc
       when 'b' then add_bookmark
       when 'B' then open_bookmarks
@@ -730,13 +708,13 @@ module EbookReader
     end
 
     def open_toc
-      @mode = :toc
-      @toc_selected = @current_chapter
+      @state.mode = :toc
+      @state.toc_selected = @state.current_chapter
     end
 
     def open_bookmarks
-      @mode = :bookmarks
-      @bookmark_selected = 0
+      @state.mode = :bookmarks
+      @state.bookmark_selected = 0
     end
 
     def handle_navigation_input(key)
@@ -744,7 +722,7 @@ module EbookReader
       col_width, content_height = get_layout_metrics(width, height)
       content_height = adjust_for_line_spacing(content_height)
 
-      chapter = @doc.get_chapter(@current_chapter)
+      chapter = @state.doc.get_chapter(@state.current_chapter)
       return unless chapter
 
       wrapped = wrap_lines(chapter[:lines] || [], col_width)
@@ -784,37 +762,37 @@ module EbookReader
     end
 
     def handle_next_chapter
-      next_chapter if @current_chapter < @doc.chapter_count - 1
+      next_chapter if @state.current_chapter < @state.doc.chapter_count - 1
     end
 
     def handle_prev_chapter
-      prev_chapter if @current_chapter.positive?
+      prev_chapter if @state.current_chapter.positive?
     end
 
     def handle_toc_input(key)
-      if %w[t T].include?(key) || escape_key?(key)
-        @mode = :read
+      if ['t', 'T'].include?(key) || escape_key?(key)
+        @state.mode = :read
       elsif navigation_key?(key)
-        @toc_selected = handle_navigation_keys(key, @toc_selected, @doc.chapter_count - 1)
+        @state.toc_selected = handle_navigation_keys(key, @state.toc_selected, @state.doc.chapter_count - 1)
       elsif enter_key?(key)
-        jump_to_chapter(@toc_selected)
+        jump_to_chapter(@state.toc_selected)
       end
     end
 
     def jump_to_chapter(chapter_index)
-      @current_chapter = chapter_index
+      @state.current_chapter = chapter_index
       reset_pages
       save_progress
-      @mode = :read
+      @state.mode = :read
     end
 
     def handle_bookmarks_input(key)
-      return handle_empty_bookmarks_input(key) if @bookmarks.empty?
+      return handle_empty_bookmarks_input(key) if @state.bookmarks.empty?
 
       if ['B'].include?(key) || escape_key?(key)
-        @mode = :read
+        @state.mode = :read
       elsif navigation_key?(key)
-        @bookmark_selected = handle_navigation_keys(key, @bookmark_selected, @bookmarks.length - 1)
+        @state.bookmark_selected = handle_navigation_keys(key, @state.bookmark_selected, @state.bookmarks.length - 1)
       elsif enter_key?(key)
         jump_to_bookmark
       elsif %w[d D].include?(key)
@@ -823,26 +801,26 @@ module EbookReader
     end
 
     def handle_empty_bookmarks_input(key)
-      @mode = :read if ['B'].include?(key) || escape_key?(key)
+      @state.mode = :read if ['B'].include?(key) || escape_key?(key)
     end
 
     def jump_to_bookmark
-      bookmark = @bookmarks[@bookmark_selected]
+      bookmark = @state.bookmarks[@state.bookmark_selected]
       return unless bookmark
 
-      @current_chapter = bookmark['chapter']
-      self.page_offsets = bookmark['line_offset']
+      @state.current_chapter = bookmark['chapter']
+      @state.set_page_offset(bookmark['line_offset'])
       save_progress
-      @mode = :read
+      @state.mode = :read
     end
 
     def delete_selected_bookmark
-      bookmark = @bookmarks[@bookmark_selected]
+      bookmark = @state.bookmarks[@state.bookmark_selected]
       return unless bookmark
 
-      BookmarkManager.delete(@path, bookmark)
+      BookmarkManager.delete(@state.path, bookmark)
       load_bookmarks
-      @bookmark_selected = [@bookmark_selected, @bookmarks.length - 1].min if @bookmarks.any?
+      @state.bookmark_selected = [@state.bookmark_selected, @state.bookmarks.length - 1].min if @state.bookmarks.any?
       set_message('Bookmark deleted!')
     end
 

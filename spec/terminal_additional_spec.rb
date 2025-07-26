@@ -30,7 +30,9 @@ RSpec.describe EbookReader::Terminal do
   describe '.read_key' do
     it 'returns escape when sequence is incomplete' do
       allow(described_class).to receive(:read_key).and_call_original
-      allow(IO.console).to receive(:raw).and_yield
+      console = double('console')
+      allow(console).to receive(:raw).and_yield
+      allow(IO).to receive(:console).and_return(console)
       call = 0
       allow($stdin).to receive(:read_nonblock) do
         call += 1
@@ -39,6 +41,12 @@ RSpec.describe EbookReader::Terminal do
         "\e"
       end
       expect(described_class.read_key).to eq("\e")
+    end
+
+    it 'raises error when console is unavailable' do
+      allow(described_class).to receive(:read_key).and_call_original
+      allow(IO).to receive(:console).and_return(nil)
+      expect { described_class.read_key }.to raise_error(EbookReader::TerminalUnavailableError)
     end
   end
 

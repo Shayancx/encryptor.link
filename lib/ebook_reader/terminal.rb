@@ -127,8 +127,11 @@ module EbookReader
       end
 
       def read_key
-        IO.console.raw do
-          input = $stdin.read_nonblock(1)
+        console = IO.console
+        raise EbookReader::TerminalUnavailableError unless console
+
+        console.raw do
+          input = $stdin.read_nonblock(1).dup
           return input unless input == "\e"
 
           begin

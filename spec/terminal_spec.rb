@@ -5,18 +5,24 @@ require 'spec_helper'
 RSpec.describe EbookReader::Terminal do
   describe ".size" do
     it "returns terminal dimensions" do
-      allow(IO.console).to receive(:winsize).and_return([30, 100])
+      allow(EbookReader::Terminal).to receive(:size).and_call_original
+      console = double('console', winsize: [30, 100])
+      allow(IO).to receive(:console).and_return(console)
       expect(described_class.size).to eq([30, 100])
     end
 
     it "returns default size on error" do
-      allow(IO.console).to receive(:winsize).and_raise(StandardError)
+      allow(EbookReader::Terminal).to receive(:size).and_call_original
+      console = double('console')
+      allow(console).to receive(:winsize).and_raise(StandardError)
+      allow(IO).to receive(:console).and_return(console)
       expect(described_class.size).to eq([24, 80])
     end
   end
 
   describe ".clear" do
     it "prints clear screen sequence" do
+      allow(EbookReader::Terminal).to receive(:clear).and_call_original
       expect($stdout).to receive(:flush)
       expect(described_class).to receive(:print).with("\e[2J\e[H")
       described_class.clear
@@ -25,7 +31,9 @@ RSpec.describe EbookReader::Terminal do
 
   describe ".write" do
     it "adds text to buffer with position" do
+      allow(EbookReader::Terminal).to receive(:start_frame).and_call_original
       described_class.start_frame
+      allow(EbookReader::Terminal).to receive(:write).and_call_original
       described_class.write(10, 20, "Hello")
       buffer = described_class.instance_variable_get(:@buffer)
       expect(buffer).to include("\e[10;20HHello")
@@ -34,6 +42,7 @@ RSpec.describe EbookReader::Terminal do
 
   describe ".setup" do
     it "sets up terminal for raw mode" do
+      allow(EbookReader::Terminal).to receive(:setup).and_call_original
       expect($stdout).to receive(:sync=).with(true)
       expect(described_class).to receive(:print)
       expect(described_class).to receive(:clear)
@@ -43,6 +52,7 @@ RSpec.describe EbookReader::Terminal do
 
   describe ".cleanup" do
     it "restores terminal state" do
+      allow(EbookReader::Terminal).to receive(:cleanup).and_call_original
       expect($stdout).to receive(:flush)
       expect(described_class).to receive(:print)
       described_class.cleanup
@@ -51,20 +61,29 @@ RSpec.describe EbookReader::Terminal do
 
   describe ".read_key" do
     it "reads single character" do
-      allow(IO.console).to receive(:raw).and_yield
+      allow(EbookReader::Terminal).to receive(:read_key).and_call_original
+      console = double('console')
+      allow(console).to receive(:raw).and_yield
+      allow(IO).to receive(:console).and_return(console)
       allow($stdin).to receive(:read_nonblock).and_return("a")
       expect(described_class.read_key).to eq("a")
     end
 
     it "handles escape sequences" do
-      allow(IO.console).to receive(:raw).and_yield
+      allow(EbookReader::Terminal).to receive(:read_key).and_call_original
+      console = double('console')
+      allow(console).to receive(:raw).and_yield
+      allow(IO).to receive(:console).and_return(console)
       allow($stdin).to receive(:read_nonblock).and_return("\e", "[A")
       expect(described_class.read_key).to eq("\e[A")
     end
 
     it "returns nil when no input available" do
-      allow(IO.console).to receive(:raw).and_yield
-      allow($stdin).to receive(:read_nonblock).and_raise(IO::WaitReadable)
+      allow(EbookReader::Terminal).to receive(:read_key).and_call_original
+      console = double('console')
+      allow(console).to receive(:raw).and_yield
+      allow(IO).to receive(:console).and_return(console)
+      allow($stdin).to receive(:read_nonblock).and_raise(IO::EAGAINWaitReadable)
       expect(described_class.read_key).to be_nil
     end
   end

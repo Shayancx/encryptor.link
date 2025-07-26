@@ -5,14 +5,17 @@ require 'spec_helper'
 RSpec.describe EbookReader::Terminal, "edge cases" do
   describe '.read_key' do
     it 'handles partial escape sequences' do
-      allow(IO.console).to receive(:raw).and_yield
+      allow(EbookReader::Terminal).to receive(:read_key).and_call_original
+      console = double('console')
+      allow(console).to receive(:raw).and_yield
+      allow(IO).to receive(:console).and_return(console)
       attempts = 0
       allow($stdin).to receive(:read_nonblock) do |_size|
         attempts += 1
         case attempts
         when 1 then "\e"
         when 2 then "["
-        else raise IO::WaitReadable
+        else raise IO::EAGAINWaitReadable
         end
       end
 
@@ -21,7 +24,10 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
     end
 
     it 'handles multi-byte escape sequences' do
-      allow(IO.console).to receive(:raw).and_yield
+      allow(EbookReader::Terminal).to receive(:read_key).and_call_original
+      console = double('console')
+      allow(console).to receive(:raw).and_yield
+      allow(IO).to receive(:console).and_return(console)
       allow($stdin).to receive(:read_nonblock).with(1).and_return("\e")
       allow($stdin).to receive(:read_nonblock).with(3).and_return("[1~")
 
@@ -31,16 +37,24 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
 
   describe '.write' do
     it 'handles nil text gracefully' do
+      allow(EbookReader::Terminal).to receive(:start_frame).and_call_original
+      allow(EbookReader::Terminal).to receive(:write).and_call_original
+      allow(EbookReader::Terminal).to receive(:start_frame).and_call_original
+      allow(EbookReader::Terminal).to receive(:write).and_call_original
       described_class.start_frame
       expect { described_class.write(1, 1, nil) }.not_to raise_error
     end
 
     it 'handles empty text' do
+      allow(EbookReader::Terminal).to receive(:start_frame).and_call_original
+      allow(EbookReader::Terminal).to receive(:write).and_call_original
       described_class.start_frame
       expect { described_class.write(1, 1, "") }.not_to raise_error
     end
 
     it 'converts non-string objects to string' do
+      allow(EbookReader::Terminal).to receive(:start_frame).and_call_original
+      allow(EbookReader::Terminal).to receive(:write).and_call_original
       described_class.start_frame
       expect { described_class.write(1, 1, 123) }.not_to raise_error
       buffer = described_class.instance_variable_get(:@buffer)

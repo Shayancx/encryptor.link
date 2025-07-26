@@ -36,6 +36,13 @@ module EbookReader
     end
   end
 
+  # Raised when no interactive terminal is available
+  class TerminalUnavailableError < Error
+    def initialize
+      super('Interactive terminal not available')
+    end
+  end
+
   # Raised when reader state is invalid
   class InvalidStateError < Error
     attr_reader :state
