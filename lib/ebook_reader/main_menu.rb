@@ -200,7 +200,9 @@ module EbookReader
     end
 
     def load_recent_books
-      RecentFiles.load.select { |r| r && r['path'] && File.exist?(r['path']) }
+      recent = RecentFiles.load.select { |r| r && r['path'] && File.exist?(r['path']) }
+      @browse_selected = 0 if @browse_selected >= recent.length
+      recent
     end
 
     def render_empty_recent(height, width)
@@ -458,7 +460,12 @@ module EbookReader
         @browse_selected = handle_navigation_keys(key, @browse_selected, recent.length - 1)
       elsif enter_key?(key)
         book = recent[@browse_selected]
-        open_book(book['path']) if book && book['path'] && File.exist?(book['path'])
+        if book && book['path'] && File.exist?(book['path'])
+          open_book(book['path'])
+        else
+          @scanner.scan_message = 'File not found'
+          @scanner.scan_status = :error
+        end
       end
     end
 
