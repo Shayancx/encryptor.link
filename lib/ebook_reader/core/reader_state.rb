@@ -41,12 +41,8 @@ module EbookReader
       # Last known terminal dimensions
       attr_accessor :last_width, :last_height
 
-      attr_reader :config, :doc
-
       # Initialize a new reader state
-      def initialize(epub_path, config)
-        @config = config
-        @doc = EPUBDocument.new(epub_path)
+      def initialize
         reset_to_defaults
       end
 
