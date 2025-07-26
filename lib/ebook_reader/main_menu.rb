@@ -294,6 +294,11 @@ module EbookReader
           value: 'Force rescan of EPUB files',
           key: '5',
           action: true
+        },
+        {
+          name: 'Page Numbering Mode',
+          value: @config.page_numbering_mode == :absolute ? 'Absolute' : 'Dynamic',
+          key: '6'
         }
       ]
     end
@@ -320,7 +325,7 @@ module EbookReader
     end
 
     def render_settings_status
-      settings_count = 5
+      settings_count = 6
       row = 5 + (settings_count * 3) + 1
       Terminal.write(row, 4, Terminal::ANSI::YELLOW + @scanner.scan_message + Terminal::ANSI::RESET)
     end
@@ -473,6 +478,7 @@ module EbookReader
       when '3' then cycle_line_spacing
       when '4' then toggle_highlight_quotes
       when '5' then clear_cache
+      when '6' then toggle_page_numbering_mode
       end
     end
 
@@ -495,6 +501,11 @@ module EbookReader
 
     def toggle_highlight_quotes
       @config.highlight_quotes = !@config.highlight_quotes
+      @config.save
+    end
+
+    def toggle_page_numbering_mode
+      @config.page_numbering_mode = @config.page_numbering_mode == :absolute ? :dynamic : :absolute
       @config.save
     end
 

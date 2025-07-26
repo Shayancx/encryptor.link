@@ -18,13 +18,15 @@ RSpec.describe EbookReader::Config, fake_fs: true do
       expect(config.show_page_numbers).to be true
       expect(config.line_spacing).to eq(:normal)
       expect(config.highlight_quotes).to be true
+      expect(config.page_numbering_mode).to eq(:absolute)
     end
 
     it "loads existing config file" do
       config_data = {
         view_mode: "single",
         theme: "light",
-        show_page_numbers: false
+        show_page_numbers: false,
+        page_numbering_mode: "dynamic"
       }
       File.write(config_file, JSON.pretty_generate(config_data))
 
@@ -32,6 +34,7 @@ RSpec.describe EbookReader::Config, fake_fs: true do
       expect(config.view_mode).to eq(:single)
       expect(config.theme).to eq(:light)
       expect(config.show_page_numbers).to be false
+      expect(config.page_numbering_mode).to eq(:dynamic)
     end
   end
 
@@ -64,7 +67,8 @@ RSpec.describe EbookReader::Config, fake_fs: true do
         theme: :dark,
         show_page_numbers: true,
         line_spacing: :normal,
-        highlight_quotes: true
+        highlight_quotes: true,
+        page_numbering_mode: :absolute
       )
     end
   end

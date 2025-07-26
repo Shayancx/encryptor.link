@@ -101,6 +101,10 @@ RSpec.describe EbookReader::MainMenu, "actions" do
       expect { menu.send(:handle_setting_change, '4') }.to(change { config.highlight_quotes })
     end
 
+    it 'toggles page numbering mode' do
+      expect { menu.send(:handle_setting_change, '6') }.to(change { config.page_numbering_mode })
+    end
+
     it 'clears the cache' do
       expect(EbookReader::EPUBFinder).to receive(:clear_cache)
       menu.send(:handle_setting_change, '5')

@@ -125,7 +125,8 @@ Configuration is stored in `~/.config/Reader/config.json`:
   "theme": "dark",
   "show_page_numbers": true,
   "line_spacing": "normal",
-  "highlight_quotes": true
+  "highlight_quotes": true,
+  "page_numbering_mode": "absolute"
 }
 ```
 
@@ -136,6 +137,7 @@ Configuration is stored in `~/.config/Reader/config.json`:
 - **show_page_numbers**: `true` or `false` - Display page numbers
 - **line_spacing**: `"compact"`, `"normal"`, or `"relaxed"` - Line spacing
 - **highlight_quotes**: `true` or `false` - Highlight quoted text
+- **page_numbering_mode**: `"absolute"` or `"dynamic"` - Page numbering strategy
 
 ## Architecture
 
