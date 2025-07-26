@@ -13,6 +13,7 @@ require_relative 'concerns/bookmarks_ui'
 require_relative 'core/reader_state'
 require_relative 'services/reader_navigation'
 require_relative 'renderers/components/text_renderer'
+require_relative 'dynamic_page_calculator'
 
 module EbookReader
   # Main reader interface for displaying EPUB content.
@@ -41,6 +42,7 @@ module EbookReader
     include Helpers::ReaderHelpers
     include Concerns::InputHandler
     include Concerns::BookmarksUI
+    include DynamicPageCalculator
 
     attr_reader :current_chapter, :doc, :config
 
@@ -173,6 +175,10 @@ module EbookReader
       @config.save
       @last_width = 0
       @last_height = 0
+      @dynamic_page_map = nil
+      @dynamic_total_pages = 0
+      @last_dynamic_width = 0
+      @last_dynamic_height = 0
       reset_pages
     end
 
@@ -431,24 +437,15 @@ module EbookReader
     def calculate_current_pages
       return { current: 0, total: 0 } unless @config.show_page_numbers
 
-      height, width = Terminal.size
-      col_width, content_height = get_layout_metrics(width, height)
-      actual_height = adjust_for_line_spacing(content_height)
-      return { current: 0, total: 0 } if actual_height <= 0
-
       if @config.page_numbering_mode == :dynamic
-        chapter = @doc.get_chapter(@current_chapter)
-        return { current: 0, total: 0 } unless chapter && chapter[:lines]
-
-        wrapped = wrap_lines(chapter[:lines] || [], col_width)
-        total_pages_in_chapter = [(wrapped.size.to_f / actual_height).ceil, 1].max
-
-        line_offset = @config.view_mode == :split ? @left_page : @single_page
-        current_page_in_chapter = (line_offset / actual_height).floor + 1
-        current_page_in_chapter = [current_page_in_chapter, total_pages_in_chapter].min
-
-        { current: current_page_in_chapter, total: total_pages_in_chapter }
+        calculate_dynamic_pages
       else
+        height, width = Terminal.size
+        col_width, content_height = get_layout_metrics(width, height)
+        actual_height = adjust_for_line_spacing(content_height)
+        return { current: 0, total: 0 } if actual_height <= 0
+
+        update_page_map(width, height) if size_changed?(width, height) || @page_map.empty?
         return { current: 0, total: 0 } unless @total_pages.positive?
 
         pages_before = @page_map[0...@current_chapter].sum
