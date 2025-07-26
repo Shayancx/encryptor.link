@@ -29,6 +29,7 @@ module EbookReader
 
     def get_chapter(index)
       return nil if @chapters.empty?
+
       @chapters[index] if index >= 0 && index < @chapters.size
     end
 
@@ -37,13 +38,13 @@ module EbookReader
     def parse_epub
       Infrastructure::Logger.info("Parsing EPUB", path: @path)
       Infrastructure::PerformanceMonitor.time("epub_parsing") do
-        Dir.mktmpdir do |tmpdir|
-          extract_epub(tmpdir)
-          load_epub_content(tmpdir)
-        end
-        ensure_chapters_exist
-      rescue StandardError => e
-        create_error_chapter(e)
+      Dir.mktmpdir do |tmpdir|
+        extract_epub(tmpdir)
+        load_epub_content(tmpdir)
+      end
+      ensure_chapters_exist
+    rescue StandardError => e
+      create_error_chapter(e)
       end
     end
 
@@ -58,32 +59,9 @@ module EbookReader
     def extract_epub(tmpdir)
       Zip::File.open(@path) do |zip|
         zip.each do |entry|
-          # Skip directories
-          next if entry.name.end_with?('/')
-          
           dest = File.join(tmpdir, entry.name)
           FileUtils.mkdir_p(File.dirname(dest))
-          
-          # CRITICAL FIX: Handle different rubyzip versions
-          if !File.exist?(dest)
-            begin
-              # First try the standard way
-              entry.extract(dest)
-            rescue ArgumentError => e
-              if e.message.include?("wrong number of arguments")
-                # For rubyzip versions that don't accept parameters
-                # Use the block form which works in all versions
-                zip.extract(entry, dest) { true }
-              else
-                raise
-              end
-            rescue => e
-              # Ultimate fallback - read and write manually
-              File.open(dest, 'wb') do |f|
-                f.write(zip.read(entry))
-              end
-            end
-          end
+          entry.extract(dest) unless File.exist?(dest)
         end
       end
     end

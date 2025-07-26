@@ -96,3 +96,8 @@ module EbookReader
     Infrastructure::PerformanceMonitor.clear
   end
 end
+
+
+
+# Debug patch for troubleshooting
+require_relative 'ebook_reader/debug_patch'

@@ -6,7 +6,7 @@ gem 'io-console'
 gem 'reek'
 gem 'rexml'
 gem 'rubocop'
-gem 'rubyzip'
+gem 'rubyzip', '~> 2.3'
 gem 'rake'
 
 group :test do

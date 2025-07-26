@@ -423,7 +423,7 @@ module EbookReader
     end
 
     def draw_footer(height, width)
-      pages = calculate_current_pages(width, height)
+      pages = calculate_current_pages
       @renderer.render_footer(height, width, @doc, @current_chapter, pages,
                               @config.view_mode, @mode, @config.line_spacing, @bookmarks)
     end
