@@ -321,7 +321,7 @@ module EbookReader
 
     def render_settings_status
       settings_count = 5
-      row = 5 + (settings_count * 3) + 1
+      row = 5 + (settings_count * Constants::SETTINGS_ITEM_SPACING) + 1
       Terminal.write(row, 4, Terminal::ANSI::YELLOW + @scanner.scan_message + Terminal::ANSI::RESET)
     end
 

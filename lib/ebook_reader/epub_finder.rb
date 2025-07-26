@@ -8,9 +8,9 @@ require 'timeout'
 module EbookReader
   # EPUB file finder with robust error handling
   class EPUBFinder
-    SCAN_TIMEOUT = 20
-    MAX_DEPTH = 3
-    MAX_FILES = 500
+    SCAN_TIMEOUT = Constants::SCAN_TIMEOUT
+    MAX_DEPTH = Constants::MAX_DEPTH
+    MAX_FILES = Constants::MAX_FILES
     CONFIG_DIR = File.expand_path('~/.config/reader')
     CACHE_FILE = File.join(CONFIG_DIR, 'epub_cache.json')
     DEBUG_MODE = ARGV.include?('--debug') || ENV.fetch('DEBUG', nil)
@@ -47,7 +47,7 @@ module EbookReader
       def cache_expired?(timestamp = nil)
         return true unless timestamp
 
-        Time.now - Time.parse(timestamp) >= 86_400
+        Time.now - Time.parse(timestamp) >= Constants::CACHE_DURATION
       end
 
       def scan_with_timeout
