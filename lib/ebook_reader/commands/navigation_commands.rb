@@ -7,8 +7,7 @@ module EbookReader
     # Scroll down by one line
     class ScrollDownCommand < BaseCommand
       def execute
-        max_page = receiver.instance_variable_get(:@max_page) || 0
-        receiver.send(:scroll_down, max_page)
+        receiver.send(:scroll_down)
       end
     end
 

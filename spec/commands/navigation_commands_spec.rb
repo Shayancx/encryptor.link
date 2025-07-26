@@ -16,7 +16,7 @@ RSpec.describe "Navigation Commands" do
     let(:command) { described_class.new(reader) }
     
     it 'calls scroll_down on receiver' do
-      expect(reader).to receive(:send).with(:scroll_down, 10)
+      expect(reader).to receive(:send).with(:scroll_down)
       command.execute
     end
   end

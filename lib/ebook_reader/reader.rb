@@ -10,20 +10,9 @@ require_relative 'helpers/reader_helpers'
 require_relative 'ui/reader_renderer'
 require_relative 'concerns/input_handler'
 require_relative 'concerns/bookmarks_ui'
-
-require_relative "reader_modes/reading_mode"
-require_relative "reader_modes/help_mode"
-require_relative "reader_modes/toc_mode"
-require_relative "reader_modes/bookmarks_mode"
-require_relative "constants/ui_constants"
-require_relative "errors"
-require_relative "helpers/reader_helpers"
-require_relative "ui/reader_renderer"
-require_relative "concerns/input_handler"
-require_relative "concerns/bookmarks_ui"
-require_relative "core/reader_state"
-require_relative "services/reader_navigation"
-require_relative "renderers/components/text_renderer"
+require_relative 'core/reader_state'
+require_relative 'services/reader_navigation'
+require_relative 'renderers/components/text_renderer'
 
 module EbookReader
   # Main reader interface for displaying EPUB content.
@@ -250,8 +239,8 @@ module EbookReader
       if @right_page < max_page
         @left_page = @right_page
         @right_page = [@right_page + content_height, max_page].min
-      elsif @current_chapter < @doc.chapter_count - 1
-        next_chapter
+      else
+        @left_page = @right_page
       end
     end
 

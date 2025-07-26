@@ -108,6 +108,14 @@ module EbookReader
             thread_id: Thread.current.object_id
           }.to_json
         end
+
+        # Clear logger state (used in tests)
+        def clear
+          @output = nil
+          @level = nil
+          Thread.current[:logger_context] = {}
+        end
+        public :clear
       end
     end
   end

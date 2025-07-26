@@ -318,7 +318,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
   describe EbookReader::EPUBFinder do
     describe 'comprehensive scanning' do
       it 'handles all skip directory patterns' do
-        Constants::SKIP_DIRS.each do |dir|
+        EbookReader::Constants::SKIP_DIRS.each do |dir|
           expect(described_class.send(:skip_directory?, "/path/#{dir}")).to be true
         end
       end

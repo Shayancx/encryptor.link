@@ -76,7 +76,7 @@ RSpec.describe "Integration Tests Comprehensive" do
       expect { menu.send(:open_book, '/book.epub') }.not_to raise_error
       
       # Terminal error
-      allow(EbookReader::Terminal).to receive(:size).and_raise(StandardError)
+      allow(IO).to receive_message_chain(:console, :winsize).and_raise(StandardError)
       expect(EbookReader::Terminal.size).to eq([24, 80])
     end
   end

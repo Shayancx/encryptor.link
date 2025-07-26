@@ -321,7 +321,7 @@ module EbookReader
 
     def render_settings_status
       settings_count = 5
-      row = 5 + (settings_count * Constants::SETTINGS_ITEM_SPACING) + 1
+      row = 5 + (settings_count * 3) + 1
       Terminal.write(row, 4, Terminal::ANSI::YELLOW + @scanner.scan_message + Terminal::ANSI::RESET)
     end
 
@@ -429,7 +429,14 @@ module EbookReader
     end
 
     def searchable_key?(key)
-      key && key =~ /[a-zA-Z0-9 .-]/
+      return false unless key
+
+      begin
+        key = key.to_s.force_encoding('UTF-8')
+        key.valid_encoding? && key =~ /[a-zA-Z0-9 .-]/
+      rescue StandardError
+        false
+      end
     end
 
     def add_to_search(key)
@@ -562,7 +569,7 @@ module EbookReader
          (path.start_with?('"') && path.end_with?('"'))
         path = path[1..-2]
       end
-      path
+      path.delete('"')
     end
 
     def handle_file_path(path)

@@ -167,15 +167,8 @@ module EbookReader
       end
 
       def skip_directory?(path)
-        skip_dirs = %w[
-          node_modules vendor cache tmp temp .git .svn
-          __pycache__ build dist bin obj debug release
-          .idea .vscode .atom .sublime library frameworks
-          applications system windows programdata appdata
-          .Trash .npm .gem .bundle
-        ]
         base = File.basename(path).downcase
-        skip_dirs.include?(base)
+        Constants::SKIP_DIRS.map(&:downcase).include?(base)
       end
 
       def epub_file?(path)
