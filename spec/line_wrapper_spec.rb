@@ -3,28 +3,28 @@
 require 'spec_helper'
 
 RSpec.describe EbookReader::Helpers::LineWrapper do
-  describe ".wrap_terminal_write" do
+  describe '.wrap_terminal_write' do
     before do
       allow(EbookReader::Terminal).to receive(:write)
     end
 
-    it "writes short text directly" do
+    it 'writes short text directly' do
       pos = described_class::Coordinates.new(5, 10)
-      expect(EbookReader::Terminal).to receive(:write).with(5, 10, "Short text")
-      described_class.wrap_terminal_write(pos, "Short text")
+      expect(EbookReader::Terminal).to receive(:write).with(5, 10, 'Short text')
+      described_class.wrap_terminal_write(pos, 'Short text')
     end
 
-    it "wraps long text across multiple lines" do
-      long_text = "a" * 150
+    it 'wraps long text across multiple lines' do
+      long_text = 'a' * 150
       pos = described_class::Coordinates.new(5, 10)
       expect(EbookReader::Terminal).to receive(:write).exactly(2).times
       described_class.wrap_terminal_write(pos, long_text, 120)
     end
   end
 
-  describe ".split_long_text" do
-    it "splits text at max length" do
-      text = "This is a very long line that needs to be split"
+  describe '.split_long_text' do
+    it 'splits text at max length' do
+      text = 'This is a very long line that needs to be split'
       parts = described_class.split_long_text(text, 20)
 
       expect(parts.size).to be >= 2
@@ -32,13 +32,13 @@ RSpec.describe EbookReader::Helpers::LineWrapper do
       expect(parts.join).to eq(text)
     end
 
-    it "splits text and preserves all content" do
-      text = "This is a test of the splitting algorithm"
+    it 'splits text and preserves all content' do
+      text = 'This is a test of the splitting algorithm'
       parts = described_class.split_long_text(text, 20)
 
       # Just verify all text is preserved
       expect(parts.join).to eq(text)
-      expect(parts.first).to start_with("This is a")
+      expect(parts.first).to start_with('This is a')
     end
   end
 end

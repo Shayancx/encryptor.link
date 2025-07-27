@@ -10,33 +10,33 @@ RSpec.describe EbookReader::UI::MainMenuRenderer do
     allow(EbookReader::Terminal).to receive(:write)
   end
 
-  describe "#render_logo" do
-    it "renders ASCII art logo" do
+  describe '#render_logo' do
+    it 'renders ASCII art logo' do
       expect(EbookReader::Terminal).to receive(:write).at_least(6).times
       menu_start = renderer.render_logo(24, 80)
       expect(menu_start).to be > 0
     end
 
-    it "includes version number" do
-      stub_const("EbookReader::VERSION", "v1.0.0")
+    it 'includes version number' do
+      stub_const('EbookReader::VERSION', 'v1.0.0')
       expect(EbookReader::Terminal).to receive(:write).with(anything, anything, /v1.0.0/)
       renderer.render_logo(24, 80)
     end
   end
 
-  describe "#render_menu_item" do
+  describe '#render_menu_item' do
     let(:item) do
       { key: 'f', icon: '📚', text: 'Find Book', desc: 'Browse all EPUBs' }
     end
 
-    it "renders selected item with highlight" do
+    it 'renders selected item with highlight' do
       expect(EbookReader::Terminal).to receive(:write).with(10, 20, /▸/)
       expect(EbookReader::Terminal).to receive(:write).with(10, 22, /Find Book/)
 
       renderer.render_menu_item(10, 20, 22, item, true)
     end
 
-    it "renders unselected item normally" do
+    it 'renders unselected item normally' do
       expect(EbookReader::Terminal).to receive(:write).with(10, 20, /  /)
       expect(EbookReader::Terminal).to receive(:write).with(10, 22, /Find Book/)
 
@@ -44,9 +44,9 @@ RSpec.describe EbookReader::UI::MainMenuRenderer do
     end
   end
 
-  describe "#render_footer" do
-    it "renders footer text centered" do
-      text = "Test footer"
+  describe '#render_footer' do
+    it 'renders footer text centered' do
+      text = 'Test footer'
       expect(EbookReader::Terminal).to receive(:write).with(23, anything, /Test footer/)
 
       renderer.render_footer(24, 80, text)

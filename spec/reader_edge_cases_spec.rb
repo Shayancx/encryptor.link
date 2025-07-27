@@ -2,15 +2,15 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::Reader, "edge cases" do
+RSpec.describe EbookReader::Reader, 'edge cases' do
   let(:epub_path) { '/edge.epub' }
   let(:config) { EbookReader::Config.new }
   let(:doc) do
     instance_double(EbookReader::EPUBDocument,
-                    title: "Edge Case Book",
-                    language: "en",
+                    title: 'Edge Case Book',
+                    language: 'en',
                     chapter_count: 1,
-                    chapters: [{ title: "Chapter", lines: ["Line 1"] }])
+                    chapters: [{ title: 'Chapter', lines: ['Line 1'] }])
   end
   let(:reader) { described_class.new(epub_path, config) }
 
@@ -47,7 +47,7 @@ RSpec.describe EbookReader::Reader, "edge cases" do
     end
 
     it 'handles bookmark with empty lines' do
-      allow(doc).to receive(:get_chapter).and_return({ title: "Empty", lines: [] })
+      allow(doc).to receive(:get_chapter).and_return({ title: 'Empty', lines: [] })
       expect { reader.send(:add_bookmark) }.not_to raise_error
     end
 
@@ -77,7 +77,7 @@ RSpec.describe EbookReader::Reader, "edge cases" do
     it 'handles corrupted progress data' do
       allow(EbookReader::ProgressManager).to receive(:load).and_return({
                                                                          'chapter' => 999,
-                                                                         'line_offset' => -1
+                                                                         'line_offset' => -1,
                                                                        })
 
       reader = described_class.new(epub_path, config)
@@ -87,13 +87,13 @@ RSpec.describe EbookReader::Reader, "edge cases" do
 
   describe 'rendering edge cases' do
     it 'handles nil lines in chapter' do
-      allow(doc).to receive(:get_chapter).and_return({ title: "Nil", lines: nil })
+      allow(doc).to receive(:get_chapter).and_return({ title: 'Nil', lines: nil })
       expect { reader.send(:draw_single_screen, 24, 80) }.not_to raise_error
     end
 
     it 'handles very long chapter title' do
-      long_title = "A" * 200
-      allow(doc).to receive(:get_chapter).and_return({ title: long_title, lines: ["Test"] })
+      long_title = 'A' * 200
+      allow(doc).to receive(:get_chapter).and_return({ title: long_title, lines: ['Test'] })
       expect { reader.send(:draw_split_screen, 24, 80) }.not_to raise_error
     end
   end

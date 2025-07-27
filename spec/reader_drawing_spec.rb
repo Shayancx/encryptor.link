@@ -2,15 +2,15 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::Reader, "drawing" do
+RSpec.describe EbookReader::Reader, 'drawing' do
   let(:epub_path) { '/book.epub' }
   let(:config) { EbookReader::Config.new }
   let(:doc) do
     instance_double(EbookReader::EPUBDocument,
-                    title: "Test Book",
+                    title: 'Test Book',
                     chapters: [
-                      { title: "Chapter 1", lines: ["Line 1"] },
-                      { title: "Chapter 2", lines: ["Line 2"] }
+                      { title: 'Chapter 1', lines: ['Line 1'] },
+                      { title: 'Chapter 2', lines: ['Line 2'] },
                     ],
                     chapter_count: 2,
                     language: 'en')
@@ -69,7 +69,7 @@ RSpec.describe EbookReader::Reader, "drawing" do
 
   context 'when drawing messages' do
     it 'draws a temporary message to the screen' do
-      reader.instance_variable_set(:@message, "Bookmark Added")
+      reader.instance_variable_set(:@message, 'Bookmark Added')
       expect(EbookReader::Terminal).to receive(:write).with(12, 33, /Bookmark Added/)
       reader.send(:draw_screen)
     end

@@ -2,24 +2,24 @@
 
 require 'spec_helper'
 
-RSpec.describe "Uncovered Methods" do
+RSpec.describe 'Uncovered Methods' do
   describe EbookReader::Helpers::ReaderHelpers do
     let(:helper) { Class.new { include EbookReader::Helpers::ReaderHelpers }.new }
 
     it 'handles wrap_line with nil word edge case' do
-      lines = ["word1 word2"]
-      allow(lines.first).to receive(:split).and_return(["word1", nil, "word2"])
+      lines = ['word1 word2']
+      allow(lines.first).to receive(:split).and_return(['word1', nil, 'word2'])
 
       result = helper.wrap_lines(lines, 20)
       expect(result).to be_an(Array)
     end
 
     it 'handles wrap_lines with mixed empty and whitespace lines' do
-      lines = ["", "   ", "\t\t", "actual text", "  \n  "]
+      lines = ['', '   ', "\t\t", 'actual text', "  \n  "]
       result = helper.wrap_lines(lines, 50)
 
-      expect(result).to include("")
-      expect(result).to include("actual text")
+      expect(result).to include('')
+      expect(result).to include('actual text')
     end
   end
 
@@ -31,11 +31,11 @@ RSpec.describe "Uncovered Methods" do
     end
 
     it 'renders all status types' do
-      screen.render_status(:idle, "")
-      screen.render_status(:scanning, "Scanning...")
-      screen.render_status(:error, "Error!")
-      screen.render_status(:done, "Complete")
-      screen.render_status(:unknown, "Unknown")
+      screen.render_status(:idle, '')
+      screen.render_status(:scanning, 'Scanning...')
+      screen.render_status(:error, 'Error!')
+      screen.render_status(:done, 'Complete')
+      screen.render_status(:unknown, 'Unknown')
     end
   end
 

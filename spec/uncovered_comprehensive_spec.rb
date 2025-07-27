@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe "Uncovered methods comprehensive" do
+RSpec.describe 'Uncovered methods comprehensive' do
   describe EbookReader::UI::MainMenuRenderer do
     let(:config) { instance_double(EbookReader::Config) }
     let(:renderer) { described_class.new(config) }
@@ -12,7 +12,7 @@ RSpec.describe "Uncovered methods comprehensive" do
     end
 
     it 'calculates logo position correctly for small terminals' do
-      stub_const("EbookReader::VERSION", "v1.0")
+      stub_const('EbookReader::VERSION', 'v1.0')
       menu_start = renderer.render_logo(10, 40)
       expect(menu_start).to eq(2 + 6 + 5) # min start + logo lines + spacing
     end
@@ -56,7 +56,7 @@ RSpec.describe "Uncovered methods comprehensive" do
       allow(FileUtils).to receive(:mkdir_p)
       allow(File).to receive(:write).and_raise(Errno::ENOSPC)
 
-      expect { described_class.add("/book.epub") }.not_to raise_error
+      expect { described_class.add('/book.epub') }.not_to raise_error
     end
   end
 

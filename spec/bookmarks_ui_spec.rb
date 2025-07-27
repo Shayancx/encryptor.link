@@ -21,7 +21,7 @@ RSpec.describe EbookReader::Concerns::BookmarksUI do
   let(:bookmarks) do
     [
       EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 10, text_snippet: 'First', created_at: Time.now),
-      EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20, text_snippet: 'Second', created_at: Time.now)
+      EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20, text_snippet: 'Second', created_at: Time.now),
     ]
   end
 

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::MainMenu, "comprehensive" do
+RSpec.describe EbookReader::MainMenu, 'comprehensive' do
   let(:menu) { described_class.new }
   let(:scanner) { menu.instance_variable_get(:@scanner) }
 
@@ -19,7 +19,7 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
       menu.instance_variable_set(:@mode, :browse)
       menu.instance_variable_set(:@filtered_epubs, [
                                    { 'name' => 'Book 1' },
-                                   { 'name' => 'Book 2' }
+                                   { 'name' => 'Book 2' },
                                  ])
 
       # Test OA/OB variants (some terminals)
@@ -46,7 +46,7 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
       allow(EbookReader::RecentFiles).to receive(:load).and_return([
                                                                      { 'path' => '/exists.epub', 'name' => 'Exists' },
                                                                      { 'path' => nil, 'name' => 'No Path' },
-                                                                     { 'name' => 'Missing Path Key' }
+                                                                     { 'name' => 'Missing Path Key' },
                                                                    ])
       allow(File).to receive(:exist?).with('/exists.epub').and_return(true)
 
@@ -69,7 +69,7 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
     end
 
     it 'expands home directory' do
-      input = "~/book.epub"
+      input = '~/book.epub'
       expanded = File.expand_path('~/book.epub')
       expect(menu.send(:sanitize_input_path, input)).to eq(expanded)
     end
@@ -79,11 +79,11 @@ RSpec.describe EbookReader::MainMenu, "comprehensive" do
     it 'handles reader initialization errors' do
       menu.instance_variable_set(:@mode, :browse)
       allow(File).to receive(:exist?).and_return(true)
-      allow(EbookReader::Reader).to receive(:new).and_raise(StandardError.new("Init failed"))
+      allow(EbookReader::Reader).to receive(:new).and_raise(StandardError.new('Init failed'))
 
       menu.send(:open_book, '/error.epub')
       expect(scanner.scan_status).to eq(:error)
-      expect(scanner.scan_message).to include("Failed")
+      expect(scanner.scan_message).to include('Failed')
     end
   end
 end

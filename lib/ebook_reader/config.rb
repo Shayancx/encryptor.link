@@ -38,7 +38,7 @@ module EbookReader
         show_page_numbers: @show_page_numbers,
         line_spacing: @line_spacing,
         highlight_quotes: @highlight_quotes,
-        page_numbering_mode: @page_numbering_mode
+        page_numbering_mode: @page_numbering_mode,
       }
     end
 

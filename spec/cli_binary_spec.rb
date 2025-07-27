@@ -2,8 +2,8 @@
 
 require 'spec_helper'
 
-RSpec.describe "CLI Binary" do
-  it "calls CLI.run when executed" do
+RSpec.describe 'CLI Binary' do
+  it 'calls CLI.run when executed' do
     expect(EbookReader::CLI).to receive(:run)
 
     # Simulate running the binary

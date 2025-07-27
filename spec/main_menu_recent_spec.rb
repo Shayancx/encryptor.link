@@ -14,7 +14,7 @@ RSpec.describe EbookReader::MainMenu, 'recent input' do
   it 'opens recent book even when selection is out of range' do
     allow(EbookReader::RecentFiles).to receive(:load).and_return([
                                                                    { 'path' => '/book.epub', 'name' => 'Book',
-                                                                     'accessed' => Time.now.iso8601 }
+                                                                     'accessed' => Time.now.iso8601 },
                                                                  ])
     allow(File).to receive(:exist?).and_call_original
     allow(File).to receive(:exist?).with('/book.epub').and_return(true)
@@ -27,7 +27,7 @@ RSpec.describe EbookReader::MainMenu, 'recent input' do
   it 'sets error when recent file is missing' do
     allow(EbookReader::RecentFiles).to receive(:load).and_return([
                                                                    { 'path' => '/missing.epub', 'name' => 'Missing',
-                                                                     'accessed' => Time.now.iso8601 }
+                                                                     'accessed' => Time.now.iso8601 },
                                                                  ])
     allow(File).to receive(:exist?).and_call_original
     allow(File).to receive(:exist?).with('/missing.epub').and_return(false)

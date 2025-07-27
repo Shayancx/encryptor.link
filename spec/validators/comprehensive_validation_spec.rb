@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe "Comprehensive Validation" do
+RSpec.describe 'Comprehensive Validation' do
   describe EbookReader::Validators::FilePathValidator do
     let(:validator) { described_class.new }
 
@@ -12,14 +12,14 @@ RSpec.describe "Comprehensive Validation" do
       allow(File).to receive(:readable?).and_return(true)
       allow(File).to receive(:size).and_return(1000)
 
-      expect(validator.validate("/valid.epub")).to be true
+      expect(validator.validate('/valid.epub')).to be true
       expect(validator.errors).to be_empty
     end
 
     it 'collects multiple errors' do
       allow(File).to receive(:exist?).and_return(false)
 
-      expect(validator.validate("/missing.txt")).to be false
+      expect(validator.validate('/missing.txt')).to be false
       expect(validator.errors.map { |e| e[:field] }).to include(:path)
     end
 
@@ -28,8 +28,8 @@ RSpec.describe "Comprehensive Validation" do
       allow(File).to receive(:readable?).and_return(true)
       allow(File).to receive(:size).and_return(0)
 
-      expect(validator.validate("/empty.epub")).to be false
-      expect(validator.errors.last[:message]).to include("empty")
+      expect(validator.validate('/empty.epub')).to be false
+      expect(validator.errors.last[:message]).to include('empty')
     end
   end
 
@@ -42,7 +42,7 @@ RSpec.describe "Comprehensive Validation" do
       expect(recommendations[:current]).to eq({ width: 60, height: 20 })
       expect(recommendations[:minimum]).to eq({
                                                 width: EbookReader::Constants::UIConstants::MIN_WIDTH,
-                                                height: EbookReader::Constants::UIConstants::MIN_HEIGHT
+                                                height: EbookReader::Constants::UIConstants::MIN_HEIGHT,
                                               })
       expect(recommendations[:needs_resize]).to be true
     end

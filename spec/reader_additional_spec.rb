@@ -20,7 +20,7 @@ RSpec.describe EbookReader::Reader do
                     chapter_count: 2,
                     chapters: [
                       EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(50, 'line'), metadata: nil),
-                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(60, 'line'), metadata: nil)
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(60, 'line'), metadata: nil),
                     ])
   end
 

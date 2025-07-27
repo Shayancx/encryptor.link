@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::Terminal, "edge cases" do
+RSpec.describe EbookReader::Terminal, 'edge cases' do
   describe '.read_key' do
     it 'handles partial escape sequences' do
       allow(EbookReader::Terminal).to receive(:read_key).and_call_original
@@ -14,7 +14,7 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
         attempts += 1
         case attempts
         when 1 then "\e"
-        when 2 then "["
+        when 2 then '['
         else raise IO::EAGAINWaitReadable
         end
       end
@@ -29,7 +29,7 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
       allow(console).to receive(:raw).and_yield
       allow(IO).to receive(:console).and_return(console)
       allow($stdin).to receive(:read_nonblock).with(1).and_return("\e")
-      allow($stdin).to receive(:read_nonblock).with(3).and_return("[1~")
+      allow($stdin).to receive(:read_nonblock).with(3).and_return('[1~')
 
       expect(described_class.read_key).to eq("\e[1~")
     end
@@ -49,7 +49,7 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
       allow(EbookReader::Terminal).to receive(:start_frame).and_call_original
       allow(EbookReader::Terminal).to receive(:write).and_call_original
       described_class.start_frame
-      expect { described_class.write(1, 1, "") }.not_to raise_error
+      expect { described_class.write(1, 1, '') }.not_to raise_error
     end
 
     it 'converts non-string objects to string' do
@@ -58,15 +58,15 @@ RSpec.describe EbookReader::Terminal, "edge cases" do
       described_class.start_frame
       expect { described_class.write(1, 1, 123) }.not_to raise_error
       buffer = described_class.instance_variable_get(:@buffer)
-      expect(buffer.last).to include("123")
+      expect(buffer.last).to include('123')
     end
   end
 
   describe 'signal handling' do
     it 'cleans up on interrupt signal' do
       handler = nil
-      allow(described_class).to receive(:trap).with("INT") { |&block| handler = block }
-      allow(described_class).to receive(:trap).with("TERM")
+      allow(described_class).to receive(:trap).with('INT') { |&block| handler = block }
+      allow(described_class).to receive(:trap).with('TERM')
       allow(described_class).to receive(:cleanup)
 
       described_class.send(:setup_signal_handlers)

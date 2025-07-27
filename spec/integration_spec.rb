@@ -2,9 +2,9 @@
 
 require 'spec_helper'
 
-RSpec.describe "Integration Tests" do
-  describe "Full application flow" do
-    it "can create all main components" do
+RSpec.describe 'Integration Tests' do
+  describe 'Full application flow' do
+    it 'can create all main components' do
       # Test that all main components can be instantiated
       expect { EbookReader::Config.new }.not_to raise_error
       expect { EbookReader::Terminal }.not_to raise_error
@@ -13,7 +13,7 @@ RSpec.describe "Integration Tests" do
       expect { EbookReader::RecentFiles }.not_to raise_error
     end
 
-    it "loads all modules correctly" do
+    it 'loads all modules correctly' do
       # Verify module structure
       expect(EbookReader::Helpers).to be_a(Module)
       expect(EbookReader::UI).to be_a(Module)
@@ -22,8 +22,8 @@ RSpec.describe "Integration Tests" do
     end
   end
 
-  describe "Config lifecycle" do
-    it "can save and reload configuration", fake_fs: true do
+  describe 'Config lifecycle' do
+    it 'can save and reload configuration', fake_fs: true do
       # Create and save config
       config1 = EbookReader::Config.new
       config1.view_mode = :single

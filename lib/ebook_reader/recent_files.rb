@@ -21,7 +21,7 @@ module EbookReader
         new_entry = {
           'path' => path,
           'name' => File.basename(path, '.epub').tr('_-', ' '),
-          'accessed' => Time.now.iso8601
+          'accessed' => Time.now.iso8601,
         }
 
         save([new_entry, *recent_files].first(MAX_RECENT_FILES))

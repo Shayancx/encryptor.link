@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
+RSpec.describe EbookReader::EPUBDocument, 'comprehensive', fake_fs: true do
   let(:epub_path) { '/comprehensive.epub' }
 
   before do
@@ -13,12 +13,12 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
 
   describe 'error recovery' do
     it 'creates error chapter on any exception during parsing' do
-      allow(Zip::File).to receive(:open).and_raise(StandardError.new("Generic error"))
+      allow(Zip::File).to receive(:open).and_raise(StandardError.new('Generic error'))
       doc = described_class.new(epub_path)
       expect(doc.chapters.first[:title]).to eq('Error Loading')
       # The error chapter should contain the original exception message. Join
       # the lines to make the expectation independent of formatting.
-      expect(doc.chapters.first[:lines].join("\n")).to include("Generic error")
+      expect(doc.chapters.first[:lines].join("\n")).to include('Generic error')
     end
 
     it 'ensures at least one chapter exists even with empty spine' do
@@ -69,8 +69,8 @@ RSpec.describe EbookReader::EPUBDocument, "comprehensive", fake_fs: true do
       XML
 
       doc = described_class.new(epub_path)
-      expect(doc.title).to eq("comprehensive") # Falls back to filename
-      expect(doc.language).to eq("fr_FR")
+      expect(doc.title).to eq('comprehensive') # Falls back to filename
+      expect(doc.language).to eq('fr_FR')
     end
   end
 end

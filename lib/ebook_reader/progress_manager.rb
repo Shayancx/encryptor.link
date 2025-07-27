@@ -35,7 +35,7 @@ module EbookReader
         progress[path] = {
           'chapter' => chapter,
           'line_offset' => line_offset,
-          'timestamp' => Time.now.iso8601
+          'timestamp' => Time.now.iso8601,
         }
       end
 

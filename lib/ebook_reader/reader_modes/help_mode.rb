@@ -33,7 +33,7 @@ module EbookReader
         '  q         Quit to menu',
         '  Q         Quit application',
         '',
-        'Press any key to continue...'
+        'Press any key to continue...',
       ].freeze
 
       def draw(height, width)

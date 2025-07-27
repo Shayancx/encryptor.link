@@ -6,7 +6,7 @@ RSpec.describe EbookReader::DynamicPageCalculator do
   let(:dummy_doc) do
     instance_double('EPUBDocument', chapters: [
                       EbookReader::Models::Chapter.new(number: '1', title: 'C1', lines: Array.new(20, 'line'), metadata: nil),
-                      EbookReader::Models::Chapter.new(number: '2', title: 'C2', lines: Array.new(20, 'line'), metadata: nil)
+                      EbookReader::Models::Chapter.new(number: '2', title: 'C2', lines: Array.new(20, 'line'), metadata: nil),
                     ])
   end
 

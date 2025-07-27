@@ -10,8 +10,8 @@ RSpec.describe EbookReader::Config, fake_fs: true do
     FileUtils.mkdir_p(config_dir)
   end
 
-  describe "#initialize" do
-    it "sets default values" do
+  describe '#initialize' do
+    it 'sets default values' do
       config = described_class.new
       expect(config.view_mode).to eq(:split)
       expect(config.theme).to eq(:dark)
@@ -21,12 +21,12 @@ RSpec.describe EbookReader::Config, fake_fs: true do
       expect(config.page_numbering_mode).to eq(:absolute)
     end
 
-    it "loads existing config file" do
+    it 'loads existing config file' do
       config_data = {
-        view_mode: "single",
-        theme: "light",
+        view_mode: 'single',
+        theme: 'light',
         show_page_numbers: false,
-        page_numbering_mode: "dynamic"
+        page_numbering_mode: 'dynamic',
       }
       File.write(config_file, JSON.pretty_generate(config_data))
 
@@ -38,14 +38,14 @@ RSpec.describe EbookReader::Config, fake_fs: true do
     end
   end
 
-  describe "#save" do
-    it "saves config to file" do
+  describe '#save' do
+    it 'saves config to file' do
       config = described_class.new
       config.view_mode = :single
       config.save
 
       saved_data = JSON.parse(File.read(config_file))
-      expect(saved_data["view_mode"]).to eq("single")
+      expect(saved_data['view_mode']).to eq('single')
     end
 
     it "creates config directory if it doesn't exist" do
@@ -57,8 +57,8 @@ RSpec.describe EbookReader::Config, fake_fs: true do
     end
   end
 
-  describe "#to_h" do
-    it "returns config as hash" do
+  describe '#to_h' do
+    it 'returns config as hash' do
       config = described_class.new
       hash = config.to_h
 

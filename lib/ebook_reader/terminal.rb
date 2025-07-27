@@ -117,7 +117,7 @@ module EbookReader
         print [
           ANSI::Control::SAVE_SCREEN,
           ANSI::Control::HIDE_CURSOR,
-          ANSI::BG_DARK
+          ANSI::BG_DARK,
         ].join
         clear
 
@@ -130,7 +130,7 @@ module EbookReader
           ANSI::Control::HOME,
           ANSI::Control::SHOW_CURSOR,
           ANSI::Control::RESTORE_SCREEN,
-          ANSI::RESET
+          ANSI::RESET,
         ].join
         $stdout.flush
         @console.cooked! if @console.respond_to?(:cooked!)

@@ -6,7 +6,7 @@ RSpec.describe EbookReader::Renderers::ContentRenderer do
   let(:config) { instance_double(EbookReader::Config, line_spacing: :normal, show_page_numbers: true) }
   let(:renderer) { described_class.new(config) }
   let(:chapter) do
-    EbookReader::Models::Chapter.new(number: "1", title: "Test Chapter", lines: ["Line 1", "Line 2", "Line 3"], metadata: nil)
+    EbookReader::Models::Chapter.new(number: '1', title: 'Test Chapter', lines: ['Line 1', 'Line 2', 'Line 3'], metadata: nil)
   end
 
   before do
@@ -70,12 +70,12 @@ RSpec.describe EbookReader::Renderers::ContentRenderer do
   describe 'page number display' do
     it 'shows page numbers when enabled' do
       expect(renderer).to receive(:draw_page_number)
-      renderer.send(:draw_column, 3, 1, 40, 20, ["Line 1"], 0, true)
+      renderer.send(:draw_column, 3, 1, 40, 20, ['Line 1'], 0, true)
     end
 
     it 'skips page numbers when disabled' do
       expect(renderer).not_to receive(:draw_page_number)
-      renderer.send(:draw_column, 3, 1, 40, 20, ["Line 1"], 0, false)
+      renderer.send(:draw_column, 3, 1, 40, 20, ['Line 1'], 0, false)
     end
   end
 end

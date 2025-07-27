@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EbookReader
   module Models
     # Represents a chapter within an EPUB document.

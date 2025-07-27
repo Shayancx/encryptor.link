@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::EPUBDocument, "error handling", fake_fs: true do
+RSpec.describe EbookReader::EPUBDocument, 'error handling', fake_fs: true do
   let(:epub_path) { '/books/test.epub' }
 
   before do
@@ -21,7 +21,7 @@ RSpec.describe EbookReader::EPUBDocument, "error handling", fake_fs: true do
     allow(Zip::File).to receive(:open).and_yield(double('zip_file', each: nil))
     allow(File).to receive(:exist?).with(File.join('/tmp/extracted', 'META-INF', 'container.xml')).and_return(false)
     doc = described_class.new(epub_path)
-    expect(doc.chapters.first[:title]).to eq("Empty Book")
+    expect(doc.chapters.first[:title]).to eq('Empty Book')
   end
 
   it 'handles missing OPF file' do
@@ -32,6 +32,6 @@ RSpec.describe EbookReader::EPUBDocument, "error handling", fake_fs: true do
     allow(File).to receive(:read).with(container_xml_path).and_return(xml)
     allow(File).to receive(:exist?).with(File.join('/tmp/extracted', 'content.opf')).and_return(false)
     doc = described_class.new(epub_path)
-    expect(doc.chapters.first[:title]).to eq("Empty Book")
+    expect(doc.chapters.first[:title]).to eq('Empty Book')
   end
 end

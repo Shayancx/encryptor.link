@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::EPUBFinder, "edge cases" do
+RSpec.describe EbookReader::EPUBFinder, 'edge cases' do
   describe '.scan_system' do
     it 'handles directory access errors' do
       allow(Dir).to receive(:exist?).and_return(true)

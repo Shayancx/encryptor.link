@@ -51,7 +51,7 @@ RSpec.describe EbookReader::MainMenu do
     it 'filters epubs by search query' do
       menu.instance_variable_set(:@scanner, double(epubs: [
                                                      { 'name' => 'Alpha', 'path' => '/a.epub' },
-                                                     { 'name' => 'Beta', 'path' => '/b.epub' }
+                                                     { 'name' => 'Beta', 'path' => '/b.epub' },
                                                    ]))
       menu.instance_variable_set(:@search_query, 'beta')
       result = menu.send(:filter_by_query)

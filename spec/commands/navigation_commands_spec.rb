@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe "Navigation Commands" do
+RSpec.describe 'Navigation Commands' do
   let(:reader) { instance_double(EbookReader::Reader) }
   let(:doc) { instance_double(EbookReader::EPUBDocument, chapter_count: 2) }
 

@@ -3,15 +3,15 @@
 require 'spec_helper'
 
 RSpec.describe EbookReader::Terminal do
-  describe ".size" do
-    it "returns terminal dimensions" do
+  describe '.size' do
+    it 'returns terminal dimensions' do
       allow(EbookReader::Terminal).to receive(:size).and_call_original
       console = double('console', winsize: [30, 100])
       allow(IO).to receive(:console).and_return(console)
       expect(described_class.size).to eq([30, 100])
     end
 
-    it "returns default size on error" do
+    it 'returns default size on error' do
       allow(EbookReader::Terminal).to receive(:size).and_call_original
       console = double('console')
       allow(console).to receive(:winsize).and_raise(StandardError)
@@ -20,8 +20,8 @@ RSpec.describe EbookReader::Terminal do
     end
   end
 
-  describe ".clear" do
-    it "prints clear screen sequence" do
+  describe '.clear' do
+    it 'prints clear screen sequence' do
       allow(EbookReader::Terminal).to receive(:clear).and_call_original
       expect($stdout).to receive(:flush)
       expect(described_class).to receive(:print).with("\e[2J\e[H")
@@ -29,19 +29,19 @@ RSpec.describe EbookReader::Terminal do
     end
   end
 
-  describe ".write" do
-    it "adds text to buffer with position" do
+  describe '.write' do
+    it 'adds text to buffer with position' do
       allow(EbookReader::Terminal).to receive(:start_frame).and_call_original
       described_class.start_frame
       allow(EbookReader::Terminal).to receive(:write).and_call_original
-      described_class.write(10, 20, "Hello")
+      described_class.write(10, 20, 'Hello')
       buffer = described_class.instance_variable_get(:@buffer)
       expect(buffer).to include("\e[10;20HHello")
     end
   end
 
-  describe ".setup" do
-    it "sets up terminal for raw mode" do
+  describe '.setup' do
+    it 'sets up terminal for raw mode' do
       allow(EbookReader::Terminal).to receive(:setup).and_call_original
       expect($stdout).to receive(:sync=).with(true)
       expect(described_class).to receive(:print)
@@ -50,8 +50,8 @@ RSpec.describe EbookReader::Terminal do
     end
   end
 
-  describe ".cleanup" do
-    it "restores terminal state" do
+  describe '.cleanup' do
+    it 'restores terminal state' do
       allow(EbookReader::Terminal).to receive(:cleanup).and_call_original
       expect($stdout).to receive(:flush)
       expect(described_class).to receive(:print)
@@ -59,26 +59,26 @@ RSpec.describe EbookReader::Terminal do
     end
   end
 
-  describe ".read_key" do
-    it "reads single character" do
+  describe '.read_key' do
+    it 'reads single character' do
       allow(EbookReader::Terminal).to receive(:read_key).and_call_original
       console = double('console')
       allow(console).to receive(:raw).and_yield
       allow(IO).to receive(:console).and_return(console)
-      allow($stdin).to receive(:read_nonblock).and_return("a")
-      expect(described_class.read_key).to eq("a")
+      allow($stdin).to receive(:read_nonblock).and_return('a')
+      expect(described_class.read_key).to eq('a')
     end
 
-    it "handles escape sequences" do
+    it 'handles escape sequences' do
       allow(EbookReader::Terminal).to receive(:read_key).and_call_original
       console = double('console')
       allow(console).to receive(:raw).and_yield
       allow(IO).to receive(:console).and_return(console)
-      allow($stdin).to receive(:read_nonblock).and_return("\e", "[A")
+      allow($stdin).to receive(:read_nonblock).and_return("\e", '[A')
       expect(described_class.read_key).to eq("\e[A")
     end
 
-    it "returns nil when no input available" do
+    it 'returns nil when no input available' do
       allow(EbookReader::Terminal).to receive(:read_key).and_call_original
       console = double('console')
       allow(console).to receive(:raw).and_yield
@@ -90,8 +90,8 @@ RSpec.describe EbookReader::Terminal do
 end
 
 RSpec.describe EbookReader::Terminal::ANSI do
-  describe "color constants" do
-    it "defines color codes" do
+  describe 'color constants' do
+    it 'defines color codes' do
       expect(described_class::RESET).to eq("\e[0m")
       expect(described_class::RED).to eq("\e[31m")
       expect(described_class::GREEN).to eq("\e[32m")
@@ -99,14 +99,14 @@ RSpec.describe EbookReader::Terminal::ANSI do
     end
   end
 
-  describe ".move" do
-    it "returns cursor move sequence" do
+  describe '.move' do
+    it 'returns cursor move sequence' do
       expect(described_class.move(5, 10)).to eq("\e[5;10H")
     end
   end
 
-  describe ".clear_line" do
-    it "returns clear line sequence" do
+  describe '.clear_line' do
+    it 'returns clear line sequence' do
       expect(described_class.clear_line).to eq("\e[2K")
     end
   end

@@ -41,13 +41,13 @@ module EbookReader
           @scan_results_queue.push({
                                      status: :done,
                                      epubs: sorted_epubs,
-                                     message: "Found #{sorted_epubs.length} books"
+                                     message: "Found #{sorted_epubs.length} books",
                                    })
         rescue StandardError => e
           @scan_results_queue.push({
                                      status: :error,
                                      epubs: [],
-                                     message: "Scan failed: #{e.message[0..50]}"
+                                     message: "Scan failed: #{e.message[0..50]}",
                                    })
         end
       end

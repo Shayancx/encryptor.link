@@ -13,7 +13,7 @@ RSpec.describe EbookReader::Renderers::Components::TextRenderer do
   describe '#render_line' do
     it 'renders a line of text' do
       expect(EbookReader::Terminal).to receive(:write).with(5, 10, anything)
-      renderer.render_line("Test line", 5, 10, 50)
+      renderer.render_line('Test line', 5, 10, 50)
     end
 
     it 'handles nil line gracefully' do
@@ -22,16 +22,16 @@ RSpec.describe EbookReader::Renderers::Components::TextRenderer do
 
     it 'ignores invalid positions' do
       expect(EbookReader::Terminal).not_to receive(:write)
-      renderer.render_line("Test", -1, 10, 50)
-      renderer.render_line("Test", 5, -1, 50)
+      renderer.render_line('Test', -1, 10, 50)
+      renderer.render_line('Test', 5, -1, 50)
     end
   end
 
   describe '#format_line' do
     it 'truncates long lines' do
-      long_line = "a" * 100
+      long_line = 'a' * 100
       formatted = renderer.format_line(long_line, 20)
-      expect(formatted).to include("a" * 20)
+      expect(formatted).to include('a' * 20)
     end
 
     it 'applies highlighting when enabled' do
@@ -51,26 +51,26 @@ RSpec.describe EbookReader::Renderers::Components::TextRenderer do
 
   describe 'smart truncation' do
     it 'breaks at word boundaries when possible' do
-      line = "This is a test of smart truncation"
+      line = 'This is a test of smart truncation'
       truncated = renderer.send(:truncate_line, line, 15)
-      expect(truncated).to eq("This is a...")
+      expect(truncated).to eq('This is a...')
     end
 
     it 'handles lines with no spaces' do
-      line = "verylongwordwithoutspaces"
+      line = 'verylongwordwithoutspaces'
       truncated = renderer.send(:truncate_line, line, 10)
-      expect(truncated).to eq("verylongwo")
+      expect(truncated).to eq('verylongwo')
     end
 
     it 'handles zero width' do
-      truncated = renderer.send(:truncate_line, "test", 0)
+      truncated = renderer.send(:truncate_line, 'test', 0)
       expect(truncated).to eq('')
     end
   end
 
   describe 'highlighting' do
     it 'highlights multiple keywords' do
-      line = "Chinese poets and philosophers celebrated fragrance"
+      line = 'Chinese poets and philosophers celebrated fragrance'
       highlighted = renderer.send(:apply_highlighting, line)
 
       expect(highlighted.scan(EbookReader::Terminal::ANSI::CYAN).count).to eq(4)
@@ -84,7 +84,7 @@ RSpec.describe EbookReader::Renderers::Components::TextRenderer do
     end
 
     it 'preserves original text' do
-      line = "Normal text without special content"
+      line = 'Normal text without special content'
       highlighted = renderer.send(:apply_highlighting, line)
 
       # Remove ANSI codes to check content

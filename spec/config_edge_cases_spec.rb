@@ -2,15 +2,15 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::Config, "edge cases", fake_fs: true do
+RSpec.describe EbookReader::Config, 'edge cases', fake_fs: true do
   let(:config_file) { described_class::CONFIG_FILE }
 
   it 'handles config file with extra unknown keys' do
     FileUtils.mkdir_p(described_class::CONFIG_DIR)
     config_data = {
-      view_mode: "split",
-      unknown_key: "value",
-      another_unknown: 123
+      view_mode: 'split',
+      unknown_key: 'value',
+      another_unknown: 123,
     }
     File.write(config_file, JSON.pretty_generate(config_data))
 
@@ -22,8 +22,8 @@ RSpec.describe EbookReader::Config, "edge cases", fake_fs: true do
     FileUtils.mkdir_p(described_class::CONFIG_DIR)
     config_data = {
       view_mode: 123,
-      show_page_numbers: "yes",
-      line_spacing: true
+      show_page_numbers: 'yes',
+      line_spacing: true,
     }
     File.write(config_file, JSON.pretty_generate(config_data))
 

@@ -47,8 +47,8 @@ module EbookReader
 
     # Display settings
     CHAPTER_INFO_MAX_WIDTH = 100
-    HIGHLIGHT_PATTERNS = /Chinese poets|philosophers|Taoyuen-ming|celebrated|fragrance|plum-blossoms|Linwosing|Chowmushih/
-    QUOTE_PATTERNS = /("[^"]+")|('[^']+')/
+    HIGHLIGHT_PATTERNS = /Chinese poets|philosophers|Taoyuen-ming|celebrated|fragrance|plum-blossoms|Linwosing|Chowmushih/.freeze
+    QUOTE_PATTERNS = /("[^"]+")|('[^']+')/.freeze
 
     # Recent files
     MAX_RECENT_FILES = 10

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "infrastructure/logger"
-require_relative "infrastructure/performance_monitor"
+require_relative 'infrastructure/logger'
+require_relative 'infrastructure/performance_monitor'
 
 require 'zip'
 require 'rexml/document'
@@ -19,7 +19,7 @@ module EbookReader
 
     def initialize(path)
       @path = path
-      @title = File.basename(path, '.epub').gsub('_', ' ')
+      @title = File.basename(path, '.epub').tr('_', ' ')
       @language = 'en_US'
       @chapters = []
       parse_epub
@@ -46,8 +46,8 @@ module EbookReader
     # captured and presented to the user as a single "Error" chapter so
     # the application can continue running.
     def parse_epub
-      Infrastructure::Logger.info("Parsing EPUB", path: @path)
-      Infrastructure::PerformanceMonitor.time("epub_parsing") do
+      Infrastructure::Logger.info('Parsing EPUB', path: @path)
+      Infrastructure::PerformanceMonitor.time('epub_parsing') do
         Dir.mktmpdir do |tmpdir|
           extract_epub(tmpdir)
           load_epub_content(tmpdir)
@@ -65,7 +65,7 @@ module EbookReader
           title: 'Error Loading',
           lines: ["Error: #{error.message}"],
           metadata: nil
-        )
+        ),
       ]
     end
 
@@ -90,7 +90,7 @@ module EbookReader
             # First try the standard way
             entry.extract(dest)
           rescue ArgumentError => e
-            raise unless e.message.include?("wrong number of arguments")
+            raise unless e.message.include?('wrong number of arguments')
 
             # For rubyzip versions that don't accept parameters
             # Use the block form which works in all versions

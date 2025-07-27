@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::Terminal, "comprehensive" do
+RSpec.describe EbookReader::Terminal, 'comprehensive' do
   describe 'ANSI module' do
     it 'has all required constants' do
       expect(described_class::ANSI::BOLD).to eq("\e[1m")

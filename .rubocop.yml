@@ -9,13 +9,10 @@ AllCops:
     - 'bin/**/*'
     - 'vendor/**/*'
     - 'tmp/**/*'
-  SuggestExtensions: false
 
 # Layout
 Layout/LineLength:
   Max: 100
-  AllowedPatterns:
-    - '\A\s*#'
 
 # Metrics
 Metrics/ClassLength:
@@ -47,14 +44,6 @@ Metrics/ParameterLists:
 
 Metrics/BlockLength:
   Max: 25
-  AllowedMethods:
-    - describe
-    - context
-    - feature
-    - scenario
-    - let
-    - before
-    - after
 
 # Style
 Style/Documentation:

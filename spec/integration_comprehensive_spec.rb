@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe "Integration Tests Comprehensive" do
+RSpec.describe 'Integration Tests Comprehensive' do
   describe 'Full application flow' do
     it 'handles complete reading session' do
       # Mock full session
@@ -68,7 +68,7 @@ RSpec.describe "Integration Tests Comprehensive" do
 
       # Scanner error
       scanner = menu.instance_variable_get(:@scanner)
-      allow(scanner).to receive(:start_scan).and_raise(StandardError.new("Scan failed"))
+      allow(scanner).to receive(:start_scan).and_raise(StandardError.new('Scan failed'))
       expect do
         scanner.start_scan
       rescue StandardError
@@ -76,7 +76,7 @@ RSpec.describe "Integration Tests Comprehensive" do
       end.not_to raise_error
 
       # Reader crash
-      allow(EbookReader::Reader).to receive(:new).and_raise(StandardError.new("Reader failed"))
+      allow(EbookReader::Reader).to receive(:new).and_raise(StandardError.new('Reader failed'))
       expect { menu.send(:open_book, '/book.epub') }.not_to raise_error
 
       # Terminal error
@@ -93,7 +93,7 @@ RSpec.describe "Integration Tests Comprehensive" do
           'path' => "/book#{i}.epub",
           'name' => "Book #{i}",
           'size' => rand(1_000_000),
-          'modified' => Time.now.iso8601
+          'modified' => Time.now.iso8601,
         }
       end
 
@@ -103,7 +103,7 @@ RSpec.describe "Integration Tests Comprehensive" do
 
       # Test search performance
       start_time = Time.now
-      menu.instance_variable_set(:@search_query, "Book 500")
+      menu.instance_variable_set(:@search_query, 'Book 500')
       menu.send(:filter_books)
       search_time = Time.now - start_time
 

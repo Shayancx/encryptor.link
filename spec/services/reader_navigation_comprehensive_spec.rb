@@ -10,7 +10,7 @@ RSpec.describe EbookReader::Services::ReaderNavigation do
                     chapters: [
                       EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(50, 'line'), metadata: nil),
                       EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(60, 'line'), metadata: nil),
-                      EbookReader::Models::Chapter.new(number: '3', title: 'Ch3', lines: Array.new(40, 'line'), metadata: nil)
+                      EbookReader::Models::Chapter.new(number: '3', title: 'Ch3', lines: Array.new(40, 'line'), metadata: nil),
                     ])
   end
   let(:config) { instance_double(EbookReader::Config, view_mode: :single) }

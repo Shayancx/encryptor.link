@@ -30,7 +30,7 @@ module EbookReader
         %r{</h[1-6]>}i => "\n\n",
         /<h[1-6][^>]*>/i => "\n\n",
         %r{</div>}i => "\n",
-        /<div[^>]*>/i => "\n"
+        /<div[^>]*>/i => "\n",
       }.freeze
 
       private_constant :BLOCK_REPLACEMENTS
@@ -57,7 +57,7 @@ module EbookReader
       end
 
       private_class_method def self.clean_whitespace(text)
-        text.gsub!("\r", '')
+        text.delete!("\r")
         text.gsub!(/\n{3,}/, "\n\n")
         text.gsub!(/[ \t]+/, ' ')
         text.strip

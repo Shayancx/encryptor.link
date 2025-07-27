@@ -2,14 +2,14 @@
 
 require 'spec_helper'
 
-RSpec.describe "Reader Modes Comprehensive" do
+RSpec.describe 'Reader Modes Comprehensive' do
   let(:reader) { instance_double(EbookReader::Reader) }
   let(:config) { instance_double(EbookReader::Config) }
   let(:doc) do
     instance_double(EbookReader::EPUBDocument,
                     chapters: [
-                      { title: "Chapter 1", lines: ["Line 1"] },
-                      { title: "Chapter 2", lines: ["Line 2"] }
+                      { title: 'Chapter 1', lines: ['Line 1'] },
+                      { title: 'Chapter 2', lines: ['Line 2'] },
                     ],
                     chapter_count: 2)
   end
@@ -112,7 +112,7 @@ RSpec.describe "Reader Modes Comprehensive" do
       mode.handle_input("\e")
 
       expect(reader).to receive(:switch_mode).with(:read)
-      mode.handle_input("t")
+      mode.handle_input('t')
     end
   end
 
@@ -120,7 +120,7 @@ RSpec.describe "Reader Modes Comprehensive" do
     let(:bookmarks) do
       [
         EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 10, text_snippet: 'Bookmark 1', created_at: Time.now),
-        EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20, text_snippet: 'Bookmark 2', created_at: Time.now)
+        EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20, text_snippet: 'Bookmark 2', created_at: Time.now),
       ]
     end
     let(:mode) { described_class.new(reader) }

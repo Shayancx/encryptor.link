@@ -54,7 +54,7 @@ module EbookReader
         chapter_titles
       end
 
-      def process_spine(manifest, chapter_titles, &block)
+      def process_spine(manifest, chapter_titles)
         chapter_num = 1
         @opf.elements.each('//spine/itemref') do |itemref|
           idref = itemref.attributes['idref']
@@ -65,7 +65,7 @@ module EbookReader
           next unless File.exist?(file_path)
 
           title = chapter_titles[href]
-          block.call(file_path, chapter_num, title)
+          yield(file_path, chapter_num, title)
           chapter_num += 1
         end
       end

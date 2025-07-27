@@ -106,7 +106,7 @@ module EbookReader
           current_chapter: @current_chapter,
           page_offset: @single_page,
           mode: @mode,
-          timestamp: Time.now.iso8601
+          timestamp: Time.now.iso8601,
         }
       end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'time'
 
 module EbookReader
@@ -23,7 +25,7 @@ module EbookReader
           'chapter' => chapter_index,
           'line_offset' => line_offset,
           'text' => text_snippet,
-          'timestamp' => created_at.iso8601
+          'timestamp' => created_at.iso8601,
         }
       end
     end

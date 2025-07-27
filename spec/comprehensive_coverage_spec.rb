@@ -2,18 +2,18 @@
 
 require 'spec_helper'
 
-RSpec.describe "Comprehensive Coverage Tests" do
+RSpec.describe 'Comprehensive Coverage Tests' do
   describe EbookReader::Reader do
     let(:epub_path) { '/test.epub' }
     let(:config) { EbookReader::Config.new }
     let(:doc) do
       instance_double(EbookReader::EPUBDocument,
-                      title: "Test Book",
-                      language: "en",
+                      title: 'Test Book',
+                      language: 'en',
                       chapter_count: 2,
                       chapters: [
                         EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(100, 'Line'), metadata: nil),
-                        EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(50, 'Line'), metadata: nil)
+                        EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(50, 'Line'), metadata: nil),
                       ])
     end
     let(:reader) { described_class.new(epub_path, config) }
@@ -140,7 +140,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
       it 'loads progress from previous session' do
         allow(EbookReader::ProgressManager).to receive(:load).and_return({
                                                                            'chapter' => 1,
-                                                                           'line_offset' => 25
+                                                                           'line_offset' => 25,
                                                                          })
 
         new_reader = described_class.new(epub_path, config)
@@ -151,7 +151,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
       it 'handles corrupted progress data' do
         allow(EbookReader::ProgressManager).to receive(:load).and_return({
                                                                            'chapter' => 999,
-                                                                           'line_offset' => -5
+                                                                           'line_offset' => -5,
                                                                          })
 
         new_reader = described_class.new(epub_path, config)
@@ -189,7 +189,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
         scanner.epubs = [
           { 'name' => 'Book (1)', 'path' => '/book1.epub' },
           { 'name' => 'Book [2]', 'path' => '/book2.epub' },
-          { 'name' => 'Book $3', 'path' => '/book3.epub' }
+          { 'name' => 'Book $3', 'path' => '/book3.epub' },
         ]
 
         menu.instance_variable_set(:@search_query, '[2]')
@@ -221,7 +221,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
           '"/path with spaces/book.epub"',
           "'/another path/book.epub'",
           '/normal/path/book.epub',
-          '"nested ""quotes"" path.epub"'
+          '"nested ""quotes"" path.epub"',
         ]
 
         paths.each do |path|
@@ -281,10 +281,10 @@ RSpec.describe "Comprehensive Coverage Tests" do
     describe 'comprehensive parsing' do
       it 'handles all error conditions gracefully' do
         error_conditions = [
-          Zip::Error.new("Corrupted"),
-          Errno::ENOENT.new("Not found"),
-          REXML::ParseException.new("Invalid XML"),
-          StandardError.new("Generic error")
+          Zip::Error.new('Corrupted'),
+          Errno::ENOENT.new('Not found'),
+          REXML::ParseException.new('Invalid XML'),
+          StandardError.new('Generic error'),
         ]
 
         error_conditions.each do |error|
@@ -354,7 +354,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
           '&quot;' => '"',
           '&apos;' => "'",
           '&#8212;' => '—',
-          '&#x2014;' => '—'
+          '&#x2014;' => '—',
         }
 
         entities.each do |entity, expected|
@@ -368,7 +368,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
           '<p><div><span>Text</span></div></p>',
           '<p>Unclosed paragraph',
           '<p><p><p>Triple nested</p></p></p>',
-          '<P>Mixed <p>case</P> tags</p>'
+          '<P>Mixed <p>case</P> tags</p>',
         ]
 
         cases.each do |html|
@@ -407,7 +407,7 @@ RSpec.describe "Comprehensive Coverage Tests" do
 
       it 'handles buffer overflow gracefully' do
         described_class.start_frame
-        1000.times { |i| described_class.write(i % 24, i % 80, "X") }
+        1000.times { |i| described_class.write(i % 24, i % 80, 'X') }
         expect { described_class.end_frame }.not_to raise_error
       end
     end

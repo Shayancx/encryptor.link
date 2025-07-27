@@ -17,38 +17,38 @@ RSpec.describe EbookReader::Infrastructure::Logger do
 
   describe 'log levels' do
     it 'logs all levels when set to debug' do
-      described_class.debug("debug message")
-      described_class.info("info message")
-      described_class.warn("warn message")
-      described_class.error("error message")
-      described_class.fatal("fatal message")
+      described_class.debug('debug message')
+      described_class.info('info message')
+      described_class.warn('warn message')
+      described_class.error('error message')
+      described_class.fatal('fatal message')
 
       output = test_output.string
-      expect(output).to include("debug message")
-      expect(output).to include("info message")
-      expect(output).to include("warn message")
-      expect(output).to include("error message")
-      expect(output).to include("fatal message")
+      expect(output).to include('debug message')
+      expect(output).to include('info message')
+      expect(output).to include('warn message')
+      expect(output).to include('error message')
+      expect(output).to include('fatal message')
     end
 
     it 'filters messages below configured level' do
       described_class.level = :warn
 
-      described_class.debug("debug")
-      described_class.info("info")
-      described_class.warn("warn")
+      described_class.debug('debug')
+      described_class.info('info')
+      described_class.warn('warn')
 
       output = test_output.string
-      expect(output).not_to include("debug")
-      expect(output).not_to include("info")
-      expect(output).to include("warn")
+      expect(output).not_to include('debug')
+      expect(output).not_to include('info')
+      expect(output).to include('warn')
     end
   end
 
   describe '.with_context' do
     it 'adds context to log entries' do
       described_class.with_context(user_id: 123, request_id: 'abc') do
-        described_class.info("test message")
+        described_class.info('test message')
       end
 
       output = test_output.string
@@ -59,9 +59,9 @@ RSpec.describe EbookReader::Infrastructure::Logger do
     it 'restores previous context after block' do
       described_class.with_context(outer: true) do
         described_class.with_context(inner: true) do
-          described_class.info("inner")
+          described_class.info('inner')
         end
-        described_class.info("outer")
+        described_class.info('outer')
       end
 
       lines = test_output.string.split("\n")
@@ -73,7 +73,7 @@ RSpec.describe EbookReader::Infrastructure::Logger do
   describe 'error handling' do
     it 'never crashes the application' do
       described_class.output = nil
-      expect { described_class.error("test") }.not_to raise_error
+      expect { described_class.error('test') }.not_to raise_error
     end
   end
 end

@@ -2,22 +2,22 @@
 
 require 'spec_helper'
 
-RSpec.describe "Integration Edge Cases" do
-  describe "ReaderHelpers wrap_lines" do
+RSpec.describe 'Integration Edge Cases' do
+  describe 'ReaderHelpers wrap_lines' do
     let(:helper) { Class.new { include EbookReader::Helpers::ReaderHelpers }.new }
 
     it 'handles very long words that exceed width' do
-      lines = ["supercalifragilisticexpialidocious"]
+      lines = ['supercalifragilisticexpialidocious']
       wrapped = helper.wrap_lines(lines, 10)
-      expect(wrapped).to eq(["supercalifragilisticexpialidocious"])
+      expect(wrapped).to eq(['supercalifragilisticexpialidocious'])
     end
 
     it 'handles lines with multiple spaces' do
-      lines = ["word1     word2     word3"]
+      lines = ['word1     word2     word3']
       wrapped = helper.wrap_lines(lines, 15)
-      expect(wrapped.join(" ")).to include("word1")
-      expect(wrapped.join(" ")).to include("word2")
-      expect(wrapped.join(" ")).to include("word3")
+      expect(wrapped.join(' ')).to include('word1')
+      expect(wrapped.join(' ')).to include('word2')
+      expect(wrapped.join(' ')).to include('word3')
     end
 
     it 'handles tabs and other whitespace' do
@@ -27,12 +27,12 @@ RSpec.describe "Integration Edge Cases" do
     end
   end
 
-  describe "Reader display calculations" do
+  describe 'Reader display calculations' do
     let(:reader) do
       config = EbookReader::Config.new
       doc = instance_double(EbookReader::EPUBDocument,
-                            title: "Test",
-                            language: "en",
+                            title: 'Test',
+                            language: 'en',
                             chapter_count: 1,
                             chapters: [EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: ['Line'], metadata: nil)])
       allow(EbookReader::EPUBDocument).to receive(:new).and_return(doc)
@@ -58,11 +58,11 @@ RSpec.describe "Integration Edge Cases" do
     end
   end
 
-  describe "OPFProcessor namespace handling", fake_fs: true do
+  describe 'OPFProcessor namespace handling', fake_fs: true do
     it 'handles OPF files with various namespaces' do
       FileUtils.mkdir_p('book')
       opf_content = <<-XML
-        <package xmlns="http://www.idpf.org/2007/opf"#{' '}
+        <package xmlns="http://www.idpf.org/2007/opf"
                  xmlns:dc="http://purl.org/dc/elements/1.1/"
                  xmlns:opf="http://www.idpf.org/2007/opf">
           <metadata>
@@ -76,7 +76,7 @@ RSpec.describe "Integration Edge Cases" do
       processor = EbookReader::Helpers::OPFProcessor.new('book/content.opf')
       metadata = processor.extract_metadata
 
-      expect(metadata[:title]).to eq("Test")
+      expect(metadata[:title]).to eq('Test')
     end
   end
 end

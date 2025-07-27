@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::MainMenu, "rendering" do
+RSpec.describe EbookReader::MainMenu, 'rendering' do
   let(:menu) { described_class.new }
 
   before do

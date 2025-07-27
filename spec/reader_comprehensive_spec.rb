@@ -2,17 +2,17 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::Reader, "comprehensive" do
+RSpec.describe EbookReader::Reader, 'comprehensive' do
   let(:epub_path) { '/book.epub' }
   let(:config) { EbookReader::Config.new }
   let(:doc) do
     instance_double(EbookReader::EPUBDocument,
-                    title: "Test",
-                    language: "en",
+                    title: 'Test',
+                    language: 'en',
                     chapter_count: 2,
                     chapters: [
-                      { title: "Ch1", lines: ["Line 1", "Line 2"] },
-                      { title: "Ch2", lines: ["Line 3", "Line 4"] }
+                      { title: 'Ch1', lines: ['Line 1', 'Line 2'] },
+                      { title: 'Ch2', lines: ['Line 3', 'Line 4'] },
                     ])
   end
   let(:reader) { described_class.new(epub_path, config) }
@@ -46,7 +46,7 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
       allow(EbookReader::Terminal).to receive(:write)
 
       # Should not write past terminal height
-      reader.send(:draw_lines, ["Line 1"] * 20, 0, 20, 1, 1, 80, 20)
+      reader.send(:draw_lines, ['Line 1'] * 20, 0, 20, 1, 1, 80, 20)
 
       # Verify it respects boundaries
       expect(EbookReader::Terminal).to have_received(:write).at_most(8).times
@@ -70,14 +70,14 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
 
   describe 'error document creation' do
     it 'creates proper error document structure' do
-      error_doc = reader.send(:create_error_document, "Test error")
+      error_doc = reader.send(:create_error_document, 'Test error')
 
       expect(error_doc.title).to eq('Error Loading EPUB')
       expect(error_doc.language).to eq('en_US')
       expect(error_doc.chapter_count).to eq(1)
 
       chapter = error_doc.get_chapter(0)
-      expect(chapter.lines).to include("Test error")
+      expect(chapter.lines).to include('Test error')
       expect(chapter.lines).to include("Press 'q' to return to the menu")
     end
   end
@@ -86,7 +86,7 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
     it 'handles bookmark deletion when selected index becomes invalid' do
       reader.instance_variable_set(:@bookmarks, [
                                      EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 0, text_snippet: 'B1', created_at: Time.now),
-                                     EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 5, text_snippet: 'B2', created_at: Time.now)
+                                     EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 5, text_snippet: 'B2', created_at: Time.now),
                                    ])
       reader.instance_variable_set(:@bookmark_selected, 1)
 

@@ -373,7 +373,7 @@ module EbookReader
         {
           number: '1',
           title: 'Error',
-          lines: build_error_lines(error_msg)
+          lines: build_error_lines(error_msg),
         }
       end
       doc
@@ -390,7 +390,7 @@ module EbookReader
         '- The file might not be a valid EPUB',
         '- The file might be password protected',
         '',
-        "Press 'q' to return to the menu"
+        "Press 'q' to return to the menu",
       ]
     end
 
@@ -517,7 +517,9 @@ module EbookReader
       end_offset = [offset + actual_height, lines.size].min
 
       draw_lines(lines, offset, end_offset, start_row, start_col, width, actual_height)
-      draw_page_number(start_row, start_col, width, height, offset, actual_height, lines) if show_page_num
+      if show_page_num
+        draw_page_number(start_row, start_col, width, height, offset, actual_height, lines)
+      end
     end
 
     def invalid_column_params?(lines, width, height)
@@ -635,7 +637,7 @@ module EbookReader
         '  Q         Quit application',
         '',
         '',
-        'Press any key to return to reading...'
+        'Press any key to return to reading...',
       ]
     end
 
@@ -790,7 +792,7 @@ module EbookReader
 
     def position_at_chapter_end
       chapter = @doc.get_chapter(@current_chapter)
-      return unless chapter && chapter.lines
+      return unless chapter&.lines
 
       height, width = Terminal.size
       col_width, content_height = get_layout_metrics(width, height)

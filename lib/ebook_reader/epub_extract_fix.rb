@@ -21,7 +21,7 @@ module EbookReader
             entry.extract(dest)
           rescue ArgumentError => e
             # If we get an argument error, try without the second argument
-            raise unless e.message.include?("wrong number of arguments")
+            raise unless e.message.include?('wrong number of arguments')
 
             # For older rubyzip versions that don't accept overwrite parameter
             File.open(dest, 'wb') do |f|

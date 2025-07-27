@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::MainMenu, "edge cases" do
+RSpec.describe EbookReader::MainMenu, 'edge cases' do
   let(:menu) { described_class.new }
   let(:scanner) { menu.instance_variable_get(:@scanner) }
 
@@ -17,7 +17,7 @@ RSpec.describe EbookReader::MainMenu, "edge cases" do
     it 'handles search with special regex characters' do
       scanner.epubs = [
         { 'name' => 'Book (1)', 'path' => '/book1.epub' },
-        { 'name' => 'Book [2]', 'path' => '/book2.epub' }
+        { 'name' => 'Book [2]', 'path' => '/book2.epub' },
       ]
 
       menu.instance_variable_set(:@search_query, '(1)')

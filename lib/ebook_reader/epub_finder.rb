@@ -101,7 +101,7 @@ module EbookReader
           '~/Downloads',
           '~/Desktop',
           '~/Documents',
-          '~/Library/Mobile Documents'
+          '~/Library/Mobile Documents',
         ].map { |dir| File.expand_path(dir) }
                         .select { |dir| safe_directory_exists?(dir) }
 
@@ -109,7 +109,7 @@ module EbookReader
           '~',
           '~/Dropbox',
           '~/Google Drive',
-          '~/OneDrive'
+          '~/OneDrive',
         ].map { |dir| File.expand_path(dir) }
                      .select { |dir| safe_directory_exists?(dir) }
 
@@ -183,7 +183,7 @@ module EbookReader
           'name' => File.basename(path, '.epub').gsub(/[_-]/, ' '),
           'size' => File.size(path),
           'modified' => File.mtime(path).iso8601,
-          'dir' => File.dirname(path)
+          'dir' => File.dirname(path),
         }
       end
 
@@ -214,7 +214,7 @@ module EbookReader
         File.write(CACHE_FILE, JSON.pretty_generate({
                                                       'timestamp' => Time.now.iso8601,
                                                       'files' => files || [],
-                                                      'version' => VERSION
+                                                      'version' => VERSION,
                                                     }))
       rescue StandardError => e
         warn "Cache save error: #{e.message}" if DEBUG_MODE

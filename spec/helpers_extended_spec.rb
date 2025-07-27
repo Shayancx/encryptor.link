@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe "Helpers Extended" do
+RSpec.describe 'Helpers Extended' do
   describe EbookReader::Helpers::HTMLProcessor do
     it 'handles various block-level elements' do
       html = '<div>div</div><p>p</p><h1>h1</h1>'
@@ -44,7 +44,7 @@ RSpec.describe "Helpers Extended" do
       File.write(opf_path, opf_content)
       processor = described_class.new(opf_path)
       metadata = processor.extract_metadata
-      expect(metadata[:language]).to eq("fr_FR")
+      expect(metadata[:language]).to eq('fr_FR')
     end
   end
 
@@ -54,7 +54,7 @@ RSpec.describe "Helpers Extended" do
     it 'does not break on line with only whitespace' do
       lines = ["   \t   "]
       wrapped = helper.wrap_lines(lines, 20)
-      expect(wrapped).to eq([""])
+      expect(wrapped).to eq([''])
     end
   end
 end

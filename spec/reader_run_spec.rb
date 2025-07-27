@@ -12,7 +12,7 @@ RSpec.describe EbookReader::Reader, 'run loop' do
                     chapter_count: 2,
                     chapters: [
                       EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(5) { |i| "L#{i}" }, metadata: nil),
-                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(5) { |i| "L#{i}" }, metadata: nil)
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(5) { |i| "L#{i}" }, metadata: nil),
                     ])
   end
 

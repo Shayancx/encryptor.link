@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe "Error Recovery" do
+RSpec.describe 'Error Recovery' do
   describe EbookReader::MainMenu do
     it 'recovers from reader crash' do
       menu = described_class.new
@@ -11,7 +11,7 @@ RSpec.describe "Error Recovery" do
 
       reader = instance_double(EbookReader::Reader)
       allow(EbookReader::Reader).to receive(:new).and_return(reader)
-      allow(reader).to receive(:run).and_raise(StandardError.new("Reader crashed"))
+      allow(reader).to receive(:run).and_raise(StandardError.new('Reader crashed'))
 
       menu.send(:open_book, '/book.epub')
 

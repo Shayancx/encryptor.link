@@ -51,7 +51,7 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
     allow(Dir).to receive(:mktmpdir).and_yield('/tmp/extracted')
 
     # Create a simple zip file for the EPUB (just a marker file)
-    File.write(epub_path, "FAKE_ZIP_FILE")
+    File.write(epub_path, 'FAKE_ZIP_FILE')
 
     # Mock Zip::File if it's loaded
     if defined?(Zip)
@@ -68,7 +68,7 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
                               directory?: false),
               double('entry', name: 'ch1.html',
                               extract: nil,
-                              directory?: false)
+                              directory?: false),
             ].each(&block)
           end
         end
@@ -76,35 +76,35 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
     end
   end
 
-  describe "#initialize" do
-    it "loads epub and extracts title" do
-      expect(document.title).to eq("Test Book")
+  describe '#initialize' do
+    it 'loads epub and extracts title' do
+      expect(document.title).to eq('Test Book')
     end
 
-    it "extracts chapters" do
+    it 'extracts chapters' do
       expect(document.chapter_count).to eq(1)
-      expect(document.chapters.first.title).to eq("Chapter 1")
+      expect(document.chapters.first.title).to eq('Chapter 1')
     end
 
-    it "handles corrupted epub" do
+    it 'handles corrupted epub' do
       # For corrupted EPUB, the error handling creates an error chapter
-      allow(Dir).to receive(:mktmpdir).and_raise(StandardError.new("Invalid zip"))
+      allow(Dir).to receive(:mktmpdir).and_raise(StandardError.new('Invalid zip'))
 
       doc = described_class.new('/bad.epub')
       expect(doc.chapter_count).to eq(1)
-      expect(doc.chapters.first.title).to eq("Error Loading")
+      expect(doc.chapters.first.title).to eq('Error Loading')
     end
   end
 
-  describe "#get_chapter" do
-    it "returns chapter by index" do
+  describe '#get_chapter' do
+    it 'returns chapter by index' do
       chapter = document.get_chapter(0)
       expect(chapter).to be_a(EbookReader::Models::Chapter)
-      expect(chapter.title).to eq("Chapter 1")
-      expect(chapter.lines).to include("This is the content of chapter 1.")
+      expect(chapter.title).to eq('Chapter 1')
+      expect(chapter.lines).to include('This is the content of chapter 1.')
     end
 
-    it "returns nil for invalid index" do
+    it 'returns nil for invalid index' do
       expect(document.get_chapter(-1)).to be_nil
       expect(document.get_chapter(10)).to be_nil
     end

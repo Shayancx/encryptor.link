@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::EPUBDocument, "edge cases", fake_fs: true do
+RSpec.describe EbookReader::EPUBDocument, 'edge cases', fake_fs: true do
   let(:epub_path) { '/edge_case.epub' }
 
   before do

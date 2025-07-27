@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe EbookReader::MainMenu, "actions" do
+RSpec.describe EbookReader::MainMenu, 'actions' do
   let(:menu) { described_class.new }
   let(:scanner) { menu.instance_variable_get(:@scanner) }
   let(:config) { menu.instance_variable_get(:@config) }
@@ -54,7 +54,7 @@ RSpec.describe EbookReader::MainMenu, "actions" do
       menu.instance_variable_set(:@mode, :browse)
       allow(scanner).to receive(:epubs).and_return([
                                                      { 'name' => 'A Book', 'path' => '/book_a.epub' },
-                                                     { 'name' => 'B Book', 'path' => '/book_b.epub' }
+                                                     { 'name' => 'B Book', 'path' => '/book_b.epub' },
                                                    ])
       menu.send(:filter_books)
     end
@@ -108,7 +108,7 @@ RSpec.describe EbookReader::MainMenu, "actions" do
     it 'clears the cache' do
       expect(EbookReader::EPUBFinder).to receive(:clear_cache)
       menu.send(:handle_setting_change, '5')
-      expect(scanner.scan_message).to include("Cache cleared")
+      expect(scanner.scan_message).to include('Cache cleared')
     end
   end
 

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe "Edge Cases Comprehensive" do
+RSpec.describe 'Edge Cases Comprehensive' do
   describe 'Input handling edge cases' do
     it 'handles rapid repeated input' do
       reader = instance_double(EbookReader::Reader)
@@ -27,7 +27,7 @@ RSpec.describe "Edge Cases Comprehensive" do
         Errno::EISDIR,
         Errno::ENOTDIR,
         Errno::EMFILE,
-        Errno::ENFILE
+        Errno::ENFILE,
       ]
 
       errors.each do |error_class|
@@ -49,8 +49,8 @@ RSpec.describe "Edge Cases Comprehensive" do
       doc = instance_double(EbookReader::EPUBDocument,
                             chapters: [large_chapter],
                             chapter_count: 1,
-                            title: "Test",
-                            language: "en")
+                            title: 'Test',
+                            language: 'en')
 
       allow(EbookReader::EPUBDocument).to receive(:new).and_return(doc)
       allow(doc).to receive(:get_chapter).and_return(large_chapter)
@@ -63,13 +63,13 @@ RSpec.describe "Edge Cases Comprehensive" do
   describe 'Unicode handling' do
     it 'handles various Unicode characters' do
       test_strings = [
-        "English text",
-        "中文文本",
-        "日本語テキスト",
-        "한국어 텍스트",
-        "Русский текст",
-        "🎨 Emoji 🎭 text 🎪",
-        "Mixed 中文 and English"
+        'English text',
+        '中文文本',
+        '日本語テキスト',
+        '한국어 텍스트',
+        'Русский текст',
+        '🎨 Emoji 🎭 text 🎪',
+        'Mixed 中文 and English',
       ]
 
       processor = EbookReader::Helpers::HTMLProcessor
@@ -102,7 +102,7 @@ RSpec.describe "Edge Cases Comprehensive" do
         EbookReader::Infrastructure::PerformanceMonitor.time("op_#{i}") { sleep 0.001 }
       end
 
-      stats = EbookReader::Infrastructure::PerformanceMonitor.stats("op_1")
+      stats = EbookReader::Infrastructure::PerformanceMonitor.stats('op_1')
       expect(stats).not_to be_nil
     end
   end
