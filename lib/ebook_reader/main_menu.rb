@@ -6,6 +6,7 @@ require_relative 'ui/recent_item_renderer'
 require_relative 'ui/screens/menu_screen'
 require_relative 'ui/screens/settings_screen'
 require_relative 'ui/screens/recent_screen'
+require_relative 'ui/screens/open_file_screen'
 require_relative 'helpers/epub_scanner'
 require_relative 'concerns/input_handler'
 
@@ -21,6 +22,7 @@ module EbookReader
       @mode = :menu
       @browse_selected = 0
       @search_query = ''
+      @file_input = ''
       @config = Config.new
       @scanner = Helpers::EPUBScanner.new
       @renderer = UI::MainMenuRenderer.new(@config)
@@ -28,6 +30,7 @@ module EbookReader
       @menu_screen = UI::Screens::MenuScreen.new(@renderer, @selected)
       @settings_screen = UI::Screens::SettingsScreen.new(@config, @scanner)
       @recent_screen = UI::Screens::RecentScreen.new(self)
+      @open_file_screen = UI::Screens::OpenFileScreen.new
       @input_handler = Services::MainMenuInputHandler.new(self)
     end
 
@@ -79,6 +82,7 @@ module EbookReader
       when :browse then draw_browse_screen(height, width)
       when :recent then draw_recent_screen(height, width)
       when :settings then draw_settings_screen(height, width)
+      when :open_file then draw_open_file_screen(height, width)
       end
 
       Terminal.end_frame
@@ -186,6 +190,10 @@ module EbookReader
       @settings_screen.draw(height, width)
     end
 
+    def draw_open_file_screen(height, width)
+      @open_file_screen.draw(height, width)
+    end
+
     def handle_input(key)
       @input_handler.handle_input(key)
     end
@@ -260,6 +268,25 @@ module EbookReader
 
     def handle_settings_input(key)
       @input_handler.handle_settings_input(key)
+    end
+
+    def handle_open_file_input(key)
+      case key
+      when nil
+        return
+      when '\e', "\x1B"
+        switch_to_mode(:menu)
+      when "\r", "\n"
+        path = sanitize_input_path(@file_input)
+        handle_file_path(path) if path && !path.empty?
+        switch_to_mode(:menu)
+      when "\b", "\x7F", "\x08"
+        @file_input = @file_input[0...-1] if @file_input.length.positive?
+      else
+        char = key.to_s
+        @file_input += char if char.length == 1 && char.ord >= 32
+      end
+      @open_file_screen.input = @file_input
     end
 
     def handle_setting_change(key)
@@ -348,20 +375,9 @@ module EbookReader
     end
 
     def open_file_dialog
-      Terminal.cleanup
-      print 'Enter EPUB file path: '
-      input = gets
-      path = sanitize_input_path(input)
-
-      handle_file_path(path) if path && !path.empty?
-
-      Terminal.setup
-    rescue Interrupt
-      # User pressed Ctrl-C or similar while entering the file path. Restore the
-      # terminal state and exit the dialog gracefully without raising.
-      Terminal.setup
-    rescue StandardError => e
-      handle_dialog_error(e)
+      @file_input = ''
+      @open_file_screen.input = ''
+      @mode = :open_file
     end
 
     def sanitize_input_path(input)
@@ -382,8 +398,8 @@ module EbookReader
         reader = Reader.new(path, @config)
         reader.run
       else
-        puts 'Error: Invalid file path or not an EPUB file'
-        sleep 2
+        @scanner.scan_message = 'Invalid file path'
+        @scanner.scan_status = :error
       end
     end
 

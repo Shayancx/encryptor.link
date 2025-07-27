@@ -22,28 +22,17 @@ RSpec.describe EbookReader::MainMenu do
   end
 
   describe '#open_file_dialog' do
-    it 'handles user input and delegates to handle_file_path' do
-      allow(menu).to receive(:gets).and_return("/valid.epub\n")
-      expect(menu).to receive(:handle_file_path).with('/valid.epub')
+    it 'switches to open file mode' do
       menu.send(:open_file_dialog)
+      expect(menu.instance_variable_get(:@mode)).to eq(:open_file)
+      expect(menu.instance_variable_get(:@file_input)).to eq('')
     end
 
-    it 'strips surrounding quotes from input paths' do
-      allow(menu).to receive(:gets).and_return("'/path with spaces/book.epub'\n")
-      expect(menu).to receive(:handle_file_path).with('/path with spaces/book.epub')
+    it 'passes sanitized path on enter' do
       menu.send(:open_file_dialog)
-    end
-
-    it 'handles paths containing spaces' do
-      allow(menu).to receive(:gets).and_return("/path with spaces/book.epub\n")
-      expect(menu).to receive(:handle_file_path).with('/path with spaces/book.epub')
-      menu.send(:open_file_dialog)
-    end
-
-    it 'handles errors gracefully' do
-      allow(menu).to receive(:gets).and_raise(StandardError.new('fail'))
-      expect(menu).to receive(:handle_dialog_error)
-      menu.send(:open_file_dialog)
+      '"/path/book.epub"'.each_char { |ch| menu.send(:handle_open_file_input, ch) }
+      expect(menu).to receive(:handle_file_path).with(File.expand_path('/path/book.epub'))
+      menu.send(:handle_open_file_input, "\n")
     end
   end
 

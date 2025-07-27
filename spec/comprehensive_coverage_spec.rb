@@ -235,9 +235,9 @@ RSpec.describe 'Comprehensive Coverage Tests' do
         end
       end
 
-      it 'handles interrupt during file input' do
-        allow(menu).to receive(:gets).and_raise(Interrupt)
-        expect { menu.send(:open_file_dialog) }.not_to raise_error
+      it 'handles cancel during file input' do
+        menu.send(:open_file_dialog)
+        expect { menu.send(:handle_open_file_input, "\e") }.not_to raise_error
       end
     end
 

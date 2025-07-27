@@ -19,6 +19,7 @@ module EbookReader
         when :browse then handle_browse_input(key)
         when :recent then handle_recent_input(key)
         when :settings then handle_settings_input(key)
+        when :open_file then handle_open_file_input(key)
         end
       end
 
@@ -122,6 +123,10 @@ module EbookReader
         query = @menu.instance_variable_get(:@search_query)
         @menu.instance_variable_set(:@search_query, query + key)
         @menu.send(:filter_books)
+      end
+
+      def handle_open_file_input(key)
+        @menu.send(:handle_open_file_input, key)
       end
     end
   end

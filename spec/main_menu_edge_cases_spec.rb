@@ -38,21 +38,17 @@ RSpec.describe EbookReader::MainMenu, 'edge cases' do
   end
 
   describe 'file dialog' do
-    it 'handles nil input from gets' do
-      allow(menu).to receive(:gets).and_return(nil)
-      expect { menu.send(:open_file_dialog) }.not_to raise_error
-    end
-
-    it 'handles empty input after stripping' do
-      allow(menu).to receive(:gets).and_return("   \n")
-      expect { menu.send(:open_file_dialog) }.not_to raise_error
+    it 'allows cancelling with escape key' do
+      menu.send(:open_file_dialog)
+      menu.send(:handle_open_file_input, "\e")
+      expect(menu.instance_variable_get(:@mode)).to eq(:menu)
     end
 
     it 'handles path with nested quotes' do
-      allow(menu).to receive(:gets).and_return(%("'/path/to/book.epub'"\n))
-      expanded = File.expand_path("'/path/to/book.epub'")
-      expect(menu).to receive(:handle_file_path).with(expanded)
       menu.send(:open_file_dialog)
+      %("'/path/to/book.epub'").each_char { |ch| menu.send(:handle_open_file_input, ch) }
+      expect(menu).to receive(:handle_file_path).with(File.expand_path("'/path/to/book.epub'"))
+      menu.send(:handle_open_file_input, "\n")
     end
   end
 

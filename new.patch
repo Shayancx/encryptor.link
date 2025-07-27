@@ -1,0 +1,676 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/lib/ebook_reader/main_menu.rb b/lib/ebook_reader/main_menu.rb
+index 3f37a29c17f97de234b2b88b42ebe1550bae7ba7..cab649cfaf8e121ddc261ab672afff89c52d8009 100644
+--- a/lib/ebook_reader/main_menu.rb
++++ b/lib/ebook_reader/main_menu.rb
+@@ -1,55 +1,58 @@
+ # frozen_string_literal: true
+ 
+ require_relative 'ui/main_menu_renderer'
+ require_relative 'ui/browse_screen'
+ require_relative 'ui/recent_item_renderer'
+ require_relative 'ui/screens/menu_screen'
+ require_relative 'ui/screens/settings_screen'
+ require_relative 'ui/screens/recent_screen'
++require_relative 'ui/screens/open_file_screen'
+ require_relative 'helpers/epub_scanner'
+ require_relative 'concerns/input_handler'
+ 
+ module EbookReader
+   # Main menu (LazyVim style)
+   class MainMenu
+     include Concerns::InputHandler
+ 
+     BROWSE_FOOTER_HINTS = '↑↓ Navigate • Enter Open • / Search • r Refresh • ESC Back'
+ 
+     def initialize
+       @selected = 0
+       @mode = :menu
+       @browse_selected = 0
+       @search_query = ''
++      @file_input = ''
+       @config = Config.new
+       @scanner = Helpers::EPUBScanner.new
+       @renderer = UI::MainMenuRenderer.new(@config)
+       @browse_screen = UI::BrowseScreen.new
+       @menu_screen = UI::Screens::MenuScreen.new(@renderer, @selected)
+       @settings_screen = UI::Screens::SettingsScreen.new(@config, @scanner)
+       @recent_screen = UI::Screens::RecentScreen.new(self)
++      @open_file_screen = UI::Screens::OpenFileScreen.new
+       @input_handler = Services::MainMenuInputHandler.new(self)
+     end
+ 
+     def run
+       Terminal.setup
+       @scanner.load_cached
+       @scanner.start_scan if @scanner.epubs.empty?
+ 
+       main_loop
+     rescue Interrupt
+       cleanup_and_exit(0, "\nGoodbye!")
+     rescue StandardError => e
+       cleanup_and_exit(1, "Error: #{e.message}", e)
+     ensure
+       @scanner.cleanup
+     end
+ 
+     private
+ 
+     def main_loop
+       loop do
+         process_scan_results
+         draw_screen
+         @input_handler.handle_input(Terminal.read_key)
+         sleep 0.02
+@@ -57,50 +60,51 @@ module EbookReader
+     end
+ 
+     def process_scan_results
+       return unless (epubs = @scanner.process_results)
+ 
+       @scanner.epubs = epubs
+       filter_books
+     end
+ 
+     def cleanup_and_exit(code, message, error = nil)
+       Terminal.cleanup
+       puts message
+       puts error.backtrace if error && EPUBFinder::DEBUG_MODE
+       exit code
+     end
+ 
+     def draw_screen
+       Terminal.start_frame
+       height, width = Terminal.size
+ 
+       case @mode
+       when :menu then draw_main_menu(height, width)
+       when :browse then draw_browse_screen(height, width)
+       when :recent then draw_recent_screen(height, width)
+       when :settings then draw_settings_screen(height, width)
++      when :open_file then draw_open_file_screen(height, width)
+       end
+ 
+       Terminal.end_frame
+     end
+ 
+     def draw_main_menu(height, width)
+       @menu_screen.selected = @selected
+       @menu_screen.draw(height, width)
+     end
+ 
+     def draw_browse_screen(height, width)
+       @browse_screen.render_header(width)
+       @browse_screen.render_search_bar(@search_query)
+       @browse_screen.render_status(@scanner.scan_status, @scanner.scan_message)
+ 
+       if @filtered_epubs.empty?
+         @browse_screen.render_empty_state(height, width, @scanner.scan_status,
+                                           @scanner.epubs.empty?)
+       else
+         render_book_list(height, width)
+       end
+ 
+       render_browse_footer(height, width)
+     end
+ 
+@@ -164,50 +168,54 @@ module EbookReader
+                      Terminal::ANSI::DIM + Terminal::ANSI::GRAY + path + Terminal::ANSI::RESET)
+     end
+ 
+     def render_scroll_indicator(list_start, list_height, width)
+       denominator = [@filtered_epubs.length - 1, 1].max
+       scroll_pos = @filtered_epubs.length > 1 ? @browse_selected.to_f / denominator : 0
+       scroll_row = list_start + (scroll_pos * (list_height - 1)).to_i
+       Terminal.write(scroll_row, width - 2, "#{Terminal::ANSI::BRIGHT_CYAN}▐#{Terminal::ANSI::RESET}")
+     end
+ 
+     def render_browse_footer(height, _width)
+       hint = "#{@filtered_epubs.length} books • #{BROWSE_FOOTER_HINTS}"
+       Terminal.write(height - 1, 2,
+                      Terminal::ANSI::DIM + hint + Terminal::ANSI::RESET)
+     end
+ 
+     def draw_recent_screen(height, width)
+       @recent_screen.selected = @browse_selected
+       @recent_screen.draw(height, width)
+     end
+ 
+     def draw_settings_screen(height, width)
+       @settings_screen.draw(height, width)
+     end
+ 
++    def draw_open_file_screen(height, width)
++      @open_file_screen.draw(height, width)
++    end
++
+     def handle_input(key)
+       @input_handler.handle_input(key)
+     end
+ 
+     def handle_menu_input(key)
+       @input_handler.handle_menu_input(key)
+     end
+ 
+     def switch_to_browse
+       @mode = :browse
+       @browse_selected = 0
+       @scanner.start_scan if @scanner.epubs.empty? && @scanner.scan_status == :idle
+     end
+ 
+     def switch_to_mode(mode)
+       @mode = mode
+       @browse_selected = 0
+     end
+ 
+     def handle_menu_selection
+       case @selected
+       when 0 then switch_to_browse
+       when 1 then switch_to_mode(:recent)
+       when 2 then open_file_dialog
+       when 3 then switch_to_mode(:settings)
+@@ -240,50 +248,69 @@ module EbookReader
+         @scanner.scan_message = 'File not found'
+         @scanner.scan_status = :error
+       end
+     end
+ 
+     def handle_backspace
+       @input_handler.send(:handle_backspace)
+     end
+ 
+     def searchable_key?(key)
+       @input_handler.searchable_key?(key)
+     end
+ 
+     def add_to_search(key)
+       @input_handler.send(:add_to_search, key)
+     end
+ 
+     def handle_recent_input(key)
+       @input_handler.handle_recent_input(key)
+     end
+ 
+     def handle_settings_input(key)
+       @input_handler.handle_settings_input(key)
+     end
+ 
++    def handle_open_file_input(key)
++      case key
++      when nil
++        return
++      when '\e', "\x1B"
++        switch_to_mode(:menu)
++      when "\r", "\n"
++        path = sanitize_input_path(@file_input)
++        handle_file_path(path) if path && !path.empty?
++        switch_to_mode(:menu)
++      when "\b", "\x7F", "\x08"
++        @file_input = @file_input[0...-1] if @file_input.length.positive?
++      else
++        char = key.to_s
++        @file_input += char if char.length == 1 && char.ord >= 32
++      end
++      @open_file_screen.input = @file_input
++    end
++
+     def handle_setting_change(key)
+       @input_handler.handle_setting_change(key)
+     end
+ 
+     def toggle_view_mode
+       @config.view_mode = @config.view_mode == :split ? :single : :split
+       @config.save
+     end
+ 
+     def toggle_page_numbers
+       @config.show_page_numbers = !@config.show_page_numbers
+       @config.save
+     end
+ 
+     def cycle_line_spacing
+       modes = %i[compact normal relaxed]
+       current = modes.index(@config.line_spacing) || 1
+       @config.line_spacing = modes[(current + 1) % 3]
+       @config.save
+     end
+ 
+     def toggle_highlight_quotes
+       @config.highlight_quotes = !@config.highlight_quotes
+       @config.save
+     end
+@@ -326,86 +353,75 @@ module EbookReader
+     rescue StandardError => e
+       handle_reader_error(path, e)
+     ensure
+       Terminal.setup
+     end
+ 
+     def run_reader(path)
+       Terminal.cleanup
+       RecentFiles.add(path)
+       Reader.new(path, @config).run
+     end
+ 
+     def file_not_found
+       @scanner.scan_message = 'File not found'
+       @scanner.scan_status = :error
+     end
+ 
+     def handle_reader_error(path, error)
+       Infrastructure::Logger.error('Failed to open book', error: error.message, path: path)
+       @scanner.scan_message = "Failed: #{error.class}: #{error.message[0, 60]}"
+       @scanner.scan_status = :error
+       puts error.backtrace.join("\n") if EPUBFinder::DEBUG_MODE
+     end
+ 
+     def open_file_dialog
+-      Terminal.cleanup
+-      print 'Enter EPUB file path: '
+-      input = gets
+-      path = sanitize_input_path(input)
+-
+-      handle_file_path(path) if path && !path.empty?
+-
+-      Terminal.setup
+-    rescue Interrupt
+-      # User pressed Ctrl-C or similar while entering the file path. Restore the
+-      # terminal state and exit the dialog gracefully without raising.
+-      Terminal.setup
+-    rescue StandardError => e
+-      handle_dialog_error(e)
++      @file_input = ''
++      @open_file_screen.input = ''
++      @mode = :open_file
+     end
+ 
+     def sanitize_input_path(input)
+       return '' unless input
+ 
+       path = input.chomp.strip
+       if (path.start_with?("'") && path.end_with?("'")) ||
+          (path.start_with?('"') && path.end_with?('"'))
+         path = path[1..-2]
+       end
+       path = path.delete('"')
+       File.expand_path(path)
+     end
+ 
+     def handle_file_path(path)
+       if File.exist?(path) && path.downcase.end_with?('.epub')
+         RecentFiles.add(path)
+         reader = Reader.new(path, @config)
+         reader.run
+       else
+-        puts 'Error: Invalid file path or not an EPUB file'
+-        sleep 2
++        @scanner.scan_message = 'Invalid file path'
++        @scanner.scan_status = :error
+       end
+     end
+ 
+     def load_recent_books
+       books = @recent_screen.send(:load_recent_books)
+       @browse_selected = @recent_screen.selected
+       books
+     end
+ 
+     def handle_dialog_error(error)
+       puts "Error: #{error.message}"
+       sleep 2
+       Terminal.setup
+     end
+ 
+     def time_ago_in_words(time)
+       return 'unknown' unless time
+ 
+       seconds = Time.now - time
+       format_time_ago(seconds, time)
+     rescue StandardError
+       'unknown'
+     end
+ 
+     def format_time_ago(seconds, time)
+diff --git a/lib/ebook_reader/services/main_menu_input_handler.rb b/lib/ebook_reader/services/main_menu_input_handler.rb
+index f1c70012fd9ea25ced0f28a9cbeec673a387b323..5aba746325b97850efc5af379f8bfacab73235a3 100644
+--- a/lib/ebook_reader/services/main_menu_input_handler.rb
++++ b/lib/ebook_reader/services/main_menu_input_handler.rb
+@@ -1,46 +1,47 @@
+ # frozen_string_literal: true
+ 
+ module EbookReader
+   module Services
+     # Handles all key input for MainMenu so the menu class focuses
+     # on rendering and high level actions.
+     class MainMenuInputHandler
+       include Concerns::InputHandler
+ 
+       def initialize(menu)
+         @menu = menu
+       end
+ 
+       def handle_input(key)
+         return unless key
+ 
+         case @menu.instance_variable_get(:@mode)
+         when :menu then handle_menu_input(key)
+         when :browse then handle_browse_input(key)
+         when :recent then handle_recent_input(key)
+         when :settings then handle_settings_input(key)
++        when :open_file then handle_open_file_input(key)
+         end
+       end
+ 
+       def handle_menu_input(key)
+         case key
+         when 'q', 'Q' then @menu.send(:cleanup_and_exit, 0, '')
+         when 'f', 'F' then @menu.send(:switch_to_browse)
+         when 'r', 'R' then @menu.send(:switch_to_mode, :recent)
+         when 'o', 'O' then @menu.send(:open_file_dialog)
+         when 's', 'S' then @menu.send(:switch_to_mode, :settings)
+         when 'j', "\e[B", "\eOB"
+           selected = (@menu.instance_variable_get(:@selected) + 1) % 5
+           @menu.instance_variable_set(:@selected, selected)
+         when 'k', "\e[A", "\eOA"
+           selected = (@menu.instance_variable_get(:@selected) - 1 + 5) % 5
+           @menu.instance_variable_set(:@selected, selected)
+         when "\r", "\n" then @menu.send(:handle_menu_selection)
+         end
+       end
+ 
+       def handle_browse_input(key)
+         if escape_key?(key)
+           @menu.send(:switch_to_mode, :menu)
+         elsif %w[r R].include?(key)
+           @menu.send(:refresh_scan)
+@@ -101,28 +102,32 @@ module EbookReader
+ 
+       def searchable_key?(key)
+         return false unless key
+ 
+         begin
+           key = key.to_s.force_encoding('UTF-8')
+           key.valid_encoding? && key =~ /[a-zA-Z0-9 .-]/
+         rescue StandardError
+           false
+         end
+       end
+ 
+       def handle_backspace
+         query = @menu.instance_variable_get(:@search_query)
+         return unless query.length.positive?
+ 
+         @menu.instance_variable_set(:@search_query, query[0...-1])
+         @menu.send(:filter_books)
+       end
+ 
+       def add_to_search(key)
+         query = @menu.instance_variable_get(:@search_query)
+         @menu.instance_variable_set(:@search_query, query + key)
+         @menu.send(:filter_books)
+       end
++
++      def handle_open_file_input(key)
++        @menu.send(:handle_open_file_input, key)
++      end
+     end
+   end
+ end
+diff --git a/lib/ebook_reader/ui/screens/open_file_screen.rb b/lib/ebook_reader/ui/screens/open_file_screen.rb
+new file mode 100644
+index 0000000000000000000000000000000000000000..db880b3abbd0cfb92ac130eb9a157029fce406b6
+--- /dev/null
++++ b/lib/ebook_reader/ui/screens/open_file_screen.rb
+@@ -0,0 +1,28 @@
++module EbookReader
++  module UI
++    module Screens
++      # Screen for entering a file path to open an EPUB.
++      class OpenFileScreen
++        attr_accessor :input
++
++        def initialize
++          @input = ''
++        end
++
++        def draw(height, width)
++          Terminal.write(1, 2, "#{Terminal::ANSI::BRIGHT_CYAN}󰷏 Open File#{Terminal::ANSI::RESET}")
++          Terminal.write(1, [width - 20, 60].max, "#{Terminal::ANSI::DIM}[ESC] Cancel#{Terminal::ANSI::RESET}")
++
++          prompt = 'Enter EPUB path: '
++          col = [(width - prompt.length - 40) / 2, 2].max
++          row = height / 2
++          Terminal.write(row, col, Terminal::ANSI::WHITE + prompt + Terminal::ANSI::RESET)
++          Terminal.write(row, col + prompt.length, Terminal::ANSI::BRIGHT_WHITE + @input + '_' + Terminal::ANSI::RESET)
++
++          footer = 'Enter to open • Backspace delete • ESC cancel'
++          Terminal.write(height - 1, 2, Terminal::ANSI::DIM + footer + Terminal::ANSI::RESET)
++        end
++      end
++    end
++  end
++end
+diff --git a/spec/comprehensive_coverage_spec.rb b/spec/comprehensive_coverage_spec.rb
+index a6891969135f6d5cb8bd4be3fa1d54bc50f80e97..79c78bd2ee75d9ed0536c01b97e6a0300afeef46 100644
+--- a/spec/comprehensive_coverage_spec.rb
++++ b/spec/comprehensive_coverage_spec.rb
+@@ -213,53 +213,53 @@ RSpec.describe 'Comprehensive Coverage Tests' do
+       it 'handles empty search results gracefully' do
+         scanner.epubs = [{ 'name' => 'Book', 'path' => '/book.epub' }]
+         menu.instance_variable_set(:@search_query, 'xyz')
+ 
+         menu.send(:filter_books)
+         expect(menu.instance_variable_get(:@filtered_epubs)).to be_empty
+       end
+     end
+ 
+     describe 'file dialog edge cases' do
+       it 'handles various path formats' do
+         paths = [
+           '"/path with spaces/book.epub"',
+           "'/another path/book.epub'",
+           '/normal/path/book.epub',
+           '"nested ""quotes"" path.epub"',
+         ]
+ 
+         paths.each do |path|
+           sanitized = menu.send(:sanitize_input_path, "#{path}\n")
+           expect(sanitized).not_to include('"')
+           expect(sanitized).not_to end_with("\n")
+         end
+       end
+ 
+-      it 'handles interrupt during file input' do
+-        allow(menu).to receive(:gets).and_raise(Interrupt)
+-        expect { menu.send(:open_file_dialog) }.not_to raise_error
++      it 'handles cancel during file input' do
++        menu.send(:open_file_dialog)
++        expect { menu.send(:handle_open_file_input, "\e") }.not_to raise_error
+       end
+     end
+ 
+     describe 'settings management' do
+       it 'cycles through all line spacing options' do
+         config = menu.instance_variable_get(:@config)
+ 
+         # Test full cycle
+         original = config.line_spacing
+         3.times { menu.send(:cycle_line_spacing) }
+         expect(config.line_spacing).to eq(original)
+       end
+ 
+       it 'handles all settings changes' do
+         expect { menu.send(:handle_setting_change, '1') }.to(change do
+           menu.instance_variable_get(:@config).view_mode
+         end)
+ 
+         expect { menu.send(:handle_setting_change, '2') }.to(change do
+           menu.instance_variable_get(:@config).show_page_numbers
+         end)
+       end
+     end
+ 
+     describe 'rendering edge cases' do
+diff --git a/spec/main_menu_additional_spec.rb b/spec/main_menu_additional_spec.rb
+index 853876614a8d2a21419b7a012d5a8db99462f22d..d0b71b9c5720ec9c10336b86beae942ab407cb1a 100644
+--- a/spec/main_menu_additional_spec.rb
++++ b/spec/main_menu_additional_spec.rb
+@@ -1,71 +1,60 @@
+ # frozen_string_literal: true
+ 
+ require 'spec_helper'
+ 
+ RSpec.describe EbookReader::MainMenu do
+   let(:menu) { described_class.new }
+ 
+   before do
+     allow(EbookReader::Terminal).to receive(:cleanup)
+     allow(EbookReader::Terminal).to receive(:setup)
+   end
+ 
+   describe '#time_ago_in_words' do
+     it 'formats recent times across ranges' do
+       expect(menu.send(:time_ago_in_words, Time.now - 30)).to eq('just now')
+       expect(menu.send(:time_ago_in_words, Time.now - 120)).to eq('2m ago')
+       expect(menu.send(:time_ago_in_words, Time.now - 7200)).to eq('2h ago')
+       expect(menu.send(:time_ago_in_words, Time.now - 172_800)).to eq('2d ago')
+       date_text = (Time.now - 3_000_000).strftime('%b %d')
+       expect(menu.send(:time_ago_in_words, Time.now - 3_000_000)).to eq(date_text)
+     end
+   end
+ 
+   describe '#open_file_dialog' do
+-    it 'handles user input and delegates to handle_file_path' do
+-      allow(menu).to receive(:gets).and_return("/valid.epub\n")
+-      expect(menu).to receive(:handle_file_path).with('/valid.epub')
++    it 'switches to open file mode' do
+       menu.send(:open_file_dialog)
++      expect(menu.instance_variable_get(:@mode)).to eq(:open_file)
++      expect(menu.instance_variable_get(:@file_input)).to eq('')
+     end
+ 
+-    it 'strips surrounding quotes from input paths' do
+-      allow(menu).to receive(:gets).and_return("'/path with spaces/book.epub'\n")
+-      expect(menu).to receive(:handle_file_path).with('/path with spaces/book.epub')
+-      menu.send(:open_file_dialog)
+-    end
+-
+-    it 'handles paths containing spaces' do
+-      allow(menu).to receive(:gets).and_return("/path with spaces/book.epub\n")
+-      expect(menu).to receive(:handle_file_path).with('/path with spaces/book.epub')
+-      menu.send(:open_file_dialog)
+-    end
+-
+-    it 'handles errors gracefully' do
+-      allow(menu).to receive(:gets).and_raise(StandardError.new('fail'))
+-      expect(menu).to receive(:handle_dialog_error)
++    it 'passes sanitized path on enter' do
+       menu.send(:open_file_dialog)
++      '"/path/book.epub"'.each_char { |ch| menu.send(:handle_open_file_input, ch) }
++      expect(menu).to receive(:handle_file_path).with(File.expand_path('/path/book.epub'))
++      menu.send(:handle_open_file_input, "\n")
+     end
+   end
+ 
+   describe '#filter_by_query and #open_selected_book' do
+     it 'filters epubs by search query' do
+       menu.instance_variable_set(:@scanner, double(epubs: [
+                                                      { 'name' => 'Alpha', 'path' => '/a.epub' },
+                                                      { 'name' => 'Beta', 'path' => '/b.epub' },
+                                                    ]))
+       menu.instance_variable_set(:@search_query, 'beta')
+       result = menu.send(:filter_by_query)
+       expect(result.map { |b| b['name'] }).to eq(['Beta'])
+     end
+ 
+     it 'opens selected book when file exists' do
+       menu.instance_variable_set(:@filtered_epubs, [{ 'path' => '/good.epub' }])
+       menu.instance_variable_set(:@browse_selected, 0)
+       allow(File).to receive(:exist?).with('/good.epub').and_return(true)
+       expect(menu).to receive(:open_book).with('/good.epub')
+       menu.send(:open_selected_book)
+     end
+ 
+     it 'sets error when selected file missing' do
+       scanner = menu.instance_variable_get(:@scanner)
+       menu.instance_variable_set(:@filtered_epubs, [{ 'path' => '/missing.epub' }])
+diff --git a/spec/main_menu_edge_cases_spec.rb b/spec/main_menu_edge_cases_spec.rb
+index a593a7d2aad692db369c4688c8e83888e76c37f8..6fd5ba1ea86832d7bf7969deb66ae1dca264d672 100644
+--- a/spec/main_menu_edge_cases_spec.rb
++++ b/spec/main_menu_edge_cases_spec.rb
+@@ -16,65 +16,61 @@ RSpec.describe EbookReader::MainMenu, 'edge cases' do
+   describe 'search functionality' do
+     it 'handles search with special regex characters' do
+       scanner.epubs = [
+         { 'name' => 'Book (1)', 'path' => '/book1.epub' },
+         { 'name' => 'Book [2]', 'path' => '/book2.epub' },
+       ]
+ 
+       menu.instance_variable_set(:@search_query, '(1)')
+       menu.send(:filter_books)
+       filtered = menu.instance_variable_get(:@filtered_epubs)
+ 
+       expect(filtered.size).to eq(1)
+     end
+ 
+     it 'handles empty search query after adding characters' do
+       menu.instance_variable_set(:@mode, :browse)
+       menu.instance_variable_set(:@search_query, 'test')
+ 
+       4.times { menu.send(:handle_backspace) }
+ 
+       expect(menu.instance_variable_get(:@search_query)).to eq('')
+     end
+   end
+ 
+   describe 'file dialog' do
+-    it 'handles nil input from gets' do
+-      allow(menu).to receive(:gets).and_return(nil)
+-      expect { menu.send(:open_file_dialog) }.not_to raise_error
+-    end
+-
+-    it 'handles empty input after stripping' do
+-      allow(menu).to receive(:gets).and_return("   \n")
+-      expect { menu.send(:open_file_dialog) }.not_to raise_error
++    it 'allows cancelling with escape key' do
++      menu.send(:open_file_dialog)
++      menu.send(:handle_open_file_input, "\e")
++      expect(menu.instance_variable_get(:@mode)).to eq(:menu)
+     end
+ 
+     it 'handles path with nested quotes' do
+-      allow(menu).to receive(:gets).and_return(%("'/path/to/book.epub'"\n))
+-      expanded = File.expand_path("'/path/to/book.epub'")
+-      expect(menu).to receive(:handle_file_path).with(expanded)
+       menu.send(:open_file_dialog)
++      %("'/path/to/book.epub'").each_char { |ch| menu.send(:handle_open_file_input, ch) }
++      expect(menu).to receive(:handle_file_path).with(File.expand_path("'/path/to/book.epub'"))
++      menu.send(:handle_open_file_input, "\n")
+     end
+   end
+ 
+   describe 'time formatting' do
+     it 'handles nil time' do
+       expect(menu.send(:time_ago_in_words, nil)).to eq('unknown')
+     end
+ 
+     it 'handles future time' do
+       future_time = Time.now + 3600
+       result = menu.send(:time_ago_in_words, future_time)
+       # Future times show as date format, not "just now"
+       expect(result).to match(/\w{3} \d{1,2}/)
+     end
+ 
+     it 'handles time parse errors' do
+       invalid_time = Object.new
+       expect(menu.send(:time_ago_in_words, invalid_time)).to eq('unknown')
+     end
+ 
+     it 'handles very recent time' do
+       recent_time = Time.now - 30
+       result = menu.send(:time_ago_in_words, recent_time)
+       expect(result).to eq('just now')
+     end
+ 
+EOF
+)
