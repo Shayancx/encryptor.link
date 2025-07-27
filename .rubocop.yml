@@ -3,7 +3,7 @@ plugins:
   - rubocop-rails
 
 AllCops:
-  TargetRubyVersion: 3.5
+  TargetRubyVersion: 3.3
   NewCops: enable
   Exclude:
     - 'bin/**/*'

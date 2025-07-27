@@ -175,7 +175,7 @@ For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Prerequisites
 
-- Ruby 3.0 or higher
+- Ruby 3.3 or higher
 - Bundler
 
 ### Setup Development Environment

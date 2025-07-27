@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
     'EPUB files in your terminal with Vim-style navigation.'
   spec.homepage = 'https://github.com/yourusername/reader'
   spec.license = 'MIT'
-  spec.required_ruby_version = '>= 3.3'
+  spec.required_ruby_version = '>= 3.3.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = spec.homepage

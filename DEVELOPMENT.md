@@ -17,7 +17,7 @@ This guide covers the development setup, architecture, and best practices for co
 
 ### Prerequisites
 
-- Ruby 3.0 or higher
+- Ruby 3.3 or higher
 - Bundler 2.0 or higher
 - Git
 
