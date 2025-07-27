@@ -42,7 +42,8 @@ RSpec.describe EbookReader::MainMenu, 'rendering' do
   context 'when drawing empty states' do
     it 'renders empty recent screen correctly' do
       allow(EbookReader::RecentFiles).to receive(:load).and_return([])
-      expect(menu).to receive(:render_empty_recent)
+      recent_screen = menu.instance_variable_get(:@recent_screen)
+      expect(recent_screen).to receive(:draw).with(24, 80)
       menu.send(:draw_recent_screen, 24, 80)
     end
 
