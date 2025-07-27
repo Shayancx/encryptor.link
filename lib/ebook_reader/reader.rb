@@ -6,6 +6,7 @@ require_relative 'reader_modes/toc_mode'
 require_relative 'reader_modes/bookmarks_mode'
 require_relative 'constants/ui_constants'
 require_relative 'errors'
+require_relative 'constants/messages'
 require_relative 'helpers/reader_helpers'
 require_relative 'ui/reader_renderer'
 require_relative 'concerns/input_handler'
@@ -167,7 +168,7 @@ module EbookReader
       text_snippet = extract_bookmark_text(chapter, line_offset)
       BookmarkManager.add(@path, @current_chapter, line_offset, text_snippet)
       load_bookmarks
-      set_message('Bookmark added!')
+      set_message(Constants::Messages::BOOKMARK_ADDED)
     end
 
     def toggle_view_mode
@@ -840,7 +841,7 @@ module EbookReader
       BookmarkManager.delete(@path, bookmark)
       load_bookmarks
       @bookmark_selected = [@bookmark_selected, @bookmarks.length - 1].min if @bookmarks.any?
-      set_message('Bookmark deleted!')
+      set_message(Constants::Messages::BOOKMARK_DELETED)
     end
 
     def reset_pages

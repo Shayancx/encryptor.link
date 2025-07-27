@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'io/console'
+require_relative 'constants/terminal_constants'
 
 module EbookReader
   # A utility class for terminal manipulation.
@@ -76,9 +77,14 @@ module EbookReader
       #   height, width = Terminal.size
       #   puts "Terminal is #{width}x#{height}"
       def size
-        IO.console.winsize || [24, 80]
+        IO.console.winsize || default_dimensions
       rescue StandardError
-        [24, 80]
+        default_dimensions
+      end
+
+      def default_dimensions
+        [Constants::TerminalConstants::DEFAULT_ROWS,
+         Constants::TerminalConstants::DEFAULT_COLUMNS]
       end
 
       def clear

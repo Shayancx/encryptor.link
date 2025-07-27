@@ -34,6 +34,11 @@ module EbookReader
 
     private
 
+    # Parse the EPUB file and populate chapters.
+    #
+    # Extraction is done in a temporary directory to avoid polluting the
+    # filesystem. Any parsing errors are converted into a single chapter
+    # describing the problem so the reader can gracefully display it.
     def parse_epub
       Infrastructure::Logger.info("Parsing EPUB", path: @path)
       Infrastructure::PerformanceMonitor.time("epub_parsing") do
@@ -42,7 +47,7 @@ module EbookReader
           load_epub_content(tmpdir)
         end
         ensure_chapters_exist
-      rescue StandardError => e
+      rescue Zip::Error, REXML::ParseException, Errno::ENOENT, StandardError => e
         create_error_chapter(e)
       end
     end
@@ -136,6 +141,9 @@ module EbookReader
       }
     end
 
+    # Load a single chapter HTML file and convert it to plain text lines.
+    # If an error occurs while reading or parsing the file we simply skip the
+    # chapter so the rest of the book can still be viewed.
     def load_chapter(path, number, title_from_ncx = nil)
       content = read_file_content(path)
 
@@ -148,7 +156,7 @@ module EbookReader
         title: title,
         lines: lines
       }
-    rescue StandardError
+    rescue Errno::ENOENT, REXML::ParseException
       nil
     end
 
