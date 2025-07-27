@@ -8,8 +8,7 @@ RSpec.describe 'Edge Cases Comprehensive' do
       reader = instance_double(EbookReader::Reader)
       allow(reader).to receive(:scroll_down)
 
-      command = EbookReader::Commands::ScrollDownCommand.new(reader)
-      100.times { command.execute }
+      100.times { reader.scroll_down }
     end
 
     it 'handles invalid UTF-8 in input' do

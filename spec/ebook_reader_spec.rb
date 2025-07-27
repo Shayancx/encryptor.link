@@ -31,7 +31,6 @@ RSpec.describe EbookReader do
     expect(defined?(EbookReader::Helpers)).to be_truthy
     expect(defined?(EbookReader::Helpers::EPUBScanner)).to be_truthy
     expect(defined?(EbookReader::Helpers::HTMLProcessor)).to be_truthy
-    expect(defined?(EbookReader::Helpers::LineWrapper)).to be_truthy
     expect(defined?(EbookReader::Helpers::OPFProcessor)).to be_truthy
     expect(defined?(EbookReader::Helpers::ReaderHelpers)).to be_truthy
   end

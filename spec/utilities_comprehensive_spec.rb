@@ -3,20 +3,6 @@
 require 'spec_helper'
 
 RSpec.describe 'Utilities comprehensive' do
-  describe EbookReader::Helpers::LineWrapper do
-    it 'handles recursion edge case with max_length of 1' do
-      text = 'ABC'
-      parts = described_class.split_long_text(text, 1)
-      expect(parts.join).to eq(text)
-    end
-
-    it 'finds optimal split point' do
-      text = 'This is a test sentence'
-      # Should prefer space near end
-      split_point = described_class.send(:find_split_point, text, 15)
-      expect(text[split_point]).to eq(' ').or(eq(text[15]))
-    end
-  end
 
   describe EbookReader::Helpers::EPUBScanner do
     let(:scanner) { described_class.new }

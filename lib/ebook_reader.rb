@@ -102,5 +102,3 @@ module EbookReader
   end
 end
 
-# Debug patch for troubleshooting
-require_relative 'ebook_reader/debug_patch'

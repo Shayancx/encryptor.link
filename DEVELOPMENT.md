@@ -102,10 +102,8 @@ The application follows a layered architecture with clear separation of concerns
 
 ### Design Patterns
 
-- **Command Pattern**: Input handling (`Commands::*`)
 - **Strategy Pattern**: Reader modes (`ReaderModes::*`)
 - **Observer Pattern**: Configuration changes
-- **Template Method**: Base renderers
 - **Service Objects**: Complex operations
 
 ## Coding Standards

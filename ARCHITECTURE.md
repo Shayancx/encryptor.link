@@ -83,8 +83,8 @@ Reader follows a modular, object-oriented architecture designed for maintainabil
 ## Extension Points
 
 - **New Reader Modes**: Implement `ReaderModes::BaseMode`
-- **New Commands**: Extend `Commands::BaseCommand`
-- **New Renderers**: Extend `Renderers::BaseRenderer`
+- **New Commands**: Implement command methods directly on Reader
+- **New Renderers**: Use UI components or create new ones under `UI`
 - **New File Formats**: Implement document parser interface
 
 ## Performance Considerations
