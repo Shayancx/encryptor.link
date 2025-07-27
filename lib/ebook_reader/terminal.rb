@@ -137,14 +137,17 @@ module EbookReader
         raise EbookReader::TerminalUnavailableError unless console
 
         console.raw do
-          input = $stdin.read_nonblock(1).dup
+          input = $stdin.read_nonblock(1)
           return input unless input == "\e"
 
-          begin
-            input << $stdin.read_nonblock(3)
-          rescue IO::WaitReadable
-            # Not a full escape sequence, just the escape key.
+          loop do
+            begin
+              input << $stdin.read_nonblock(1)
+            rescue IO::WaitReadable
+              break
+            end
           end
+
           input
         end
       rescue IO::WaitReadable
