@@ -65,6 +65,7 @@ module EbookReader
     end
 
     @buffer = []
+    @console = nil
 
     class << self
       # Get current terminal dimensions.
@@ -111,6 +112,8 @@ module EbookReader
 
       def setup
         $stdout.sync = true
+        @console = IO.console
+        @console.raw! if @console && @console.respond_to?(:raw!)
         print [
           ANSI::Control::SAVE_SCREEN,
           ANSI::Control::HIDE_CURSOR,
@@ -130,6 +133,10 @@ module EbookReader
           ANSI::RESET
         ].join
         $stdout.flush
+        if @console && @console.respond_to?(:cooked!)
+          @console.cooked!
+        end
+        @console = nil
       end
 
       def read_key
