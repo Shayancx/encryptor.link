@@ -27,6 +27,8 @@ require_relative 'ebook_reader/constants'
 require_relative 'ebook_reader/constants/ui_constants'
 require_relative 'ebook_reader/models/chapter'
 require_relative 'ebook_reader/models/bookmark'
+require_relative 'ebook_reader/models/bookmark_data'
+require_relative 'ebook_reader/models/column_drawing_params'
 
 # Core components
 require_relative 'ebook_reader/version'
@@ -101,4 +103,3 @@ module EbookReader
     Infrastructure::PerformanceMonitor.clear
   end
 end
-

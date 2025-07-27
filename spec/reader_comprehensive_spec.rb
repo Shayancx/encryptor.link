@@ -28,9 +28,29 @@ RSpec.describe EbookReader::Reader, 'comprehensive' do
 
   describe 'display edge cases' do
     it 'handles invalid column parameters gracefully' do
-      expect { reader.send(:draw_column, 1, 1, 0, 1, [], 0, false) }.not_to raise_error
-      expect { reader.send(:draw_column, 1, 1, 10, 0, [], 0, false) }.not_to raise_error
-      expect { reader.send(:draw_column, 1, 1, 10, 10, nil, 0, false) }.not_to raise_error
+      params = EbookReader::Models::ColumnDrawingParams.new(
+        position: EbookReader::Models::ColumnDrawingParams::Position.new(row: 1, col: 1),
+        dimensions: EbookReader::Models::ColumnDrawingParams::Dimensions.new(width: 0, height: 1),
+        content: EbookReader::Models::ColumnDrawingParams::Content.new(lines: [], offset: 0,
+                                                                       show_page_num: false)
+      )
+      expect { reader.send(:draw_column, params) }.not_to raise_error
+
+      params = EbookReader::Models::ColumnDrawingParams.new(
+        position: EbookReader::Models::ColumnDrawingParams::Position.new(row: 1, col: 1),
+        dimensions: EbookReader::Models::ColumnDrawingParams::Dimensions.new(width: 10, height: 0),
+        content: EbookReader::Models::ColumnDrawingParams::Content.new(lines: [], offset: 0,
+                                                                       show_page_num: false)
+      )
+      expect { reader.send(:draw_column, params) }.not_to raise_error
+
+      params = EbookReader::Models::ColumnDrawingParams.new(
+        position: EbookReader::Models::ColumnDrawingParams::Position.new(row: 1, col: 1),
+        dimensions: EbookReader::Models::ColumnDrawingParams::Dimensions.new(width: 10, height: 10),
+        content: EbookReader::Models::ColumnDrawingParams::Content.new(lines: nil, offset: 0,
+                                                                       show_page_num: false)
+      )
+      expect { reader.send(:draw_column, params) }.not_to raise_error
     end
 
     it 'calculates row correctly for different line spacings' do

@@ -25,7 +25,9 @@ RSpec.describe 'Error Recovery' do
     it 'handles file lock errors' do
       allow(File).to receive(:write).and_raise(Errno::EWOULDBLOCK)
 
-      expect { described_class.add('/book.epub', 0, 0, 'test') }.not_to raise_error
+      data = EbookReader::Models::BookmarkData.new(path: '/book.epub', chapter: 0, line_offset: 0,
+                                                   text: 'test')
+      expect { described_class.add(data) }.not_to raise_error
     end
   end
 

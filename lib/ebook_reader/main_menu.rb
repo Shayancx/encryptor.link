@@ -2,6 +2,7 @@
 
 require_relative 'ui/main_menu_renderer'
 require_relative 'ui/browse_screen'
+require_relative 'ui/recent_item_renderer'
 require_relative 'helpers/epub_scanner'
 require_relative 'concerns/input_handler'
 
@@ -220,17 +221,19 @@ module EbookReader
       max_items = [(height - 6) / 2, 10].min
 
       recent.take(max_items).each_with_index do |book, i|
-        render_recent_item(book, i, list_start, height, width)
+        renderer = UI::RecentItemRenderer.new(book: book, index: i, menu: self)
+        context = UI::RecentItemRenderer::Context.new(
+          list_start: list_start,
+          height: height,
+          width: width,
+          selected_index: @browse_selected
+        )
+        renderer.render(context)
       end
     end
 
-    def render_recent_item(book, index, list_start, height, width)
-      row_base = list_start + (index * 2)
-      return if row_base >= height - 2
-
-      render_recent_title(book, index, row_base)
-      render_recent_time(book, row_base, width)
-      render_recent_path(book, row_base + 1, width) if row_base + 1 < height - 2
+    def render_recent_item(*_args)
+      # Deprecated: handled by RecentItemRenderer
     end
 
     def render_recent_title(book, index, row)

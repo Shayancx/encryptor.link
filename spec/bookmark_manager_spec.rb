@@ -13,7 +13,9 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
 
   describe '.add' do
     it 'adds a bookmark for a book' do
-      described_class.add(book_path, 0, 10, 'Sample text')
+      data = EbookReader::Models::BookmarkData.new(path: book_path, chapter: 0, line_offset: 10,
+                                                   text: 'Sample text')
+      described_class.add(data)
       bookmarks = described_class.get(book_path)
       expect(bookmarks.size).to eq(1)
       bm = bookmarks.first
@@ -23,9 +25,12 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
     end
 
     it 'sorts bookmarks by chapter and line offset' do
-      described_class.add(book_path, 1, 20, 'Text 2')
-      described_class.add(book_path, 1, 10, 'Text 1')
-      described_class.add(book_path, 0, 30, 'Text 0')
+      described_class.add(EbookReader::Models::BookmarkData.new(path: book_path, chapter: 1,
+                                                                line_offset: 20, text: 'Text 2'))
+      described_class.add(EbookReader::Models::BookmarkData.new(path: book_path, chapter: 1,
+                                                                line_offset: 10, text: 'Text 1'))
+      described_class.add(EbookReader::Models::BookmarkData.new(path: book_path, chapter: 0,
+                                                                line_offset: 30, text: 'Text 0'))
 
       bookmarks = described_class.get(book_path)
       expect(bookmarks[0].chapter_index).to eq(0)
@@ -36,7 +41,8 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
 
   describe '.get' do
     it 'returns bookmarks for a book' do
-      described_class.add(book_path, 0, 10, 'Sample text')
+      described_class.add(EbookReader::Models::BookmarkData.new(path: book_path, chapter: 0,
+                                                                line_offset: 10, text: 'Sample text'))
       bookmarks = described_class.get(book_path)
       expect(bookmarks).to be_an(Array)
       expect(bookmarks.size).to eq(1)
@@ -50,7 +56,8 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
 
   describe '.delete' do
     it 'removes a specific bookmark' do
-      described_class.add(book_path, 0, 10, 'Sample text')
+      described_class.add(EbookReader::Models::BookmarkData.new(path: book_path, chapter: 0,
+                                                                line_offset: 10, text: 'Sample text'))
       bookmarks = described_class.get(book_path)
 
       described_class.delete(book_path, bookmarks.first)

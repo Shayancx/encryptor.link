@@ -2,7 +2,6 @@
 
 require 'spec_helper'
 
-
 RSpec.describe EbookReader::ReaderModes::BaseMode do
   let(:reader) { double('reader', config: :conf) }
 

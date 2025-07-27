@@ -38,7 +38,9 @@ RSpec.describe 'Integration Tests Comprehensive' do
       config1.save
 
       EbookReader::RecentFiles.add('/book1.epub')
-      EbookReader::BookmarkManager.add('/book1.epub', 0, 10, 'Test')
+      data = EbookReader::Models::BookmarkData.new(path: '/book1.epub', chapter: 0,
+                                                   line_offset: 10, text: 'Test')
+      EbookReader::BookmarkManager.add(data)
       EbookReader::ProgressManager.save('/book1.epub', 1, 20)
 
       # Reset module state

@@ -11,12 +11,12 @@ module EbookReader
     CONFIG_DIR = File.expand_path('~/.config/reader')
     BOOKMARKS_FILE = File.join(CONFIG_DIR, 'bookmarks.json')
 
-    def self.add(path, chapter, line_offset, text)
+    def self.add(bookmark_data)
       bookmarks = load_all
-      entry = build_entry(chapter, line_offset, text)
-      list = (bookmarks[path] || []).map { |h| Models::Bookmark.from_h(h) }
+      entry = build_entry(bookmark_data.chapter, bookmark_data.line_offset, bookmark_data.text)
+      list = (bookmarks[bookmark_data.path] || []).map { |h| Models::Bookmark.from_h(h) }
       list = append_bookmark(list, entry)
-      bookmarks[path] = list.map(&:to_h)
+      bookmarks[bookmark_data.path] = list.map(&:to_h)
       save_all(bookmarks)
     end
 

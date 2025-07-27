@@ -3,7 +3,6 @@
 require 'spec_helper'
 
 RSpec.describe 'Utilities comprehensive' do
-
   describe EbookReader::Helpers::EPUBScanner do
     let(:scanner) { described_class.new }
 

@@ -483,9 +483,23 @@ module EbookReader
     end
 
     def draw_split_columns(wrapped, col_width, content_height, height)
-      draw_column(3, 1, col_width, content_height, wrapped, @left_page, true)
+      left_params = Models::ColumnDrawingParams.new(
+        position: Models::ColumnDrawingParams::Position.new(row: 3, col: 1),
+        dimensions: Models::ColumnDrawingParams::Dimensions.new(width: col_width,
+                                                                height: content_height),
+        content: Models::ColumnDrawingParams::Content.new(lines: wrapped, offset: @left_page,
+                                                          show_page_num: true)
+      )
+      draw_column(left_params)
       draw_divider(height, col_width)
-      draw_column(3, col_width + 5, col_width, content_height, wrapped, @right_page, false)
+      right_params = Models::ColumnDrawingParams.new(
+        position: Models::ColumnDrawingParams::Position.new(row: 3, col: col_width + 5),
+        dimensions: Models::ColumnDrawingParams::Dimensions.new(width: col_width,
+                                                                height: content_height),
+        content: Models::ColumnDrawingParams::Content.new(lines: wrapped, offset: @right_page,
+                                                          show_page_num: false)
+      )
+      draw_column(right_params)
     end
 
     def draw_divider(height, col_width)
@@ -507,19 +521,30 @@ module EbookReader
       padding = (content_height - lines_in_page.size)
       start_row = [2 + (padding / 2), 2].max
 
-      draw_column(start_row, col_start, col_width, displayable_lines, wrapped, @single_page, false)
+      params = Models::ColumnDrawingParams.new(
+        position: Models::ColumnDrawingParams::Position.new(row: start_row, col: col_start),
+        dimensions: Models::ColumnDrawingParams::Dimensions.new(width: col_width,
+                                                                height: displayable_lines),
+        content: Models::ColumnDrawingParams::Content.new(lines: wrapped, offset: @single_page,
+                                                          show_page_num: false)
+      )
+      draw_column(params)
     end
 
-    def draw_column(start_row, start_col, width, height, lines, offset, show_page_num)
+    def draw_column(params)
+      lines = params.content.lines
+      width = params.dimensions.width
+      height = params.dimensions.height
       return if invalid_column_params?(lines, width, height)
 
       actual_height = calculate_actual_height(height)
-      end_offset = [offset + actual_height, lines.size].min
+      end_offset = [params.content.offset + actual_height, lines.size].min
 
-      draw_lines(lines, offset, end_offset, start_row, start_col, width, actual_height)
-      return unless show_page_num
+      draw_lines(lines, params.content.offset, end_offset, params.position.row,
+                 params.position.col, width, actual_height)
+      return unless params.content.show_page_num
 
-      draw_page_number(start_row, start_col, width, height, offset, actual_height, lines)
+      draw_page_number(params)
     end
 
     def invalid_column_params?(lines, width, height)
@@ -579,17 +604,22 @@ module EbookReader
       end
     end
 
-    def draw_page_number(start_row, start_col, width, height, offset, actual_height, lines)
+    def draw_page_number(params)
+      lines = params.content.lines
+      width = params.dimensions.width
+      height = params.dimensions.height
+      offset = params.content.offset
+      actual_height = calculate_actual_height(height)
       return unless @config.show_page_numbers && lines.size.positive? && actual_height.positive?
 
       page_num = (offset / actual_height) + 1
       total_pages = [(lines.size.to_f / actual_height).ceil, 1].max
       page_text = "#{page_num}/#{total_pages}"
-      page_row = start_row + height - 1
+      page_row = params.position.row + height - 1
 
       return if page_row >= Terminal.size[0] - 2
 
-      col = start_col + [(width - page_text.length) / 2, 0].max
+      col = params.position.col + [(width - page_text.length) / 2, 0].max
       Terminal.write(page_row, col,
                      Terminal::ANSI::DIM + Terminal::ANSI::GRAY + page_text + Terminal::ANSI::RESET)
     end
