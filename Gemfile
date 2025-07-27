@@ -7,6 +7,10 @@ gem 'rake'
 gem 'reek'
 gem 'rexml'
 gem 'rubocop'
+gem 'rubocop-performance'
+gem 'rubocop-rails'
+gem 'base64'
+gem 'ostruct'
 gem 'rubyzip', '~> 2.3'
 
 group :test do
