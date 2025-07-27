@@ -53,11 +53,11 @@ module EbookReader
           @menu.instance_variable_set(:@search_query, '')
           @menu.instance_variable_set(:@search_cursor, 0)
         elsif %W(\e[D \eOD).include?(key)
-          @menu.move_search_cursor(-1)
+          @menu.send(:move_search_cursor, -1)
         elsif %W(\e[C \eOC).include?(key)
-          @menu.move_search_cursor(1)
+          @menu.send(:move_search_cursor, 1)
         elsif key == "\e[3~"
-          @menu.handle_delete
+          @menu.send(:handle_delete)
         elsif backspace_key?(key)
           handle_backspace
         elsif searchable_key?(key)
