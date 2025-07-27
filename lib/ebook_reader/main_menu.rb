@@ -22,6 +22,7 @@ module EbookReader
       @mode = :menu
       @browse_selected = 0
       @search_query = ''
+      @search_cursor = 0
       @file_input = ''
       @config = Config.new
       @scanner = Helpers::EPUBScanner.new
@@ -95,7 +96,7 @@ module EbookReader
 
     def draw_browse_screen(height, width)
       @browse_screen.render_header(width)
-      @browse_screen.render_search_bar(@search_query)
+      @browse_screen.render_search_bar(@search_query, @search_cursor)
       @browse_screen.render_status(@scanner.scan_status, @scanner.scan_message)
 
       if @filtered_epubs.empty?
@@ -205,6 +206,7 @@ module EbookReader
     def switch_to_browse
       @mode = :browse
       @browse_selected = 0
+      @search_cursor = @search_query.length
       @scanner.start_scan if @scanner.epubs.empty? && @scanner.scan_status == :idle
     end
 
@@ -260,6 +262,20 @@ module EbookReader
 
     def add_to_search(key)
       @input_handler.send(:add_to_search, key)
+    end
+
+    def move_search_cursor(delta)
+      @search_cursor = [[@search_cursor + delta, 0].max,
+                        @search_query.length].min
+    end
+
+    def handle_delete
+      return if @search_cursor >= @search_query.length
+
+      query = @search_query.dup
+      query.slice!(@search_cursor)
+      @search_query = query
+      filter_books
     end
 
     def handle_recent_input(key)

@@ -23,7 +23,7 @@ RSpec.describe EbookReader::UI::BrowseScreen do
       expect(EbookReader::Terminal).to receive(:write).with(3, 2, /Search:/)
       expect(EbookReader::Terminal).to receive(:write).with(3, 10, /test_query_/)
 
-      browse_screen.render_search_bar('test_query')
+      browse_screen.render_search_bar('test_query', 'test_query'.length)
     end
   end
 

@@ -11,9 +11,12 @@ module EbookReader
         Terminal.write(1, [width - 30, 40].max, "#{DIM}[r] Refresh [ESC] Back#{RESET}")
       end
 
-      def render_search_bar(search_query)
+      def render_search_bar(search_query, cursor_pos)
         Terminal.write(3, 2, "#{WHITE}Search: #{RESET}")
-        Terminal.write(3, 10, "#{BRIGHT_WHITE}#{search_query}_#{RESET}")
+        display = search_query.dup
+        cursor_pos = [[cursor_pos, 0].max, display.length].min
+        display.insert(cursor_pos, '_')
+        Terminal.write(3, 10, "#{BRIGHT_WHITE}#{display}#{RESET}")
       end
 
       def render_status(scan_status, scan_message)

@@ -30,6 +30,7 @@ RSpec.describe EbookReader::MainMenu, 'edge cases' do
     it 'handles empty search query after adding characters' do
       menu.instance_variable_set(:@mode, :browse)
       menu.instance_variable_set(:@search_query, 'test')
+      menu.instance_variable_set(:@search_cursor, 4)
 
       4.times { menu.send(:handle_backspace) }
 

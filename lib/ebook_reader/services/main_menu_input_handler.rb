@@ -51,6 +51,13 @@ module EbookReader
           @menu.send(:open_selected_book)
         elsif key == '/'
           @menu.instance_variable_set(:@search_query, '')
+          @menu.instance_variable_set(:@search_cursor, 0)
+        elsif %W(\e[D \eOD).include?(key)
+          @menu.move_search_cursor(-1)
+        elsif %W(\e[C \eOC).include?(key)
+          @menu.move_search_cursor(1)
+        elsif key == "\e[3~"
+          @menu.handle_delete
         elsif backspace_key?(key)
           handle_backspace
         elsif searchable_key?(key)
@@ -112,16 +119,22 @@ module EbookReader
       end
 
       def handle_backspace
-        query = @menu.instance_variable_get(:@search_query)
-        return unless query.length.positive?
+        query = @menu.instance_variable_get(:@search_query).dup
+        cursor = @menu.instance_variable_get(:@search_cursor)
+        return if cursor <= 0
 
-        @menu.instance_variable_set(:@search_query, query[0...-1])
+        query.slice!(cursor - 1)
+        @menu.instance_variable_set(:@search_query, query)
+        @menu.instance_variable_set(:@search_cursor, cursor - 1)
         @menu.send(:filter_books)
       end
 
       def add_to_search(key)
-        query = @menu.instance_variable_get(:@search_query)
-        @menu.instance_variable_set(:@search_query, query + key)
+        query = @menu.instance_variable_get(:@search_query).dup
+        cursor = @menu.instance_variable_get(:@search_cursor)
+        query.insert(cursor, key)
+        @menu.instance_variable_set(:@search_query, query)
+        @menu.instance_variable_set(:@search_cursor, cursor + 1)
         @menu.send(:filter_books)
       end
 

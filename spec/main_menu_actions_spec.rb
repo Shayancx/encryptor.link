@@ -74,6 +74,22 @@ RSpec.describe EbookReader::MainMenu, 'actions' do
       expect(menu.instance_variable_get(:@filtered_epubs).size).to eq(2)
     end
 
+    it 'moves the search cursor and inserts text' do
+      menu.send(:add_to_search, 'a')
+      menu.send(:add_to_search, 'b')
+      menu.send(:move_search_cursor, -1)
+      menu.send(:add_to_search, 'c')
+      expect(menu.instance_variable_get(:@search_query)).to eq('acb')
+      expect(menu.instance_variable_get(:@search_cursor)).to eq(2)
+    end
+
+    it 'deletes character at cursor' do
+      menu.instance_variable_set(:@search_query, 'abc')
+      menu.instance_variable_set(:@search_cursor, 1)
+      menu.send(:handle_delete)
+      expect(menu.instance_variable_get(:@search_query)).to eq('ac')
+    end
+
     it 'refreshes the scan' do
       expect(EbookReader::EPUBFinder).to receive(:clear_cache)
       expect(scanner).to receive(:start_scan).with(force: true)
