@@ -205,9 +205,6 @@ bundle exec rspec spec/reader_spec.rb
 # Run RuboCop for style checking
 bundle exec rubocop
 
-# Run Reek for code smells
-bundle exec reek
-
 # Run all quality checks
 bundle exec rake quality
 ```

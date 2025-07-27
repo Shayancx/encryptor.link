@@ -2,11 +2,7 @@
 
 source 'https://rubygems.org'
 
-gem 'base64'
-gem 'io-console'
-gem 'ostruct'
 gem 'rake'
-gem 'reek'
 gem 'rexml'
 gem 'rubyzip'
 
