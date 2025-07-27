@@ -88,7 +88,7 @@ module EbookReader
         { key: 'r', icon: '󰁯', text: 'Recent', desc: 'Recently opened books' },
         { key: 'o', icon: '󰷏', text: 'Open File', desc: 'Enter path manually' },
         { key: 's', icon: '', text: 'Settings', desc: 'Configure reader' },
-        { key: 'q', icon: '󰿅', text: 'Quit', desc: 'Exit application' }
+        { key: 'q', icon: '󰿅', text: 'Quit', desc: 'Exit application' },
       ]
     end
 
@@ -110,7 +110,8 @@ module EbookReader
       @browse_screen.render_status(@scanner.scan_status, @scanner.scan_message)
 
       if @filtered_epubs.empty?
-        @browse_screen.render_empty_state(height, width, @scanner.scan_status, @scanner.epubs.empty?)
+        @browse_screen.render_empty_state(height, width, @scanner.scan_status,
+                                          @scanner.epubs.empty?)
       else
         render_book_list(height, width)
       end
@@ -124,7 +125,10 @@ module EbookReader
 
       visible_range = calculate_visible_range(list_height)
       render_visible_books(visible_range, list_start, list_height, width)
-      render_scroll_indicator(list_start, list_height, width) if @filtered_epubs.length > list_height
+      return unless @filtered_epubs.length > list_height
+
+      render_scroll_indicator(list_start, list_height,
+                              width)
     end
 
     def calculate_visible_range(list_height)
@@ -275,34 +279,34 @@ module EbookReader
         {
           name: 'View Mode',
           value: @config.view_mode == :split ? 'Split View (Two Pages)' : 'Single Page (Centered)',
-          key: '1'
+          key: '1',
         },
         {
           name: 'Show Page Numbers',
           value: @config.show_page_numbers ? 'Yes' : 'No',
-          key: '2'
+          key: '2',
         },
         {
           name: 'Line Spacing',
           value: @config.line_spacing.to_s.capitalize,
-          key: '3'
+          key: '3',
         },
         {
           name: 'Highlight Quotes',
           value: @config.highlight_quotes ? 'Yes' : 'No',
-          key: '4'
+          key: '4',
         },
         {
           name: 'Clear Cache',
           value: 'Force rescan of EPUB files',
           key: '5',
-          action: true
+          action: true,
         },
         {
           name: 'Page Numbering Mode',
           value: @config.page_numbering_mode == :absolute ? 'Absolute' : 'Dynamic',
-          key: '6'
-        }
+          key: '6',
+        },
       ]
     end
 

@@ -50,13 +50,13 @@ module EbookReader
           metrics[label] << ({
             timestamp: Time.now,
             duration:,
-            memory_delta:
+            memory_delta:,
           })
 
           # Log slow operations
           return unless duration > 1.0
 
-          Logger.warn("Slow operation detected",
+          Logger.warn('Slow operation detected',
                       label:,
                       duration: "#{(duration * 1000).round(2)}ms")
         end
@@ -77,7 +77,7 @@ module EbookReader
             average: durations.sum / data.size,
             min: durations.min,
             max: durations.max,
-            last: durations.last
+            last: durations.last,
           }
         end
 

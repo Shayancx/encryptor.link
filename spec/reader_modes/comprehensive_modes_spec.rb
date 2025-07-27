@@ -119,8 +119,10 @@ RSpec.describe 'Reader Modes Comprehensive' do
   describe EbookReader::ReaderModes::BookmarksMode do
     let(:bookmarks) do
       [
-        EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 10, text_snippet: 'Bookmark 1', created_at: Time.now),
-        EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20, text_snippet: 'Bookmark 2', created_at: Time.now),
+        EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 10,
+                                          text_snippet: 'Bookmark 1', created_at: Time.now),
+        EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20,
+                                          text_snippet: 'Bookmark 2', created_at: Time.now),
       ]
     end
     let(:mode) { described_class.new(reader) }

@@ -6,7 +6,8 @@ RSpec.describe EbookReader::Renderers::ContentRenderer do
   let(:config) { instance_double(EbookReader::Config, line_spacing: :normal, show_page_numbers: true) }
   let(:renderer) { described_class.new(config) }
   let(:chapter) do
-    EbookReader::Models::Chapter.new(number: '1', title: 'Test Chapter', lines: ['Line 1', 'Line 2', 'Line 3'], metadata: nil)
+    EbookReader::Models::Chapter.new(number: '1', title: 'Test Chapter',
+                                     lines: ['Line 1', 'Line 2', 'Line 3'], metadata: nil)
   end
 
   before do

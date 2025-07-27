@@ -9,7 +9,8 @@ RSpec.describe EbookReader::EPUBFinder do
     allow(Dir).to receive(:exist?).with(File.expand_path('~/Books')).and_return(true)
     allow(Dir).to receive(:entries).and_return(['.', '..', 'book1.epub', 'subdir'])
     allow(File).to receive(:directory?).and_return(false)
-    allow(File).to receive(:directory?).with(File.join(File.expand_path('~/Books'), 'subdir')).and_return(true)
+    allow(File).to receive(:directory?).with(File.join(File.expand_path('~/Books'),
+                                                       'subdir')).and_return(true)
     allow(File).to receive(:readable?).and_return(true)
     allow(File).to receive(:size).and_return(1000)
     allow(File).to receive(:mtime).and_return(Time.now)

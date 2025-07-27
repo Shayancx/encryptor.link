@@ -16,7 +16,8 @@ RSpec.describe EbookReader::Helpers::EPUBScanner do
   describe '#load_cached' do
     before do
       allow(EbookReader::EPUBFinder).to receive(:scan_system).and_return([
-                                                                           { 'name' => 'Book 1', 'path' => '/book1.epub' },
+                                                                           { 'name' => 'Book 1',
+                                                                             'path' => '/book1.epub' },
                                                                          ])
     end
 

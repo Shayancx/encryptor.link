@@ -517,9 +517,9 @@ module EbookReader
       end_offset = [offset + actual_height, lines.size].min
 
       draw_lines(lines, offset, end_offset, start_row, start_col, width, actual_height)
-      if show_page_num
-        draw_page_number(start_row, start_col, width, height, offset, actual_height, lines)
-      end
+      return unless show_page_num
+
+      draw_page_number(start_row, start_col, width, height, offset, actual_height, lines)
     end
 
     def invalid_column_params?(lines, width, height)

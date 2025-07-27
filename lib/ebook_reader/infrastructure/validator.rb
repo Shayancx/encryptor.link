@@ -69,8 +69,8 @@ module EbookReader
       # @param field [Symbol] Field name for error reporting
       # @param message [String] Custom error message
       # @return [Boolean] Validation result
-      def format_valid?(value, pattern, field, message = "has invalid format")
-        return true if value.to_s =~ pattern
+      def format_valid?(value, pattern, field, message = 'has invalid format')
+        return true if value.to_s.match?(pattern)
 
         add_error(field, message)
         false

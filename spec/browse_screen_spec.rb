@@ -51,12 +51,14 @@ RSpec.describe EbookReader::UI::BrowseScreen do
 
   describe '#render_empty_state' do
     it 'shows scanning message when scanning' do
-      expect(EbookReader::Terminal).to receive(:write).with(anything, anything, /Scanning for books/)
+      expect(EbookReader::Terminal).to receive(:write).with(anything, anything,
+                                                            /Scanning for books/)
       browse_screen.render_empty_state(24, 80, :scanning, false)
     end
 
     it 'shows no files message when no epubs found' do
-      expect(EbookReader::Terminal).to receive(:write).with(anything, anything, /No EPUB files found/)
+      expect(EbookReader::Terminal).to receive(:write).with(anything, anything,
+                                                            /No EPUB files found/)
       browse_screen.render_empty_state(24, 80, :done, true)
     end
 

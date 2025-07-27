@@ -47,14 +47,14 @@ RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
 
   let(:processor) { described_class.new('/book/content.opf') }
 
-  describe "#extract_metadata" do
-    it "extracts title and language" do
+  describe '#extract_metadata' do
+    it 'extracts title and language' do
       metadata = processor.extract_metadata
-      expect(metadata[:title]).to eq("Test Book")
-      expect(metadata[:language]).to eq("en_EN")
+      expect(metadata[:title]).to eq('Test Book')
+      expect(metadata[:language]).to eq('en_EN')
     end
 
-    it "handles missing metadata" do
+    it 'handles missing metadata' do
       File.write('/empty.opf', '<package/>')
       processor = described_class.new('/empty.opf')
 
@@ -63,29 +63,29 @@ RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
     end
   end
 
-  describe "#build_manifest_map" do
-    it "builds manifest id to href map" do
+  describe '#build_manifest_map' do
+    it 'builds manifest id to href map' do
       manifest = processor.build_manifest_map
       expect(manifest).to eq({
                                'ch1' => 'chapter1.html',
                                'ch2' => 'chapter2.html',
-                               'ncx' => 'toc.ncx'
+                               'ncx' => 'toc.ncx',
                              })
     end
   end
 
-  describe "#extract_chapter_titles" do
-    it "extracts titles from NCX file" do
+  describe '#extract_chapter_titles' do
+    it 'extracts titles from NCX file' do
       manifest = processor.build_manifest_map
       titles = processor.extract_chapter_titles(manifest)
 
       expect(titles).to eq({
                              'chapter1.html' => 'Chapter 1 Title',
-                             'chapter2.html' => 'Chapter 2 Title'
+                             'chapter2.html' => 'Chapter 2 Title',
                            })
     end
 
-    it "handles missing NCX file" do
+    it 'handles missing NCX file' do
       FileUtils.rm('/book/toc.ncx')
       manifest = processor.build_manifest_map
       titles = processor.extract_chapter_titles(manifest)
@@ -94,8 +94,8 @@ RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
     end
   end
 
-  describe "#process_spine" do
-    it "yields chapter information in order" do
+  describe '#process_spine' do
+    it 'yields chapter information in order' do
       manifest = processor.build_manifest_map
       titles = processor.extract_chapter_titles(manifest)
       chapters = []

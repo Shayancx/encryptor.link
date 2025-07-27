@@ -9,8 +9,11 @@ RSpec.describe EbookReader::Reader, 'navigation' do
     instance_double(EbookReader::EPUBDocument,
                     title: 'Test Book',
                     chapters: [
-                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(100) { |i| "Line #{i + 1}" }, metadata: nil),
-                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: ['Chapter 2, Line 1'], metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(100) do |i|
+                        "Line #{i + 1}"
+                      end, metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2',
+                                                       lines: ['Chapter 2, Line 1'], metadata: nil),
                     ],
                     chapter_count: 2)
   end

@@ -24,7 +24,8 @@ module EbookReader
         end
       end
 
-      def render_footer(height, width, doc, chapter, pages, view_mode, mode, line_spacing, bookmarks)
+      def render_footer(height, width, doc, chapter, pages, view_mode, mode, line_spacing,
+                        bookmarks)
         if view_mode == :single && mode == :read
           render_single_view_footer(height, width, pages)
         else

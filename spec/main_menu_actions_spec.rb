@@ -53,8 +53,10 @@ RSpec.describe EbookReader::MainMenu, 'actions' do
     before do
       menu.instance_variable_set(:@mode, :browse)
       allow(scanner).to receive(:epubs).and_return([
-                                                     { 'name' => 'A Book', 'path' => '/book_a.epub' },
-                                                     { 'name' => 'B Book', 'path' => '/book_b.epub' },
+                                                     { 'name' => 'A Book',
+                                                       'path' => '/book_a.epub' },
+                                                     { 'name' => 'B Book',
+                                                       'path' => '/book_b.epub' },
                                                    ])
       menu.send(:filter_books)
     end

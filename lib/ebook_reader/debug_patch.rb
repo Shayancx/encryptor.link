@@ -42,9 +42,9 @@ module EbookReader
     def launch_reader(path)
       Terminal.cleanup
       RecentFiles.add(path)
-      puts "[DEBUG] Creating EPUBDocument..." if ENV['DEBUG']
+      puts '[DEBUG] Creating EPUBDocument...' if ENV['DEBUG']
       reader = Reader.new(path, @config)
-      puts "[DEBUG] Starting reader.run..." if ENV['DEBUG']
+      puts '[DEBUG] Starting reader.run...' if ENV['DEBUG']
       reader.run
     end
 

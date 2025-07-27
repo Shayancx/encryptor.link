@@ -45,7 +45,9 @@ RSpec.describe 'Edge Cases Comprehensive' do
 
   describe 'Memory management' do
     it 'handles large chapters efficiently' do
-      large_chapter = EbookReader::Models::Chapter.new(number: '1', title: 'Large', lines: Array.new(10_000) { |i| "Line #{i}" * 10 }, metadata: nil)
+      large_chapter = EbookReader::Models::Chapter.new(number: '1', title: 'Large', lines: Array.new(10_000) do |i|
+        "Line #{i}" * 10
+      end, metadata: nil)
       doc = instance_double(EbookReader::EPUBDocument,
                             chapters: [large_chapter],
                             chapter_count: 1,
@@ -85,7 +87,7 @@ RSpec.describe 'Edge Cases Comprehensive' do
     it 'handles concurrent scanner operations' do
       scanner = EbookReader::Helpers::EPUBScanner.new
 
-      threads = 5.times.map do
+      threads = Array.new(5) do
         Thread.new do
           scanner.start_scan
           scanner.process_results

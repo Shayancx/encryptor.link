@@ -31,7 +31,8 @@ RSpec.describe EbookReader::EPUBFinder, 'edge cases' do
 
     it 'handles files with special characters' do
       allow(Dir).to receive(:exist?).and_return(true)
-      allow(Dir).to receive(:entries).and_return(['.', '..', 'book[special].epub', 'book with spaces.epub'])
+      allow(Dir).to receive(:entries).and_return(['.', '..', 'book[special].epub',
+                                                  'book with spaces.epub'])
       allow(File).to receive(:directory?).and_return(false)
       allow(File).to receive(:readable?).and_return(true)
       allow(File).to receive(:size).and_return(1000)

@@ -44,8 +44,10 @@ RSpec.describe EbookReader::MainMenu, 'comprehensive' do
   describe 'recent files handling' do
     it 'handles recent files with missing paths' do
       allow(EbookReader::RecentFiles).to receive(:load).and_return([
-                                                                     { 'path' => '/exists.epub', 'name' => 'Exists' },
-                                                                     { 'path' => nil, 'name' => 'No Path' },
+                                                                     { 'path' => '/exists.epub',
+                                                                       'name' => 'Exists' },
+                                                                     { 'path' => nil,
+                                                                       'name' => 'No Path' },
                                                                      { 'name' => 'Missing Path Key' },
                                                                    ])
       allow(File).to receive(:exist?).with('/exists.epub').and_return(true)

@@ -8,6 +8,7 @@ RSpec.describe EbookReader::Concerns::BookmarksUI do
     Class.new do
       include EbookReader::Concerns::BookmarksUI
       include EbookReader::Constants::UIConstants
+
       attr_accessor :bookmarks, :bookmark_selected
 
       def initialize(doc, bookmarks)
@@ -20,8 +21,10 @@ RSpec.describe EbookReader::Concerns::BookmarksUI do
 
   let(:bookmarks) do
     [
-      EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 10, text_snippet: 'First', created_at: Time.now),
-      EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20, text_snippet: 'Second', created_at: Time.now),
+      EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 10, text_snippet: 'First',
+                                        created_at: Time.now),
+      EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20, text_snippet: 'Second',
+                                        created_at: Time.now),
     ]
   end
 

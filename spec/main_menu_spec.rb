@@ -62,8 +62,10 @@ RSpec.describe EbookReader::MainMenu do
 
     it 'filters books on search' do
       menu.instance_variable_set(:@scanner, double(epubs: [
-                                                     { 'name' => 'Book 1', 'path' => '/book1.epub' },
-                                                     { 'name' => 'Another', 'path' => '/another.epub' },
+                                                     { 'name' => 'Book 1',
+                                                       'path' => '/book1.epub' },
+                                                     { 'name' => 'Another',
+                                                       'path' => '/another.epub' },
                                                    ]))
 
       menu.send(:handle_browse_input, 'b')

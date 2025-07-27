@@ -9,8 +9,12 @@ RSpec.describe EbookReader::Reader, 'additional coverage' do
     instance_double(EbookReader::EPUBDocument,
                     chapter_count: 2,
                     chapters: [
-                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(30) { |i| "line #{i}" }, metadata: nil),
-                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(40) { |i| "line #{i}" }, metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(30) do |i|
+                        "line #{i}"
+                      end, metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(40) do |i|
+                        "line #{i}"
+                      end, metadata: nil),
                     ])
   end
 

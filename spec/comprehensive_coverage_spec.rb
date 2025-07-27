@@ -12,8 +12,10 @@ RSpec.describe 'Comprehensive Coverage Tests' do
                       language: 'en',
                       chapter_count: 2,
                       chapters: [
-                        EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(100, 'Line'), metadata: nil),
-                        EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(50, 'Line'), metadata: nil),
+                        EbookReader::Models::Chapter.new(number: '1', title: 'Ch1',
+                                                         lines: Array.new(100, 'Line'), metadata: nil),
+                        EbookReader::Models::Chapter.new(number: '2', title: 'Ch2',
+                                                         lines: Array.new(50, 'Line'), metadata: nil),
                       ])
     end
     let(:reader) { described_class.new(epub_path, config) }
@@ -200,7 +202,9 @@ RSpec.describe 'Comprehensive Coverage Tests' do
 
       it 'handles rapid key input' do
         menu.instance_variable_set(:@mode, :browse)
-        menu.instance_variable_set(:@filtered_epubs, Array.new(10) { |i| { 'name' => "Book #{i}" } })
+        menu.instance_variable_set(:@filtered_epubs, Array.new(10) do |i|
+          { 'name' => "Book #{i}" }
+        end)
 
         5.times { menu.send(:handle_browse_input, 'j') }
         expect(menu.instance_variable_get(:@browse_selected)).to eq(5)
@@ -390,7 +394,8 @@ RSpec.describe 'Comprehensive Coverage Tests' do
         end
 
         # Test bright colors
-        bright_colors = %w[BRIGHT_RED BRIGHT_GREEN BRIGHT_YELLOW BRIGHT_BLUE BRIGHT_MAGENTA BRIGHT_CYAN BRIGHT_WHITE]
+        bright_colors = %w[BRIGHT_RED BRIGHT_GREEN BRIGHT_YELLOW BRIGHT_BLUE BRIGHT_MAGENTA
+                           BRIGHT_CYAN BRIGHT_WHITE]
         bright_colors.each do |color|
           const = described_class::ANSI.const_get(color)
           expect(const).to match(/\e\[9\dm/)

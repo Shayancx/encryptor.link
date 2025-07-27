@@ -8,15 +8,14 @@ gem 'ostruct'
 gem 'rake'
 gem 'reek'
 gem 'rexml'
-gem 'rubocop'
-gem 'rubocop-performance'
-gem 'rubocop-rails'
-gem 'rubyzip', '~> 2.3'
+
+gem 'rubocop', require: false
+gem 'rubocop-performance', require: false
+gem 'rubocop-rails', require: false
+gem 'rubocop-rspec', require: false
 
 group :test do
   gem 'fakefs', require: 'fakefs/spec_helpers'
   gem 'rspec'
   gem 'simplecov', require: false
 end
-
-gem 'code-scanning-rubocop', '= 0.3.0'

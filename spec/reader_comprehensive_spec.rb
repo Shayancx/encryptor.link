@@ -85,8 +85,10 @@ RSpec.describe EbookReader::Reader, 'comprehensive' do
   describe 'bookmark handling' do
     it 'handles bookmark deletion when selected index becomes invalid' do
       reader.instance_variable_set(:@bookmarks, [
-                                     EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 0, text_snippet: 'B1', created_at: Time.now),
-                                     EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 5, text_snippet: 'B2', created_at: Time.now),
+                                     EbookReader::Models::Bookmark.new(chapter_index: 0,
+                                                                       line_offset: 0, text_snippet: 'B1', created_at: Time.now),
+                                     EbookReader::Models::Bookmark.new(chapter_index: 0,
+                                                                       line_offset: 5, text_snippet: 'B2', created_at: Time.now),
                                    ])
       reader.instance_variable_set(:@bookmark_selected, 1)
 

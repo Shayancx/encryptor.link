@@ -20,7 +20,7 @@ module EbookReader
         info: 1,
         warn: 2,
         error: 3,
-        fatal: 4
+        fatal: 4,
       }.freeze
 
       class << self
@@ -105,7 +105,7 @@ module EbookReader
             message:,
             context:,
             metadata:,
-            thread_id: Thread.current.object_id
+            thread_id: Thread.current.object_id,
           }.to_json
         end
 

@@ -15,7 +15,8 @@ module EbookReader
       return { current: 0, total: 0 } if actual_height <= 0
 
       # Build page map for entire book if terminal size changed
-      build_dynamic_page_map(col_width, actual_height) if size_changed?(width, height) || @dynamic_page_map.nil?
+      build_dynamic_page_map(col_width, actual_height) if size_changed?(width,
+                                                                        height) || @dynamic_page_map.nil?
 
       # Calculate current position in entire book
       current_global_page = calculate_global_page_position(actual_height)
@@ -43,7 +44,7 @@ module EbookReader
           chapter_index: idx,
           lines: chapter_lines,
           pages: chapter_pages,
-          start_line: total_lines
+          start_line: total_lines,
         }
 
         total_lines += chapter_lines
@@ -57,7 +58,7 @@ module EbookReader
       @last_dynamic_width = Terminal.size[1]
       @last_dynamic_height = Terminal.size[0]
 
-      Infrastructure::Logger.debug("Dynamic page map built",
+      Infrastructure::Logger.debug('Dynamic page map built',
                                    total_pages: @dynamic_total_pages,
                                    total_lines:,
                                    lines_per_page:)

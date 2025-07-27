@@ -5,7 +5,8 @@ require 'time'
 module EbookReader
   module Models
     # Represents a bookmark within a document.
-    Bookmark = Struct.new(:chapter_index, :line_offset, :text_snippet, :created_at, keyword_init: true) do
+    Bookmark = Struct.new(:chapter_index, :line_offset, :text_snippet, :created_at,
+                          keyword_init: true) do
       # Build from hash loaded from disk
       # @param hash [Hash]
       # @return [Bookmark]

@@ -88,7 +88,7 @@ RSpec.describe 'Integration Tests Comprehensive' do
   describe 'Performance characteristics' do
     it 'handles large file lists efficiently' do
       # Create large file list
-      large_list = 1000.times.map do |i|
+      large_list = Array.new(1000) do |i|
         {
           'path' => "/book#{i}.epub",
           'name' => "Book #{i}",

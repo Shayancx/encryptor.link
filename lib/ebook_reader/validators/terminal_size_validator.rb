@@ -46,7 +46,7 @@ module EbookReader
           current: { width:, height: },
           minimum: { width: MIN_WIDTH, height: MIN_HEIGHT },
           recommended: { width: RECOMMENDED_WIDTH, height: RECOMMENDED_HEIGHT },
-          needs_resize: !recommended_size?(width, height)
+          needs_resize: !recommended_size?(width, height),
         }
       end
 

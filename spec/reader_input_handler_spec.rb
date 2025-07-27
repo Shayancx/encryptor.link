@@ -7,11 +7,13 @@ class DummyReader
   attr_reader :doc
 
   def initialize
-    @doc = double('doc', chapter_count: 2, get_chapter: EbookReader::Models::Chapter.new(number: '1', title: 'Ch', lines: %w[a b c], metadata: nil))
+    @doc = double('doc', chapter_count: 2,
+                         get_chapter: EbookReader::Models::Chapter.new(number: '1', title: 'Ch', lines: %w[a b c], metadata: nil))
     @mode = :read
     @toc_selected = 0
     @bookmark_selected = 0
-    @bookmarks = [EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 0, text_snippet: 'b', created_at: Time.now)]
+    @bookmarks = [EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 0,
+                                                    text_snippet: 'b', created_at: Time.now)]
     @current_chapter = 0
   end
 

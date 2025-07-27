@@ -11,8 +11,10 @@ RSpec.describe EbookReader::Reader, 'render sections' do
                     language: 'en',
                     chapter_count: 2,
                     chapters: [
-                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: %w[a b c d e], metadata: nil),
-                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: %w[f g h i j], metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1',
+                                                       lines: %w[a b c d e], metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2',
+                                                       lines: %w[f g h i j], metadata: nil),
                     ])
   end
 

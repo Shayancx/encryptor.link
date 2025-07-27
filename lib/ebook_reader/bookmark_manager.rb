@@ -28,7 +28,9 @@ module EbookReader
       bookmarks = load_all
       return unless bookmarks[path]
 
-      bookmarks[path].reject! { |bookmark| bookmark['timestamp'] == bookmark_to_delete.created_at.iso8601 }
+      bookmarks[path].reject! do |bookmark|
+        bookmark['timestamp'] == bookmark_to_delete.created_at.iso8601
+      end
       save_all(bookmarks)
     end
 
