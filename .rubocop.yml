@@ -6,44 +6,70 @@ AllCops:
   TargetRubyVersion: 3.3
   NewCops: enable
   Exclude:
-    - 'bin/**/*'
     - 'vendor/**/*'
     - 'tmp/**/*'
 
 # Layout
 Layout/LineLength:
   Max: 100
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 # Metrics
 Metrics/ClassLength:
   Max: 100
   CountComments: false
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 Metrics/ModuleLength:
   Max: 100
   CountComments: false
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 Metrics/MethodLength:
   Max: 10
   CountComments: false
   AllowedMethods:
     - 'initialize'
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 Metrics/AbcSize:
   Max: 15
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 Metrics/CyclomaticComplexity:
   Max: 6
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 Metrics/PerceivedComplexity:
   Max: 7
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 Metrics/ParameterLists:
   Max: 3
   CountKeywordArgs: false
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 Metrics/BlockLength:
   Max: 25
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
 
 # Style
 Style/Documentation:
