@@ -39,7 +39,7 @@ module EbookReader
 
       def handle_browse_input(key)
         if escape_key?(key)
-          @menu.switch_to_mode(:menu)
+          @menu.send(:switch_to_mode, :menu)
         elsif %w[r R].include?(key)
           @menu.send(:refresh_scan)
         elsif navigation_key?(key)
@@ -59,7 +59,7 @@ module EbookReader
         recent = @menu.send(:load_recent_books)
 
         if escape_key?(key)
-          @menu.switch_to_mode(:menu)
+          @menu.send(:switch_to_mode, :menu)
         elsif navigation_key?(key) && recent.any?
           selected = handle_navigation_keys(key,
                                             @menu.instance_variable_get(:@browse_selected),
@@ -79,7 +79,7 @@ module EbookReader
 
       def handle_settings_input(key)
         if escape_key?(key)
-          @menu.switch_to_mode(:menu)
+          @menu.send(:switch_to_mode, :menu)
           @menu.instance_variable_get(:@config).save
         else
           handle_setting_change(key)
