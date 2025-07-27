@@ -36,9 +36,12 @@ module EbookReader
 
     # Parse the EPUB file and populate chapters.
     #
-    # Extraction is done in a temporary directory to avoid polluting the
-    # filesystem. Any parsing errors are converted into a single chapter
-    # describing the problem so the reader can gracefully display it.
+    # The EPUB is first extracted into a temporary directory so the
+    # filesystem remains clean. Once extracted we locate the OPF file
+    # described in META-INF/container.xml and use that to build the
+    # chapter list. Any errors encountered during this process are
+    # captured and presented to the user as a single "Error" chapter so
+    # the application can continue running.
     def parse_epub
       Infrastructure::Logger.info("Parsing EPUB", path: @path)
       Infrastructure::PerformanceMonitor.time("epub_parsing") do
@@ -60,6 +63,11 @@ module EbookReader
       }]
     end
 
+    # Extract all files from the EPUB archive into the given temporary
+    # directory. Rubyzip changed its API around 2.0 which can cause
+    # ArgumentErrors when calling `entry.extract`. To remain compatible
+    # with older versions we attempt the standard extraction first and
+    # fall back to several alternatives if needed.
     def extract_epub(tmpdir)
       Zip::File.open(@path) do |zip|
         zip.each do |entry|
@@ -93,6 +101,8 @@ module EbookReader
       end
     end
 
+    # After extraction this method finds the OPF file and begins the
+    # parsing process that builds our chapter list and metadata.
     def load_epub_content(tmpdir)
       opf_path = find_opf_path(tmpdir)
       return unless opf_path
@@ -100,6 +110,9 @@ module EbookReader
       process_opf(opf_path)
     end
 
+    # Locate the OPF package file which describes the contents of the
+    # EPUB. Its path is defined in META-INF/container.xml as required by
+    # the EPUB specification.
     def find_opf_path(tmpdir)
       container_file = File.join(tmpdir, 'META-INF', 'container.xml')
       return unless File.exist?(container_file)
@@ -112,6 +125,11 @@ module EbookReader
       opf_path if File.exist?(opf_path)
     end
 
+    # Parse the OPF file using the helper processor. This extracts
+    # metadata such as the book title and language, builds a manifest of
+    # all items in the EPUB, and walks the spine to determine chapter
+    # order. Each referenced HTML file is converted into a chapter
+    # structure the reader can display.
     def process_opf(opf_path)
       processor = Helpers::OPFProcessor.new(opf_path)
 
@@ -143,7 +161,8 @@ module EbookReader
 
     # Load a single chapter HTML file and convert it to plain text lines.
     # If an error occurs while reading or parsing the file we simply skip the
-    # chapter so the rest of the book can still be viewed.
+    # chapter so the rest of the book can still be viewed. Titles are
+    # extracted from the HTML when available or generated automatically.
     def load_chapter(path, number, title_from_ncx = nil)
       content = read_file_content(path)
 
@@ -160,6 +179,8 @@ module EbookReader
       nil
     end
 
+    # Utility method to read a file as UTF-8 while stripping any UTF-8
+    # BOM that may be present.
     def read_file_content(path)
       content = File.read(path, encoding: 'UTF-8')
       content = content[1..] if content.start_with?("\uFEFF")

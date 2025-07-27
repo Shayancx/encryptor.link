@@ -54,6 +54,7 @@ module EbookReader
       initialize_state
       load_document
       load_data
+      @input_handler = Services::ReaderInputHandler.new(self)
     end
 
     def run
@@ -243,7 +244,7 @@ module EbookReader
       while @running
         draw_screen
         key = Terminal.read_key
-        process_input(key) if key
+        @input_handler.process_input(key) if key
         sleep KEY_REPEAT_DELAY / 1000.0
       end
     end
@@ -701,30 +702,11 @@ module EbookReader
     end
 
     def process_input(key)
-      return unless key
-
-      case @mode
-      when :help then @mode = :read
-      when :toc then handle_toc_input(key)
-      when :bookmarks then handle_bookmarks_input(key)
-      else handle_reading_input(key)
-      end
+      @input_handler.process_input(key)
     end
 
     def handle_reading_input(key)
-      case key
-      when 'q' then quit_to_menu
-      when 'Q' then quit_application
-      when '?' then @mode = :help
-      when 't', 'T' then open_toc
-      when 'b' then add_bookmark
-      when 'B' then open_bookmarks
-      when 'v', 'V' then toggle_view_mode
-      when 'P' then toggle_page_numbering_mode
-      when '+' then increase_line_spacing
-      when '-' then decrease_line_spacing
-      else handle_navigation_input(key)
-      end
+      @input_handler.handle_reading_input(key)
     end
 
     def open_toc
@@ -738,65 +720,39 @@ module EbookReader
     end
 
     def handle_navigation_input(key)
-      height, width = Terminal.size
-      col_width, content_height = get_layout_metrics(width, height)
-      content_height = adjust_for_line_spacing(content_height)
-
-      chapter = @doc.get_chapter(@current_chapter)
-      return unless chapter
-
-      wrapped = wrap_lines(chapter[:lines] || [], col_width)
-      max_page = [wrapped.size - content_height, 0].max
-
-      navigate_by_key(key, content_height, max_page)
+      @input_handler.handle_navigation_input(key)
     end
 
     def navigate_by_key(key, content_height, max_page)
-      case key
-      when 'j', "\e[B", "\eOB" then scroll_down_with_max(max_page)
-      when 'k', "\e[A", "\eOA" then scroll_up
-      when 'l', ' ', "\e[C", "\eOC" then next_page_with_params(content_height, max_page)
-      when 'h', "\e[D", "\eOD" then prev_page_with_params(content_height)
-      when 'n', 'N' then handle_next_chapter
-      when 'p', 'P' then handle_prev_chapter
-      when 'g' then reset_pages
-      when 'G' then go_to_end_with_params(content_height, max_page)
-      end
+      @input_handler.navigate_by_key(key, content_height, max_page)
     end
 
     def scroll_down_with_max(max_page)
-      @max_page = max_page
-      scroll_down
+      @input_handler.scroll_down_with_max(max_page)
     end
 
     def next_page_with_params(_content_height, _max_page)
-      next_page
+      @input_handler.next_page_with_params(_content_height, _max_page)
     end
 
     def prev_page_with_params(_content_height)
-      prev_page
+      @input_handler.prev_page_with_params(_content_height)
     end
 
     def go_to_end_with_params(_content_height, _max_page)
-      go_to_end
+      @input_handler.go_to_end_with_params(_content_height, _max_page)
     end
 
     def handle_next_chapter
-      next_chapter if @current_chapter < @doc.chapter_count - 1
+      @input_handler.handle_next_chapter
     end
 
     def handle_prev_chapter
-      prev_chapter if @current_chapter.positive?
+      @input_handler.handle_prev_chapter
     end
 
     def handle_toc_input(key)
-      if %w[t T].include?(key) || escape_key?(key)
-        @mode = :read
-      elsif navigation_key?(key)
-        @toc_selected = handle_navigation_keys(key, @toc_selected, @doc.chapter_count - 1)
-      elsif enter_key?(key)
-        jump_to_chapter(@toc_selected)
-      end
+      @input_handler.handle_toc_input(key)
     end
 
     def jump_to_chapter(chapter_index)
@@ -807,21 +763,11 @@ module EbookReader
     end
 
     def handle_bookmarks_input(key)
-      return handle_empty_bookmarks_input(key) if @bookmarks.empty?
-
-      if ['B'].include?(key) || escape_key?(key)
-        @mode = :read
-      elsif navigation_key?(key)
-        @bookmark_selected = handle_navigation_keys(key, @bookmark_selected, @bookmarks.length - 1)
-      elsif enter_key?(key)
-        jump_to_bookmark
-      elsif %w[d D].include?(key)
-        delete_selected_bookmark
-      end
+      @input_handler.handle_bookmarks_input(key)
     end
 
     def handle_empty_bookmarks_input(key)
-      @mode = :read if ['B'].include?(key) || escape_key?(key)
+      @input_handler.handle_empty_bookmarks_input(key)
     end
 
     def jump_to_bookmark

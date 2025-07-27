@@ -19,6 +19,7 @@ module EbookReader
       @scanner = Helpers::EPUBScanner.new
       @renderer = UI::MainMenuRenderer.new(@config)
       @browse_screen = UI::BrowseScreen.new
+      @input_handler = Services::MainMenuInputHandler.new(self)
     end
 
     def run
@@ -41,7 +42,7 @@ module EbookReader
       loop do
         process_scan_results
         draw_screen
-        handle_input(Terminal.read_key)
+        @input_handler.handle_input(Terminal.read_key)
         sleep 0.02
       end
     end
@@ -339,27 +340,11 @@ module EbookReader
     end
 
     def handle_input(key)
-      return unless key
-
-      case @mode
-      when :menu then handle_menu_input(key)
-      when :browse then handle_browse_input(key)
-      when :recent then handle_recent_input(key)
-      when :settings then handle_settings_input(key)
-      end
+      @input_handler.handle_input(key)
     end
 
     def handle_menu_input(key)
-      case key
-      when 'q', 'Q' then cleanup_and_exit(0, '')
-      when 'f', 'F' then switch_to_browse
-      when 'r', 'R' then switch_to_mode(:recent)
-      when 'o', 'O' then open_file_dialog
-      when 's', 'S' then switch_to_mode(:settings)
-      when 'j', "\e[B", "\eOB" then @selected = (@selected + 1) % 5
-      when 'k', "\e[A", "\eOA" then @selected = (@selected - 1 + 5) % 5
-      when "\r", "\n" then handle_menu_selection
-      end
+      @input_handler.handle_menu_input(key)
     end
 
     def switch_to_browse
@@ -384,25 +369,11 @@ module EbookReader
     end
 
     def handle_browse_input(key)
-      if escape_key?(key)
-        @mode = :menu
-      elsif %w[r R].include?(key)
-        refresh_scan
-      elsif navigation_key?(key)
-        navigate_browse(key)
-      elsif enter_key?(key)
-        open_selected_book
-      elsif key == '/'
-        @search_query = ''
-      elsif backspace_key?(key)
-        handle_backspace
-      elsif searchable_key?(key)
-        add_to_search(key)
-      end
+      @input_handler.handle_browse_input(key)
     end
 
     def navigation_key?(key)
-      ['j', 'k', "\e[A", "\e[B", "\eOA", "\eOB"].include?(key)
+      super
     end
 
     def navigate_browse(key)
@@ -429,64 +400,27 @@ module EbookReader
     end
 
     def handle_backspace
-      return unless @search_query.length.positive?
-
-      @search_query = @search_query[0...-1]
-      filter_books
+      @input_handler.send(:handle_backspace)
     end
 
     def searchable_key?(key)
-      return false unless key
-
-      begin
-        key = key.to_s.force_encoding('UTF-8')
-        key.valid_encoding? && key =~ /[a-zA-Z0-9 .-]/
-      rescue StandardError
-        false
-      end
+      @input_handler.searchable_key?(key)
     end
 
     def add_to_search(key)
-      @search_query += key
-      filter_books
+      @input_handler.send(:add_to_search, key)
     end
 
     def handle_recent_input(key)
-      recent = load_recent_books
-
-      if escape_key?(key)
-        @mode = :menu
-      elsif navigation_key?(key) && recent.any?
-        @browse_selected = handle_navigation_keys(key, @browse_selected, recent.length - 1)
-      elsif enter_key?(key)
-        book = recent[@browse_selected]
-        if book && book['path'] && File.exist?(book['path'])
-          open_book(book['path'])
-        else
-          @scanner.scan_message = 'File not found'
-          @scanner.scan_status = :error
-        end
-      end
+      @input_handler.handle_recent_input(key)
     end
 
     def handle_settings_input(key)
-      if escape_key?(key)
-        @mode = :menu
-        @config.save
-      else
-        handle_setting_change(key)
-      end
+      @input_handler.handle_settings_input(key)
     end
 
     def handle_setting_change(key)
-      case key
-      when '1' then toggle_view_mode
-      when '2' then toggle_page_numbers
-      when '3' then cycle_line_spacing
-      when '4' then toggle_highlight_quotes
-      when '5' then clear_cache
-      when '6' then toggle_page_numbering_mode
-      end
+      @input_handler.handle_setting_change(key)
     end
 
     def toggle_view_mode

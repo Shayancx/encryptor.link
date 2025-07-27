@@ -30,6 +30,7 @@ require_relative 'ebook_reader/constants/ui_constants'
 require_relative 'ebook_reader/version'
 require_relative 'ebook_reader/terminal'
 require_relative 'ebook_reader/config'
+require_relative 'ebook_reader/concerns/input_handler'
 
 # Validators
 require_relative 'ebook_reader/validators/file_path_validator'
@@ -47,6 +48,8 @@ require_relative 'ebook_reader/epub_document'
 # Core reader components
 require_relative 'ebook_reader/core/reader_state'
 require_relative 'ebook_reader/services/reader_navigation'
+require_relative 'ebook_reader/services/reader_input_handler'
+require_relative 'ebook_reader/services/main_menu_input_handler'
 
 # UI components
 require_relative 'ebook_reader/main_menu'
