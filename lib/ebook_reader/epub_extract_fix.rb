@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module EbookReader
+  # Provides compatibility fix for EPUB extraction across rubyzip versions.
   class EPUBDocument
     private
 
