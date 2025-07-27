@@ -8,6 +8,7 @@ gem 'ostruct'
 gem 'rake'
 gem 'reek'
 gem 'rexml'
+gem 'rubyzip'
 
 gem 'rubocop', require: false
 gem 'rubocop-performance', require: false

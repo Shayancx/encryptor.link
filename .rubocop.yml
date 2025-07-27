@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-performance
   - rubocop-rails
 
@@ -26,7 +26,7 @@ Metrics/ModuleLength:
 Metrics/MethodLength:
   Max: 10
   CountComments: false
-  ExcludedMethods:
+  AllowedMethods:
     - 'initialize'
 
 Metrics/AbcSize:
