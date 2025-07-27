@@ -48,10 +48,10 @@ module EbookReader
     end
 
     def process_scan_results
-      if (epubs = @scanner.process_results)
-        @scanner.epubs = epubs
-        filter_books
-      end
+      return unless (epubs = @scanner.process_results)
+
+      @scanner.epubs = epubs
+      filter_books
     end
 
     def cleanup_and_exit(code, message, error = nil)
@@ -485,7 +485,7 @@ module EbookReader
         reader = Reader.new(path, @config)
         reader.run
       rescue StandardError => e
-        Infrastructure::Logger.error('Failed to open book', error: e.message, path: path)
+        Infrastructure::Logger.error('Failed to open book', error: e.message, path:)
         @scanner.scan_message = "Failed: #{e.class}: #{e.message[0, 60]}"
         @scanner.scan_status = :error
         puts e.backtrace.join("\n") if EPUBFinder::DEBUG_MODE

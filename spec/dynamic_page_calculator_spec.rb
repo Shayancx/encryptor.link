@@ -30,7 +30,7 @@ RSpec.describe EbookReader::DynamicPageCalculator do
         @current_chapter = 0
       end
 
-      def get_layout_metrics(_w, _h)
+      def get_layout_metrics(_width, _height)
         [10, 20]
       end
 
@@ -38,7 +38,7 @@ RSpec.describe EbookReader::DynamicPageCalculator do
         height
       end
 
-      def wrap_lines(lines, _w)
+      def wrap_lines(lines, _width)
         lines
       end
     end.new(dummy_doc, config)

@@ -74,7 +74,7 @@ module EbookReader
       # Set page offset for all view modes
       #
       # @param offset [Integer] New page offset
-      def set_page_offset(offset)
+      def page_offset=(offset)
         @single_page = offset
         @left_page = offset
         @right_page = offset
@@ -115,7 +115,7 @@ module EbookReader
       # @param snapshot [Hash] State snapshot
       def restore_from(snapshot)
         @current_chapter = snapshot['current_chapter'] || 0
-        set_page_offset(snapshot['page_offset'] || 0)
+        self.page_offset = snapshot['page_offset'] || 0
         @mode = (snapshot['mode'] || 'read').to_sym
       end
     end

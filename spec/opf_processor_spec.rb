@@ -101,7 +101,7 @@ RSpec.describe EbookReader::Helpers::OPFProcessor, fake_fs: true do
       chapters = []
 
       processor.process_spine(manifest, titles) do |path, num, title|
-        chapters << { path: path, num: num, title: title }
+        chapters << { path:, num:, title: }
       end
 
       expect(chapters.size).to eq(2)

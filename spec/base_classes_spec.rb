@@ -26,7 +26,9 @@ end
 RSpec.describe EbookReader::ReaderModes::BaseMode do
   let(:reader) { double('reader', config: :conf) }
 
-  class DummyMode < described_class; end
+  before do
+    stub_const('DummyMode', Class.new(described_class))
+  end
 
   subject(:mode) { DummyMode.new(reader) }
 

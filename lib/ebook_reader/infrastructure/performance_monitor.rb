@@ -47,17 +47,17 @@ module EbookReader
         # @param duration [Float] Duration in seconds
         # @param memory_delta [Integer] Memory change in bytes
         def record_metric(label, duration, memory_delta)
-          metrics[label] << {
+          metrics[label] << ({
             timestamp: Time.now,
-            duration: duration,
-            memory_delta: memory_delta
-          }
+            duration:,
+            memory_delta:
+          })
 
           # Log slow operations
           return unless duration > 1.0
 
           Logger.warn("Slow operation detected",
-                      label: label,
+                      label:,
                       duration: "#{(duration * 1000).round(2)}ms")
         end
 

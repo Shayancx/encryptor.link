@@ -19,7 +19,7 @@ module EbookReader
         [content_height, max_page, wrapped]
       end
 
-      def update_page_position_split(direction, content_height, max_page)
+      def update_page_position_split?(direction, content_height, max_page)
         case direction
         when :next
           if @right_page < max_page
@@ -40,7 +40,7 @@ module EbookReader
         end
       end
 
-      def update_page_position_single(direction, content_height, max_page)
+      def update_page_position_single?(direction, content_height, max_page)
         case direction
         when :next
           if @single_page < max_page
@@ -101,7 +101,7 @@ module EbookReader
         {
           path: @path,
           chapter: @current_chapter,
-          line_offset: line_offset,
+          line_offset:,
           text: text_snippet
         }
       end

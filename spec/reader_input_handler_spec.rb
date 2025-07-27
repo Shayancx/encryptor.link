@@ -18,6 +18,10 @@ class DummyReader
   def method_missing(name, *args)
     # allow any method call for expectations
   end
+
+  def respond_to_missing?(*_args)
+    true
+  end
 end
 
 RSpec.describe EbookReader::Services::ReaderInputHandler do

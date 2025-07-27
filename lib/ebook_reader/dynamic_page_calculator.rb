@@ -59,8 +59,8 @@ module EbookReader
 
       Infrastructure::Logger.debug("Dynamic page map built",
                                    total_pages: @dynamic_total_pages,
-                                   total_lines: total_lines,
-                                   lines_per_page: lines_per_page)
+                                   total_lines:,
+                                   lines_per_page:)
     end
 
     def calculate_global_page_position(lines_per_page)

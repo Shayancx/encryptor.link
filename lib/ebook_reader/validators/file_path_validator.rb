@@ -22,11 +22,11 @@ module EbookReader
       def validate(path)
         clear_errors
 
-        validate_presence(path, :path) &&
-          validate_exists(path) &&
-          validate_readable(path) &&
-          validate_extension(path) &&
-          validate_not_empty(path)
+        presence_valid?(path, :path) &&
+          exists?(path) &&
+          readable?(path) &&
+          extension_valid?(path) &&
+          not_empty?(path)
       end
 
       private
@@ -35,7 +35,7 @@ module EbookReader
       #
       # @param path [String] File path
       # @return [Boolean] true if exists
-      def validate_exists(path)
+      def exists?(path)
         return true if File.exist?(path)
 
         add_error(:path, "file does not exist: #{path}")
@@ -46,7 +46,7 @@ module EbookReader
       #
       # @param path [String] File path
       # @return [Boolean] true if readable
-      def validate_readable(path)
+      def readable?(path)
         return true if File.readable?(path)
 
         add_error(:path, "file is not readable: #{path}")
@@ -57,7 +57,7 @@ module EbookReader
       #
       # @param path [String] File path
       # @return [Boolean] true if EPUB
-      def validate_extension(path)
+      def extension_valid?(path)
         return true if path.downcase.end_with?('.epub')
 
         add_error(:path, 'file must have .epub extension')
@@ -68,7 +68,7 @@ module EbookReader
       #
       # @param path [String] File path
       # @return [Boolean] true if not empty
-      def validate_not_empty(path)
+      def not_empty?(path)
         return true if File.size(path).positive?
 
         add_error(:path, 'file is empty')

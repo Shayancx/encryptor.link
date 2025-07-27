@@ -52,7 +52,7 @@ module EbookReader
           load_epub_content(tmpdir)
         end
         ensure_chapters_exist
-      rescue Zip::Error, REXML::ParseException, Errno::ENOENT, StandardError => e
+      rescue StandardError => e
         create_error_chapter(e)
       end
     end
@@ -170,8 +170,8 @@ module EbookReader
 
       {
         number: number.to_s,
-        title: title,
-        lines: lines
+        title:,
+        lines:
       }
     rescue Errno::ENOENT, REXML::ParseException
       nil

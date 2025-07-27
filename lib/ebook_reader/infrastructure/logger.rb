@@ -102,9 +102,9 @@ module EbookReader
           {
             timestamp: Time.now.iso8601,
             severity: severity.upcase,
-            message: message,
-            context: context,
-            metadata: metadata,
+            message:,
+            context:,
+            metadata:,
             thread_id: Thread.current.object_id
           }.to_json
         end

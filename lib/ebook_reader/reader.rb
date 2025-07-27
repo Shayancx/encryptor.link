@@ -690,14 +690,9 @@ module EbookReader
     def adjust_for_line_spacing(height)
       return 1 if height <= 0
 
-      case @config.line_spacing
-      when :compact
-        height
-      when :relaxed
-        [height / 2, 1].max
-      else # :normal
-        height
-      end
+      return height unless @config.line_spacing == :relaxed
+
+      [height / 2, 1].max
     end
 
     def process_input(key)
@@ -730,16 +725,16 @@ module EbookReader
       @input_handler.scroll_down_with_max(max_page)
     end
 
-    def next_page_with_params(_content_height, _max_page)
-      @input_handler.next_page_with_params(_content_height, _max_page)
+    def next_page_with_params(content_height, max_page)
+      @input_handler.next_page_with_params(content_height, max_page)
     end
 
-    def prev_page_with_params(_content_height)
-      @input_handler.prev_page_with_params(_content_height)
+    def prev_page_with_params(content_height)
+      @input_handler.prev_page_with_params(content_height)
     end
 
-    def go_to_end_with_params(_content_height, _max_page)
-      @input_handler.go_to_end_with_params(_content_height, _max_page)
+    def go_to_end_with_params(content_height, max_page)
+      @input_handler.go_to_end_with_params(content_height, max_page)
     end
 
     def handle_next_chapter

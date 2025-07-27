@@ -26,7 +26,7 @@ module EbookReader
       # @param field [Symbol] Field name
       # @param message [String] Error message
       def add_error(field, message)
-        @errors << { field: field, message: message }
+        @errors << { field:, message: }
       end
 
       # Clear all errors
@@ -40,7 +40,7 @@ module EbookReader
       # @param field [Symbol] Field name for error reporting
       # @param message [String] Custom error message
       # @return [Boolean] Validation result
-      def validate_presence(value, field, message = "can't be blank")
+      def presence_valid?(value, field, message = "can't be blank")
         return true if value && !value.to_s.strip.empty?
 
         add_error(field, message)
@@ -54,7 +54,7 @@ module EbookReader
       # @param field [Symbol] Field name for error reporting
       # @param message [String] Custom error message
       # @return [Boolean] Validation result
-      def validate_range(value, range, field, message = nil)
+      def range_valid?(value, range, field, message = nil)
         return true if range.include?(value)
 
         message ||= "must be between #{range.min} and #{range.max}"
@@ -69,7 +69,7 @@ module EbookReader
       # @param field [Symbol] Field name for error reporting
       # @param message [String] Custom error message
       # @return [Boolean] Validation result
-      def validate_format(value, pattern, field, message = "has invalid format")
+      def format_valid?(value, pattern, field, message = "has invalid format")
         return true if value.to_s =~ pattern
 
         add_error(field, message)

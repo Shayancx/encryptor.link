@@ -43,7 +43,7 @@ module EbookReader
       # @return [Hash] Recommendations
       def recommendations(width, height)
         {
-          current: { width: width, height: height },
+          current: { width:, height: },
           minimum: { width: MIN_WIDTH, height: MIN_HEIGHT },
           recommended: { width: RECOMMENDED_WIDTH, height: RECOMMENDED_HEIGHT },
           needs_resize: !recommended_size?(width, height)
@@ -53,13 +53,13 @@ module EbookReader
       private
 
       def validate_minimum_width(width)
-        validate_range(width, MIN_WIDTH..Float::INFINITY, :width,
-                       "Terminal width must be at least #{MIN_WIDTH} columns")
+        range_valid?(width, MIN_WIDTH..Float::INFINITY, :width,
+                     "Terminal width must be at least #{MIN_WIDTH} columns")
       end
 
       def validate_minimum_height(height)
-        validate_range(height, MIN_HEIGHT..Float::INFINITY, :height,
-                       "Terminal height must be at least #{MIN_HEIGHT} rows")
+        range_valid?(height, MIN_HEIGHT..Float::INFINITY, :height,
+                     "Terminal height must be at least #{MIN_HEIGHT} rows")
       end
     end
   end

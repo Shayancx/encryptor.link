@@ -2,54 +2,56 @@
 
 require 'spec_helper'
 
+class DummyRefactoredHelper
+  include EbookReader::ReaderRefactored::NavigationHelpers
+  include EbookReader::ReaderRefactored::DrawingHelpers
+  include EbookReader::ReaderRefactored::BookmarkHelpers
+
+  attr_accessor :left_page, :right_page, :single_page, :current_chapter, :config, :path
+
+  def initialize(doc, config)
+    @doc = doc
+    @config = config
+    @left_page = 0
+    @right_page = 0
+    @single_page = 0
+    @current_chapter = 0
+    @path = '/book.epub'
+  end
+
+  def get_layout_metrics(_width, _height)
+    [40, 20]
+  end
+
+  def adjust_for_line_spacing(height)
+    height
+  end
+
+  def wrap_lines(lines, _width)
+    lines
+  end
+
+  def should_highlight_line?(_line)
+    false
+  end
+
+  def draw_highlighted_line(line, row, col, width)
+    Terminal.write(row, col, "H:#{line[0, width]}")
+  end
+
+  def page_offsets=(offset)
+    @left_page = @single_page = offset
+  end
+
+  def save_progress; end
+end
+
 RSpec.describe EbookReader::ReaderRefactored do
   let(:doc) { double('doc') }
   let(:config) { double('config', view_mode: :single, show_page_numbers: true) }
 
   let(:dummy_class) do
-    Class.new do
-      include EbookReader::ReaderRefactored::NavigationHelpers
-      include EbookReader::ReaderRefactored::DrawingHelpers
-      include EbookReader::ReaderRefactored::BookmarkHelpers
-
-      attr_accessor :left_page, :right_page, :single_page, :current_chapter, :config, :path
-
-      def initialize(doc, config)
-        @doc = doc
-        @config = config
-        @left_page = 0
-        @right_page = 0
-        @single_page = 0
-        @current_chapter = 0
-        @path = '/book.epub'
-      end
-
-      def get_layout_metrics(_width, _height)
-        [40, 20]
-      end
-
-      def adjust_for_line_spacing(h)
-        h
-      end
-
-      def wrap_lines(lines, _width)
-        lines
-      end
-
-      def should_highlight_line?(_line)
-        false
-      end
-
-      def draw_highlighted_line(line, row, col, width)
-        Terminal.write(row, col, "H:#{line[0, width]}")
-      end
-
-      def page_offsets=(offset)
-        @left_page = @single_page = offset
-      end
-
-      def save_progress; end
-    end
+    DummyRefactoredHelper
   end
 
   subject(:helper) { dummy_class.new(doc, config) }
@@ -76,36 +78,36 @@ RSpec.describe EbookReader::ReaderRefactored do
       end
     end
 
-    context '#update_page_position_split' do
+    context '#update_page_position_split?' do
       before { allow(config).to receive(:view_mode).and_return(:split) }
 
       it 'moves to next page' do
-        expect(helper.update_page_position_split(:next, 10, 20)).to be true
+        expect(helper.update_page_position_split?(:next, 10, 20)).to be true
         expect(helper.right_page).to eq(10)
       end
 
       it 'prevents moving past max' do
         helper.right_page = 20
-        expect(helper.update_page_position_split(:next, 10, 20)).to be false
+        expect(helper.update_page_position_split?(:next, 10, 20)).to be false
       end
 
       it 'moves previous' do
         helper.left_page = 10
         helper.right_page = 10
-        expect(helper.update_page_position_split(:prev, 10, 20)).to be true
+        expect(helper.update_page_position_split?(:prev, 10, 20)).to be true
         expect(helper.left_page).to eq(0)
       end
     end
 
-    context '#update_page_position_single' do
+    context '#update_page_position_single?' do
       it 'increments page offset' do
-        expect(helper.update_page_position_single(:next, 5, 15)).to be true
+        expect(helper.update_page_position_single?(:next, 5, 15)).to be true
         expect(helper.single_page).to eq(5)
       end
 
       it 'stops at bounds' do
         helper.single_page = 15
-        expect(helper.update_page_position_single(:next, 5, 15)).to be false
+        expect(helper.update_page_position_single?(:next, 5, 15)).to be false
       end
     end
   end

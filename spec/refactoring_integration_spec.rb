@@ -20,8 +20,8 @@ RSpec.describe "Refactoring Integration" do
       let(:validator) { described_class.new }
 
       it "validates presence" do
-        expect(validator.validate_presence("", :field)).to be false
-        expect(validator.validate_presence("value", :field)).to be true
+        expect(validator.presence_valid?("", :field)).to be false
+        expect(validator.presence_valid?("value", :field)).to be true
       end
     end
 

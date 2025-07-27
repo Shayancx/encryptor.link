@@ -133,7 +133,7 @@ module EbookReader
 
       # Reset page position to beginning
       def reset_page_position
-        @state.set_page_offset(0)
+        @state.page_offset = 0
       end
 
       # Go to previous chapter and position at end

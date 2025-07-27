@@ -30,9 +30,9 @@ RSpec.describe EbookReader::Core::ReaderState do
     end
   end
 
-  describe '#set_page_offset' do
+  describe '#page_offset=' do
     it 'sets all page offsets' do
-      state.set_page_offset(15)
+      state.page_offset = 15
       expect(state.single_page).to eq(15)
       expect(state.left_page).to eq(15)
       expect(state.right_page).to eq(15)
@@ -51,7 +51,7 @@ RSpec.describe EbookReader::Core::ReaderState do
   describe '#to_h and #restore_from' do
     it 'creates and restores snapshots' do
       state.current_chapter = 5
-      state.set_page_offset(20)
+      state.page_offset = 20
       state.mode = :toc
 
       snapshot = state.to_h
@@ -71,7 +71,7 @@ RSpec.describe EbookReader::Core::ReaderState do
   describe '#reset_to_defaults' do
     it 'resets all values to initial state' do
       state.current_chapter = 10
-      state.set_page_offset(50)
+      state.page_offset = 50
       state.mode = :help
       state.running = false
 
