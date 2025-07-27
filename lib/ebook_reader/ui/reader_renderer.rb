@@ -49,8 +49,11 @@ module EbookReader
         left_prog = "[#{chapter + 1}/#{doc.chapter_count}]"
         Terminal.write(footer_row1, 1, BLUE + left_prog + RESET)
 
-        mode_text = "#{view_mode == :split ? '[SPLIT]' : '[SINGLE]'} [#{@config.page_numbering_mode.to_s.upcase}]"
-        Terminal.write(footer_row1, [(width / 2) - 10, 20].max, YELLOW + mode_text + RESET)
+        mode_label = view_mode == :split ? '[SPLIT]' : '[SINGLE]'
+        page_mode = @config.page_numbering_mode.to_s.upcase
+        mode_text = "#{mode_label} [#{page_mode}]"
+        Terminal.write(footer_row1, [(width / 2) - 10, 20].max,
+                       YELLOW + mode_text + RESET)
 
         right_prog = "L#{line_spacing.to_s[0]} B#{bookmarks.count}"
         Terminal.write(footer_row1, [width - right_prog.length - 1, 40].max,

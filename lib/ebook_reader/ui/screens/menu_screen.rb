@@ -3,6 +3,8 @@
 module EbookReader
   module UI
     module Screens
+      # Displays the main application menu and delegates rendering of
+      # individual menu items to a renderer object.
       class MenuScreen
         attr_accessor :selected
 

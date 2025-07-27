@@ -192,8 +192,10 @@ module EbookReader
     end
 
     def should_highlight_line?(line)
-      @config.highlight_quotes &&
-        line =~ /"[^"]+"|'[^']+'|Chinese poets|philosophers|Taoyuen-ming|celebrated|fragrance|plum-blossoms|Linwosing|Chowmushih/
+      return false unless @config.highlight_quotes
+
+      pattern = Regexp.union(Constants::QUOTE_PATTERNS, Constants::HIGHLIGHT_PATTERNS)
+      line.match?(pattern)
     end
 
     def draw_highlighted_line(line, row, start_col, width)
@@ -203,12 +205,13 @@ module EbookReader
     end
 
     def highlight_keywords(line)
-      keywords = /Chinese poets|philosophers|Taoyuen-ming|celebrated|fragrance|plum-blossoms|Linwosing|Chowmushih/
-      line.gsub(keywords) { |match| Terminal::ANSI::CYAN + match + Terminal::ANSI::WHITE }
+      line.gsub(Constants::HIGHLIGHT_PATTERNS) do |match|
+        Terminal::ANSI::CYAN + match + Terminal::ANSI::WHITE
+      end
     end
 
     def highlight_quotes(line)
-      line.gsub(/("[^"]+")|('[^']+')/) do |match|
+      line.gsub(Constants::QUOTE_PATTERNS) do |match|
         Terminal::ANSI::ITALIC + match + Terminal::ANSI::RESET + Terminal::ANSI::WHITE
       end
     end

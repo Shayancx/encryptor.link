@@ -9,7 +9,7 @@ module EbookReader
     #
     # @example
     #   validator = FilePathValidator.new
-    #   if validator.validate("/path/to/book.epub")
+    #   if validator.validate?("/path/to/book.epub")
     #     # Path is valid
     #   else
     #     puts validator.errors
@@ -19,7 +19,7 @@ module EbookReader
       #
       # @param path [String] File path to validate
       # @return [Boolean] Validation result
-      def validate(path)
+      def validate?(path)
         clear_errors
 
         presence_valid?(path, :path) &&

@@ -12,14 +12,14 @@ RSpec.describe 'Comprehensive Validation' do
       allow(File).to receive(:readable?).and_return(true)
       allow(File).to receive(:size).and_return(1000)
 
-      expect(validator.validate('/valid.epub')).to be true
+      expect(validator.validate?('/valid.epub')).to be true
       expect(validator.errors).to be_empty
     end
 
     it 'collects multiple errors' do
       allow(File).to receive(:exist?).and_return(false)
 
-      expect(validator.validate('/missing.txt')).to be false
+      expect(validator.validate?('/missing.txt')).to be false
       expect(validator.errors.map { |e| e[:field] }).to include(:path)
     end
 
@@ -28,7 +28,7 @@ RSpec.describe 'Comprehensive Validation' do
       allow(File).to receive(:readable?).and_return(true)
       allow(File).to receive(:size).and_return(0)
 
-      expect(validator.validate('/empty.epub')).to be false
+      expect(validator.validate?('/empty.epub')).to be false
       expect(validator.errors.last[:message]).to include('empty')
     end
   end

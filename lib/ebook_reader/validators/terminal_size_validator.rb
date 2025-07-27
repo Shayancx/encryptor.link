@@ -20,11 +20,11 @@ module EbookReader
       # @param width [Integer] Terminal width
       # @param height [Integer] Terminal height
       # @return [Boolean] Validation result
-      def validate(width, height)
+      def validate?(width, height)
         clear_errors
 
-        validate_minimum_width(width) &
-          validate_minimum_height(height)
+        validate_minimum_width?(width) &
+          validate_minimum_height?(height)
       end
 
       # Check if terminal meets recommended size
@@ -52,12 +52,12 @@ module EbookReader
 
       private
 
-      def validate_minimum_width(width)
+      def validate_minimum_width?(width)
         range_valid?(width, MIN_WIDTH..Float::INFINITY, :width,
                      "Terminal width must be at least #{MIN_WIDTH} columns")
       end
 
-      def validate_minimum_height(height)
+      def validate_minimum_height?(height)
         range_valid?(height, MIN_HEIGHT..Float::INFINITY, :height,
                      "Terminal height must be at least #{MIN_HEIGHT} rows")
       end

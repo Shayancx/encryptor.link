@@ -3,6 +3,8 @@
 module EbookReader
   module UI
     module Screens
+      # Presents application settings and allows users to toggle
+      # various configuration options.
       class SettingsScreen
         def initialize(config, scanner)
           @config = config
@@ -28,7 +30,7 @@ module EbookReader
           [
             {
               name: 'View Mode',
-              value: @config.view_mode == :split ? 'Split View (Two Pages)' : 'Single Page (Centered)',
+              value: view_mode_description,
               key: '1',
             },
             {
@@ -58,6 +60,10 @@ module EbookReader
               key: '6',
             },
           ]
+        end
+
+        def view_mode_description
+          @config.view_mode == :split ? 'Split View (Two Pages)' : 'Single Page (Centered)'
         end
 
         def render_settings_list(settings, height)

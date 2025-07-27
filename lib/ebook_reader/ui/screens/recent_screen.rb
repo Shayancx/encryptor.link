@@ -3,6 +3,8 @@
 module EbookReader
   module UI
     module Screens
+      # Screen that lists recently opened books and allows
+      # quick navigation back to them.
       class RecentScreen
         attr_accessor :selected
 

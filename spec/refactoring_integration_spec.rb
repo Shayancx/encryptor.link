@@ -43,8 +43,8 @@ RSpec.describe 'Refactoring Integration' do
         allow(File).to receive(:readable?).and_return(true)
         allow(File).to receive(:size).and_return(1000)
 
-        expect(validator.validate('/test.epub')).to be true
-        expect(validator.validate('/test.txt')).to be false
+        expect(validator.validate?('/test.epub')).to be true
+        expect(validator.validate?('/test.txt')).to be false
       end
     end
 
@@ -52,8 +52,8 @@ RSpec.describe 'Refactoring Integration' do
       let(:validator) { described_class.new }
 
       it 'validates terminal dimensions' do
-        expect(validator.validate(80, 24)).to be true
-        expect(validator.validate(10, 5)).to be false
+        expect(validator.validate?(80, 24)).to be true
+        expect(validator.validate?(10, 5)).to be false
       end
     end
   end
