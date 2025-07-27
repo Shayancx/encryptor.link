@@ -11,9 +11,14 @@ module EbookReader
     PROGRESS_FILE = File.join(CONFIG_DIR, 'progress.json')
 
     class << self
+      # Persist the current reading progress for a given path.
+      #
+      # @param path [String] the epub file path
+      # @param chapter [Integer] the chapter index
+      # @param line_offset [Integer] the line offset within the chapter
       def save(path, chapter, line_offset)
         progress = load_all
-        update_progress(progress, path, chapter, line_offset)
+        update_progress(progress, path, chapter: chapter, line_offset: line_offset)
         write_progress(progress)
       end
 
@@ -31,10 +36,15 @@ module EbookReader
 
       private
 
-      def update_progress(progress, path, chapter, line_offset)
+      # Update the provided progress hash with new values for a path.
+      #
+      # @param progress [Hash] the progress hash loaded from disk
+      # @param path [String] the epub file path
+      # @param info [Hash] containing :chapter and :line_offset keys
+      def update_progress(progress, path, info)
         progress[path] = {
-          'chapter' => chapter,
-          'line_offset' => line_offset,
+          'chapter' => info[:chapter],
+          'line_offset' => info[:line_offset],
           'timestamp' => Time.now.iso8601,
         }
       end

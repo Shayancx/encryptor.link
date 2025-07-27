@@ -14,6 +14,8 @@ module EbookReader
   class MainMenu
     include Concerns::InputHandler
 
+    BROWSE_FOOTER_HINTS = '↑↓ Navigate • Enter Open • / Search • r Refresh • ESC Back'
+
     def initialize
       @selected = 0
       @mode = :menu
@@ -107,7 +109,8 @@ module EbookReader
       list_height = [height - 8, 1].max
 
       visible_range = calculate_visible_range(list_height)
-      render_visible_books(visible_range, list_start, list_height, width)
+      metrics = { list_start: list_start, list_height: list_height, width: width }
+      render_visible_books(visible_range, metrics)
       return unless @filtered_epubs.length > list_height
 
       render_scroll_indicator(list_start, list_height,
@@ -125,18 +128,22 @@ module EbookReader
       visible_start...visible_end
     end
 
-    def render_visible_books(range, list_start, list_height, width)
+    def render_visible_books(range, metrics)
+      list_start = metrics[:list_start]
+      list_height = metrics[:list_height]
+      width = metrics[:width]
+
       range.each_with_index do |idx, row|
         next if row >= list_height
 
         book = @filtered_epubs[idx]
         next unless book
 
-        render_book_item(book, idx, list_start + row, width)
+        render_book_item(book, idx, row: list_start + row, width: width)
       end
     end
 
-    def render_book_item(book, idx, row, width)
+    def render_book_item(book, idx, row:, width:)
       name = (book['name'] || 'Unknown')[0, [width - 40, 40].max]
 
       if idx == @browse_selected
@@ -158,15 +165,16 @@ module EbookReader
     end
 
     def render_scroll_indicator(list_start, list_height, width)
-      scroll_pos = @filtered_epubs.length > 1 ? @browse_selected.to_f / (@filtered_epubs.length - 1) : 0
+      denominator = [@filtered_epubs.length - 1, 1].max
+      scroll_pos = @filtered_epubs.length > 1 ? @browse_selected.to_f / denominator : 0
       scroll_row = list_start + (scroll_pos * (list_height - 1)).to_i
       Terminal.write(scroll_row, width - 2, "#{Terminal::ANSI::BRIGHT_CYAN}▐#{Terminal::ANSI::RESET}")
     end
 
     def render_browse_footer(height, _width)
+      hint = "#{@filtered_epubs.length} books • #{BROWSE_FOOTER_HINTS}"
       Terminal.write(height - 1, 2,
-                     Terminal::ANSI::DIM + "#{@filtered_epubs.length} books • " \
-                                           '↑↓ Navigate • Enter Open • / Search • r Refresh • ESC Back' + Terminal::ANSI::RESET)
+                     Terminal::ANSI::DIM + hint + Terminal::ANSI::RESET)
     end
 
     def draw_recent_screen(height, width)
@@ -312,25 +320,31 @@ module EbookReader
     end
 
     def open_book(path)
-      unless File.exist?(path)
-        @scanner.scan_message = 'File not found'
-        @scanner.scan_status = :error
-        return
-      end
+      return file_not_found unless File.exist?(path)
 
-      begin
-        Terminal.cleanup
-        RecentFiles.add(path)
-        reader = Reader.new(path, @config)
-        reader.run
-      rescue StandardError => e
-        Infrastructure::Logger.error('Failed to open book', error: e.message, path:)
-        @scanner.scan_message = "Failed: #{e.class}: #{e.message[0, 60]}"
-        @scanner.scan_status = :error
-        puts e.backtrace.join("\n") if EPUBFinder::DEBUG_MODE
-      ensure
-        Terminal.setup
-      end
+      run_reader(path)
+    rescue StandardError => e
+      handle_reader_error(path, e)
+    ensure
+      Terminal.setup
+    end
+
+    def run_reader(path)
+      Terminal.cleanup
+      RecentFiles.add(path)
+      Reader.new(path, @config).run
+    end
+
+    def file_not_found
+      @scanner.scan_message = 'File not found'
+      @scanner.scan_status = :error
+    end
+
+    def handle_reader_error(path, error)
+      Infrastructure::Logger.error('Failed to open book', error: error.message, path: path)
+      @scanner.scan_message = "Failed: #{error.class}: #{error.message[0, 60]}"
+      @scanner.scan_status = :error
+      puts error.backtrace.join("\n") if EPUBFinder::DEBUG_MODE
     end
 
     def open_file_dialog
