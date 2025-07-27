@@ -10,7 +10,7 @@ module EbookReader
       # Minimum terminal dimensions
       MIN_WIDTH = Constants::UIConstants::MIN_WIDTH
       MIN_HEIGHT = Constants::UIConstants::MIN_HEIGHT
-      
+
       # Recommended terminal dimensions for optimal experience
       RECOMMENDED_WIDTH = 80
       RECOMMENDED_HEIGHT = 24
@@ -22,7 +22,7 @@ module EbookReader
       # @return [Boolean] Validation result
       def validate(width, height)
         clear_errors
-        
+
         validate_minimum_width(width) &
           validate_minimum_height(height)
       end
@@ -54,12 +54,12 @@ module EbookReader
 
       def validate_minimum_width(width)
         validate_range(width, MIN_WIDTH..Float::INFINITY, :width,
-                      "Terminal width must be at least #{MIN_WIDTH} columns")
+                       "Terminal width must be at least #{MIN_WIDTH} columns")
       end
 
       def validate_minimum_height(height)
         validate_range(height, MIN_HEIGHT..Float::INFINITY, :height,
-                      "Terminal height must be at least #{MIN_HEIGHT} rows")
+                       "Terminal height must be at least #{MIN_HEIGHT} rows")
       end
     end
   end

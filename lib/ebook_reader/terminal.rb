@@ -113,7 +113,7 @@ module EbookReader
       def setup
         $stdout.sync = true
         @console = IO.console
-        @console.raw! if @console && @console.respond_to?(:raw!)
+        @console.raw! if @console.respond_to?(:raw!)
         print [
           ANSI::Control::SAVE_SCREEN,
           ANSI::Control::HIDE_CURSOR,
@@ -133,9 +133,7 @@ module EbookReader
           ANSI::RESET
         ].join
         $stdout.flush
-        if @console && @console.respond_to?(:cooked!)
-          @console.cooked!
-        end
+        @console.cooked! if @console.respond_to?(:cooked!)
         @console = nil
       end
 
@@ -148,11 +146,9 @@ module EbookReader
           return input unless input == "\e"
 
           loop do
-            begin
-              input << $stdin.read_nonblock(1)
-            rescue IO::WaitReadable
-              break
-            end
+            input << $stdin.read_nonblock(1)
+          rescue IO::WaitReadable
+            break
           end
 
           input

@@ -21,7 +21,7 @@ module EbookReader
       # @return [Boolean] Validation result
       def validate(path)
         clear_errors
-        
+
         validate_presence(path, :path) &&
           validate_exists(path) &&
           validate_readable(path) &&

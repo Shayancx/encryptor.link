@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::Concerns::BookmarksUI do
@@ -7,6 +9,7 @@ RSpec.describe EbookReader::Concerns::BookmarksUI do
       include EbookReader::Concerns::BookmarksUI
       include EbookReader::Constants::UIConstants
       attr_accessor :bookmarks, :bookmark_selected
+
       def initialize(doc, bookmarks)
         @doc = doc
         @bookmarks = bookmarks

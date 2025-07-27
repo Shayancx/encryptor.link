@@ -372,10 +372,6 @@ module EbookReader
       @input_handler.handle_browse_input(key)
     end
 
-    def navigation_key?(key)
-      super
-    end
-
     def navigate_browse(key)
       return unless @filtered_epubs.any?
 

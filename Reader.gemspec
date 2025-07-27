@@ -29,15 +29,16 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   # Runtime dependencies
-  spec.add_dependency 'rubyzip', '~> 2.3'
   spec.add_dependency 'rexml', '~> 3.2'
+  spec.add_dependency 'rubyzip', '~> 2.3'
 
   # Development dependencies
   spec.add_development_dependency 'bundler', '~> 2.0'
+  spec.add_development_dependency 'fakefs', '~> 2.5'
   spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'reek', '~> 6.1'
   spec.add_development_dependency 'rspec', '~> 3.12'
   spec.add_development_dependency 'rubocop', '~> 1.50'
   spec.add_development_dependency 'simplecov', '~> 0.22'
-  spec.add_development_dependency 'fakefs', '~> 2.5'
-  spec.add_development_dependency 'reek', '~> 6.1'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end

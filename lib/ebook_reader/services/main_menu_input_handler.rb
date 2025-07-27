@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EbookReader
   module Services
     # Handles all key input for MainMenu so the menu class focuses

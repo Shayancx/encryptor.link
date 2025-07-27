@@ -10,34 +10,34 @@ module EbookReader
     class ReaderState
       # Current chapter index (0-based)
       attr_accessor :current_chapter
-      
+
       # Current page offset in split view mode
       attr_accessor :left_page, :right_page
-      
+
       # Current page offset in single view mode
       attr_accessor :single_page
-      
+
       # Current reader mode (:read, :help, :toc, :bookmarks)
       attr_accessor :mode
-      
+
       # Selected item in ToC view
       attr_accessor :toc_selected
-      
+
       # Selected item in bookmarks view
       attr_accessor :bookmark_selected
-      
+
       # Temporary message to display
       attr_accessor :message
-      
+
       # Whether the reader is still running
       attr_accessor :running
-      
+
       # Cached page map for navigation
       attr_accessor :page_map
-      
+
       # Total pages across all chapters
       attr_accessor :total_pages
-      
+
       # Last known terminal dimensions
       attr_accessor :last_width, :last_height
 

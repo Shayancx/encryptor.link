@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "infrastructure/logger"
 require_relative "infrastructure/performance_monitor"
 
@@ -29,6 +30,7 @@ module EbookReader
 
     def get_chapter(index)
       return nil if @chapters.empty?
+
       @chapters[index] if index >= 0 && index < @chapters.size
     end
 
@@ -73,29 +75,25 @@ module EbookReader
         zip.each do |entry|
           # Skip directories
           next if entry.name.end_with?('/')
-          
+
           dest = File.join(tmpdir, entry.name)
           FileUtils.mkdir_p(File.dirname(dest))
-          
+
           # CRITICAL FIX: Handle different rubyzip versions
-          if !File.exist?(dest)
-            begin
-              # First try the standard way
-              entry.extract(dest)
-            rescue ArgumentError => e
-              if e.message.include?("wrong number of arguments")
-                # For rubyzip versions that don't accept parameters
-                # Use the block form which works in all versions
-                zip.extract(entry, dest) { true }
-              else
-                raise
-              end
-            rescue => e
-              # Ultimate fallback - read and write manually
-              File.open(dest, 'wb') do |f|
-                f.write(zip.read(entry))
-              end
-            end
+          next if File.exist?(dest)
+
+          begin
+            # First try the standard way
+            entry.extract(dest)
+          rescue ArgumentError => e
+            raise unless e.message.include?("wrong number of arguments")
+
+            # For rubyzip versions that don't accept parameters
+            # Use the block form which works in all versions
+            zip.extract(entry, dest) { true }
+          rescue StandardError
+            # Ultimate fallback - read and write manually
+            File.binwrite(dest, zip.read(entry))
           end
         end
       end

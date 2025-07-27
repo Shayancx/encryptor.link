@@ -27,17 +27,17 @@ module EbookReader
         def time(label)
           start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           start_memory = current_memory_usage
-          
+
           result = yield
-          
+
           end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           end_memory = current_memory_usage
-          
+
           duration = end_time - start_time
           memory_delta = end_memory - start_memory
-          
+
           record_metric(label, duration, memory_delta)
-          
+
           result
         end
 
@@ -52,13 +52,13 @@ module EbookReader
             duration: duration,
             memory_delta: memory_delta
           }
-          
+
           # Log slow operations
-          if duration > 1.0
-            Logger.warn("Slow operation detected",
-                       label: label,
-                       duration: "#{(duration * 1000).round(2)}ms")
-          end
+          return unless duration > 1.0
+
+          Logger.warn("Slow operation detected",
+                      label: label,
+                      duration: "#{(duration * 1000).round(2)}ms")
         end
 
         # Get statistics for a metric
@@ -68,9 +68,9 @@ module EbookReader
         def stats(label)
           data = metrics[label]
           return nil if data.empty?
-          
+
           durations = data.map { |m| m[:duration] }
-          
+
           {
             count: data.size,
             total: durations.sum,
@@ -94,7 +94,7 @@ module EbookReader
         def current_memory_usage
           # This is a simplified version - in production you might use
           # more sophisticated memory profiling
-          GC.stat[:total_allocated_objects] * 40  # Rough estimate
+          GC.stat[:total_allocated_objects] * 40 # Rough estimate
         end
       end
     end

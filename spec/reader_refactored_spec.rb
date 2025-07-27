@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::ReaderRefactored do
@@ -127,13 +129,13 @@ RSpec.describe EbookReader::ReaderRefactored do
 
     it 'renders page indicator when enabled' do
       helper.render_page_indicator(2, 1, 10, 20, 0, 10, Array.new(30))
-      expect(EbookReader::Terminal).to have_received(:write).with(21, anything, /1\/3/)
+      expect(EbookReader::Terminal).to have_received(:write).with(21, anything, %r{1/3})
     end
   end
 
   describe 'BookmarkHelpers' do
     it 'creates bookmark data' do
-      chapter = { lines: ['one', 'two', 'three'] }
+      chapter = { lines: %w[one two three] }
       allow(doc).to receive(:get_chapter).and_return(chapter)
       data = helper.create_bookmark_data
       expect(data[:path]).to eq('/book.epub')

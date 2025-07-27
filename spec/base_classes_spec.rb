@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::Renderers::BaseRenderer do
@@ -33,7 +35,7 @@ RSpec.describe EbookReader::ReaderModes::BaseMode do
   end
 
   it 'raises NotImplementedError for draw' do
-    expect { mode.draw(1,1) }.to raise_error(NotImplementedError)
+    expect { mode.draw(1, 1) }.to raise_error(NotImplementedError)
   end
 
   it 'raises NotImplementedError for handle_input' do

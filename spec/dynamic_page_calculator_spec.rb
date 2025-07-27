@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe EbookReader::DynamicPageCalculator do
   let(:dummy_doc) do
     instance_double('EPUBDocument', chapters: [
-      { lines: Array.new(20, 'line') },
-      { lines: Array.new(20, 'line') }
-    ])
+                      { lines: Array.new(20, 'line') },
+                      { lines: Array.new(20, 'line') }
+                    ])
   end
 
   let(:config) do

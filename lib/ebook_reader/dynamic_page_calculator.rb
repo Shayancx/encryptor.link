@@ -11,17 +11,15 @@ module EbookReader
       height, width = Terminal.size
       col_width, content_height = get_layout_metrics(width, height)
       actual_height = adjust_for_line_spacing(content_height)
-      
+
       return { current: 0, total: 0 } if actual_height <= 0
 
       # Build page map for entire book if terminal size changed
-      if size_changed?(width, height) || @dynamic_page_map.nil?
-        build_dynamic_page_map(col_width, actual_height)
-      end
+      build_dynamic_page_map(col_width, actual_height) if size_changed?(width, height) || @dynamic_page_map.nil?
 
       # Calculate current position in entire book
       current_global_page = calculate_global_page_position(actual_height)
-      
+
       { current: current_global_page, total: @dynamic_total_pages }
     end
 
@@ -35,35 +33,34 @@ module EbookReader
       # Calculate pages for each chapter
       @doc.chapters.each_with_index do |chapter, idx|
         @dynamic_chapter_starts << total_lines
-        
+
         # Wrap lines for current display width
         wrapped = wrap_lines(chapter[:lines] || [], col_width)
         chapter_lines = wrapped.size
         chapter_pages = (chapter_lines.to_f / lines_per_page).ceil
-        
+
         @dynamic_page_map << {
           chapter_index: idx,
           lines: chapter_lines,
           pages: chapter_pages,
           start_line: total_lines
         }
-        
+
         total_lines += chapter_lines
       end
 
       # Calculate total pages for entire book
       @dynamic_total_pages = (total_lines.to_f / lines_per_page).ceil
       @dynamic_total_pages = 1 if @dynamic_total_pages < 1
-      
+
       # Store for resize detection
       @last_dynamic_width = Terminal.size[1]
       @last_dynamic_height = Terminal.size[0]
-      
-      Infrastructure::Logger.debug("Dynamic page map built", 
-        total_pages: @dynamic_total_pages,
-        total_lines: total_lines,
-        lines_per_page: lines_per_page
-      )
+
+      Infrastructure::Logger.debug("Dynamic page map built",
+                                   total_pages: @dynamic_total_pages,
+                                   total_lines: total_lines,
+                                   lines_per_page: lines_per_page)
     end
 
     def calculate_global_page_position(lines_per_page)
@@ -71,16 +68,16 @@ module EbookReader
 
       # Get current line offset within chapter
       current_line_offset = @config.view_mode == :split ? @left_page : @single_page
-      
+
       # Calculate total lines before current chapter
       lines_before = @dynamic_chapter_starts[@current_chapter] || 0
-      
+
       # Total lines up to current position
       total_lines_read = lines_before + current_line_offset
-      
+
       # Convert to page number (1-based)
       current_page = (total_lines_read.to_f / lines_per_page).floor + 1
-      
+
       # Ensure within bounds
       [current_page, @dynamic_total_pages].min
     end

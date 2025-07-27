@@ -93,7 +93,7 @@ module EbookReader
           return if LEVELS[severity] < LEVELS[@level || :info]
 
           entry = build_log_entry(severity, message, metadata)
-          (@output || STDERR).puts(entry)
+          (@output || $stderr).puts(entry)
         rescue StandardError
           # Logging should never crash the application
         end

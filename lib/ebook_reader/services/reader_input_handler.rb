@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EbookReader
   module Services
     # Handles user input for the Reader class so the reader itself
@@ -85,9 +87,9 @@ module EbookReader
       end
 
       def handle_next_chapter
-        if @reader.current_chapter < @reader.doc.chapter_count - 1
-          @reader.next_chapter
-        end
+        return unless @reader.current_chapter < @reader.doc.chapter_count - 1
+
+        @reader.next_chapter
       end
 
       def handle_prev_chapter

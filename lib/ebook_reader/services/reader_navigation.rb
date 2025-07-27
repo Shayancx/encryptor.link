@@ -50,12 +50,10 @@ module EbookReader
           elsif can_go_to_next_chapter?
             go_to_next_chapter
           end
-        else
-          if @state.single_page < max_page
-            @state.single_page = [@state.single_page + content_height, max_page].min
-          elsif can_go_to_next_chapter?
-            go_to_next_chapter
-          end
+        elsif @state.single_page < max_page
+          @state.single_page = [@state.single_page + content_height, max_page].min
+        elsif can_go_to_next_chapter?
+          go_to_next_chapter
         end
       end
 
@@ -64,18 +62,16 @@ module EbookReader
       # @param content_height [Integer] Lines per page
       def previous_page(content_height)
         if @config.view_mode == :split
-          if @state.left_page > 0
+          if @state.left_page.positive?
             @state.right_page = @state.left_page
             @state.left_page = [@state.left_page - content_height, 0].max
           elsif can_go_to_previous_chapter?
             go_to_previous_chapter_end
           end
-        else
-          if @state.single_page > 0
-            @state.single_page = [@state.single_page - content_height, 0].max
-          elsif can_go_to_previous_chapter?
-            go_to_previous_chapter_end
-          end
+        elsif @state.single_page.positive?
+          @state.single_page = [@state.single_page - content_height, 0].max
+        elsif can_go_to_previous_chapter?
+          go_to_previous_chapter_end
         end
       end
 
@@ -130,7 +126,7 @@ module EbookReader
       #
       # @return [Boolean]
       def can_go_to_previous_chapter?
-        @state.current_chapter > 0
+        @state.current_chapter.positive?
       end
 
       private

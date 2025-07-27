@@ -309,13 +309,12 @@ module EbookReader
     end
 
     def get_layout_metrics(width, height)
-      if @config.view_mode == :split
-        col_width = [(width - 3) / 2, MIN_COLUMN_WIDTH].max
-        content_height = [height - 2, 1].max
-      else
-        col_width = (width * 0.9).to_i.clamp(30, 120)
-        content_height = [height - 2, 1].max
-      end
+      col_width = if @config.view_mode == :split
+                    [(width - 3) / 2, MIN_COLUMN_WIDTH].max
+                  else
+                    (width * 0.9).to_i.clamp(30, 120)
+                  end
+      content_height = [height - 2, 1].max
       [col_width, content_height]
     end
 
@@ -443,7 +442,7 @@ module EbookReader
         calculate_dynamic_pages
       else
         height, width = Terminal.size
-        col_width, content_height = get_layout_metrics(width, height)
+        _, content_height = get_layout_metrics(width, height)
         actual_height = adjust_for_line_spacing(content_height)
         return { current: 0, total: 0 } if actual_height <= 0
 

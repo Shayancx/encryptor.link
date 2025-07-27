@@ -1,14 +1,22 @@
+# frozen_string_literal: true
+
 module EbookReader
   class MainMenu
     private
-    
-    alias_method :original_open_book, :open_book if private_method_defined?(:open_book)
-    
+
+    alias original_open_book open_book if private_method_defined?(:open_book)
+
     def open_book(path)
       puts "\n[DEBUG] Attempting to open: #{path}" if ENV['DEBUG']
       puts "[DEBUG] File exists: #{File.exist?(path)}" if ENV['DEBUG']
-      puts "[DEBUG] File size: #{File.size(path) rescue 'N/A'}" if ENV['DEBUG']
-      
+      if ENV['DEBUG']
+        puts "[DEBUG] File size: #{begin
+          File.size(path)
+        rescue StandardError
+          'N/A'
+        end}"
+      end
+
       unless File.exist?(path)
         @scanner.scan_message = 'File not found'
         @scanner.scan_status = :error
@@ -18,10 +26,10 @@ module EbookReader
       begin
         Terminal.cleanup
         RecentFiles.add(path)
-        
+
         puts "[DEBUG] Creating EPUBDocument..." if ENV['DEBUG']
         reader = Reader.new(path, @config)
-        
+
         puts "[DEBUG] Starting reader.run..." if ENV['DEBUG']
         reader.run
       rescue ArgumentError => e

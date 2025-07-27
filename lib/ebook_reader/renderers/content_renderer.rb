@@ -42,7 +42,7 @@ module EbookReader
         [(width - SPLIT_VIEW_DIVIDER_WIDTH) / 2, MIN_COLUMN_WIDTH].max
       end
 
-      def calculate_content_height(height, mode)
+      def calculate_content_height(height, _mode)
         base_height = height - HEADER_HEIGHT - FOOTER_HEIGHT
 
         if @config.line_spacing == :relaxed

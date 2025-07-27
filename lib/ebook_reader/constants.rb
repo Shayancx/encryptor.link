@@ -26,14 +26,14 @@ module EbookReader
     CACHE_FILE = 'epub_cache.json'
 
     # Scanning limits
-    SCAN_TIMEOUT = 20         # Maximum time for system scan in seconds
+    SCAN_TIMEOUT = 20 # Maximum time for system scan in seconds
     MAX_DEPTH = 3            # Maximum directory depth for scanning
     MAX_FILES = 500          # Maximum number of EPUB files to index
     CACHE_DURATION = 86_400  # Cache validity in seconds (24 hours)
     MIN_FILE_SIZE = 100      # Minimum EPUB file size in bytes
 
     # Performance limits
-    MAX_LINE_LENGTH = 120    # Maximum line length before wrapping
+    MAX_LINE_LENGTH = 120 # Maximum line length before wrapping
     MAX_CHAPTER_SIZE = 1_000_000  # Maximum chapter size in bytes
     RENDER_BUFFER_SIZE = 100      # Number of lines to buffer for rendering
     SCROLL_INDICATOR_WIDTH = 2    # Width of scroll indicator
@@ -94,8 +94,8 @@ module EbookReader
     DEFAULT_LOG_LEVEL = DEBUG_MODE ? :debug : :info
 
     # Performance thresholds
-    SLOW_OPERATION_THRESHOLD = 1.0  # seconds
-    MEMORY_WARNING_THRESHOLD = 100_000_000  # bytes (100MB)
+    SLOW_OPERATION_THRESHOLD = 1.0 # seconds
+    MEMORY_WARNING_THRESHOLD = 100_000_000 # bytes (100MB)
 
     # UI Layout
     MIN_MENU_COLUMN_WIDTH = 20
@@ -103,24 +103,24 @@ module EbookReader
     RECENT_ITEM_HEIGHT = 2
     BOOKMARK_ITEM_HEIGHT = 2
     TOC_SCROLL_PADDING = 2
-    
+
     # ASCII Art dimensions
     LOGO_LINE_COUNT = 6
     LOGO_SPACING = 5
     MENU_START_OFFSET = 15
-    
+
     # Browse screen
     SEARCH_BAR_ROW = 3
     SEARCH_PROMPT_WIDTH = 8
     STATUS_ROW = 4
     LIST_START_ROW = 6
-    
+
     # Reader layout calculations
     CHAPTER_HEADER_ROW = 2
     DIVIDER_START_ROW = 3
     SINGLE_VIEW_WIDTH_PERCENT = 0.9
     PAGE_NUMBER_PADDING = 2
-    
+
     # Error handling
     MAX_ERROR_MESSAGE_LENGTH = 200
     ERROR_CHAPTER_LINE_COUNT = 11

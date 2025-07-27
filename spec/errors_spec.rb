@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe "Error Classes" do
@@ -9,7 +11,7 @@ RSpec.describe "Error Classes" do
       expect(error.file_path).to eq("/path/to/book.epub")
     end
   end
-  
+
   describe EbookReader::FileNotFoundError do
     it 'creates proper error message' do
       error = described_class.new("/missing/file.epub")
@@ -18,7 +20,7 @@ RSpec.describe "Error Classes" do
       expect(error.file_path).to eq("/missing/file.epub")
     end
   end
-  
+
   describe EbookReader::TerminalSizeError do
     it 'includes size requirements in message' do
       error = described_class.new(30, 8)
@@ -26,7 +28,7 @@ RSpec.describe "Error Classes" do
       expect(error.message).to include("40x10") # minimum size
     end
   end
-  
+
   describe EbookReader::InvalidStateError do
     it 'includes state information' do
       state = { chapter: -1, page: 0 }
@@ -35,7 +37,7 @@ RSpec.describe "Error Classes" do
       expect(error.state).to eq(state)
     end
   end
-  
+
   describe EbookReader::NavigationError do
     it 'includes direction and reason' do
       error = described_class.new("forward", "at end of book")
@@ -45,7 +47,7 @@ RSpec.describe "Error Classes" do
       expect(error.reason).to eq("at end of book")
     end
   end
-  
+
   describe EbookReader::BookmarkError do
     it 'includes operation details' do
       error = described_class.new("add", "file is read-only")
@@ -54,7 +56,7 @@ RSpec.describe "Error Classes" do
       expect(error.operation).to eq("add")
     end
   end
-  
+
   describe EbookReader::RenderError do
     it 'includes component information' do
       error = described_class.new("HeaderRenderer", "invalid state")
