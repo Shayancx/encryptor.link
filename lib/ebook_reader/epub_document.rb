@@ -10,6 +10,7 @@ require 'fileutils'
 require 'cgi'
 require_relative 'helpers/html_processor'
 require_relative 'helpers/opf_processor'
+require_relative 'models/chapter'
 
 module EbookReader
   # EPUB document class
@@ -58,11 +59,14 @@ module EbookReader
     end
 
     def create_error_chapter(error)
-      @chapters = [{
-        number: '1',
-        title: 'Error Loading',
-        lines: ["Error: #{error.message}"]
-      }]
+      @chapters = [
+        Models::Chapter.new(
+          number: '1',
+          title: 'Error Loading',
+          lines: ["Error: #{error.message}"],
+          metadata: nil
+        )
+      ]
     end
 
     # Extract all files from the EPUB archive into the given temporary
@@ -150,11 +154,12 @@ module EbookReader
     def ensure_chapters_exist
       return unless @chapters.empty?
 
-      @chapters << {
+      @chapters << Models::Chapter.new(
         number: '1',
         title: 'Empty Book',
-        lines: ['This EPUB appears to be empty.']
-      }
+        lines: ['This EPUB appears to be empty.'],
+        metadata: nil
+      )
     end
 
     # Load a single chapter HTML file and convert it to plain text lines.
@@ -168,11 +173,12 @@ module EbookReader
       text = Helpers::HTMLProcessor.html_to_text(content)
       lines = text.split("\n").reject { |line| line.strip.empty? }
 
-      {
+      Models::Chapter.new(
         number: number.to_s,
-        title:,
-        lines:
-      }
+        title: title,
+        lines: lines,
+        metadata: nil
+      )
     rescue Errno::ENOENT, REXML::ParseException
       nil
     end

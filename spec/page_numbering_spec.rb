@@ -11,8 +11,8 @@ RSpec.describe EbookReader::Reader do
                     language: "en",
                     chapter_count: 2,
                     chapters: [
-                      { title: "Ch1", lines: Array.new(100, "Line") },
-                      { title: "Ch2", lines: Array.new(50, "Line") }
+                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(100, 'Line'), metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(50, 'Line'), metadata: nil)
                     ])
   end
   let(:reader) { described_class.new(epub_path, config) }

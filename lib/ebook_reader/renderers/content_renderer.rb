@@ -13,7 +13,7 @@ module EbookReader
         col_start = center_column(width, col_width)
         content_height = calculate_content_height(height, :single)
 
-        wrapped = wrap_lines(chapter[:lines] || [], col_width)
+        wrapped = wrap_lines(chapter.lines || [], col_width)
         start_row = center_vertically(height, content_height)
 
         draw_column(start_row, col_start, col_width, content_height, wrapped, page_offset, false)
@@ -24,7 +24,7 @@ module EbookReader
 
         col_width = calculate_split_column_width(width)
         content_height = calculate_content_height(height, :split)
-        wrapped = wrap_lines(chapter[:lines] || [], col_width)
+        wrapped = wrap_lines(chapter.lines || [], col_width)
 
         draw_chapter_header(chapter, width)
         draw_left_column(wrapped, col_width, content_height, left_offset)
@@ -71,7 +71,7 @@ module EbookReader
       end
 
       def draw_chapter_header(chapter, width)
-        title = "[#{chapter[:number] || 1}] #{chapter[:title] || 'Unknown'}"
+        title = "[#{chapter.number || 1}] #{chapter.title || 'Unknown'}"
         write(2, 1, with_color(Terminal::ANSI::BLUE, title[0, width - 2]))
       end
 

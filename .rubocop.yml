@@ -1,35 +1,105 @@
 AllCops:
-  TargetRubyVersion: 3.3
+  TargetRubyVersion: 3.2
   NewCops: enable
   Exclude:
     - 'bin/**/*'
     - 'vendor/**/*'
+    - 'tmp/**/*'
   SuggestExtensions: false
 
-Metrics/ClassLength:
-  Max: 700
-Metrics/MethodLength:
-  Max: 35
-Metrics/AbcSize:
-  Max: 40
-Metrics/CyclomaticComplexity:
-  Max: 15
-Metrics/PerceivedComplexity:
-  Max: 15
-Metrics/ParameterLists:
-  Max: 9
+# Layout
 Layout/LineLength:
-  Max: 130
-Style/Documentation:
-  Enabled: false
-Style/StringLiterals:
-  Enabled: false
-# Style/RedundantStringEscape:
-#   Enabled: false
+  Max: 100
+  AllowedPatterns:
+    - '\A\s*#'
+
+# Metrics
+Metrics/ClassLength:
+  Max: 100
+  CountComments: false
+
+Metrics/ModuleLength:
+  Max: 100
+  CountComments: false
+
+Metrics/MethodLength:
+  Max: 10
+  CountComments: false
+  ExcludedMethods:
+    - 'initialize'
+
+Metrics/AbcSize:
+  Max: 15
+
+Metrics/CyclomaticComplexity:
+  Max: 6
+
+Metrics/PerceivedComplexity:
+  Max: 7
+
+Metrics/ParameterLists:
+  Max: 3
+  CountKeywordArgs: false
+
 Metrics/BlockLength:
+  Max: 25
   AllowedMethods:
     - describe
     - context
     - feature
     - scenario
+    - let
     - before
+    - after
+
+# Style
+Style/Documentation:
+  Enabled: true
+  Exclude:
+    - 'spec/**/*'
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+  ConsistentQuotesInMultiline: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/GuardClause:
+  Enabled: true
+  MinBodyLength: 1
+
+Style/ModuleFunction:
+  Enabled: true
+  EnforcedStyle: module_function
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+# Security
+Security/Eval:
+  Enabled: true
+
+Security/Open:
+  Enabled: true
+
+# Performance
+Performance/Count:
+  Enabled: true
+
+Performance/Detect:
+  Enabled: true
+
+# Additional cops
+Lint/UselessAssignment:
+  Enabled: true
+
+Lint/DuplicateMethods:
+  Enabled: true
+
+Rails:
+  Enabled: false

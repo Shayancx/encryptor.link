@@ -46,15 +46,15 @@ module EbookReader
       def draw_bookmark_items(range, list_start, width)
         range.each_with_index do |idx, row_idx|
           bookmark = @bookmarks[idx]
-          chapter_title = @doc.get_chapter(bookmark['chapter'])&.[](:title) || "Chapter #{bookmark['chapter'] + 1}"
+          chapter_title = @doc.get_chapter(bookmark.chapter_index)&.title || "Chapter #{bookmark.chapter_index + 1}"
 
           draw_bookmark_item(bookmark, chapter_title, idx, list_start + (row_idx * 2), width)
         end
       end
 
       def draw_bookmark_item(bookmark, chapter_title, idx, row, width)
-        line1 = "Ch. #{bookmark['chapter'] + 1}: #{chapter_title}"
-        line2 = "  > #{bookmark['text']}"
+        line1 = "Ch. #{bookmark.chapter_index + 1}: #{chapter_title}"
+        line2 = "  > #{bookmark.text_snippet}"
 
         if idx == @bookmark_selected
           draw_selected_bookmark_item(row, width, line1, line2)

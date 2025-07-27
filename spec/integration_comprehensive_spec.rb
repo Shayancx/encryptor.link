@@ -53,7 +53,7 @@ RSpec.describe "Integration Tests Comprehensive" do
       expect(recent.first['path']).to eq('/book1.epub')
 
       bookmarks = EbookReader::BookmarkManager.get('/book1.epub')
-      expect(bookmarks.first['text']).to eq('Test')
+      expect(bookmarks.first.text_snippet).to eq('Test')
 
       progress = EbookReader::ProgressManager.load('/book1.epub')
       expect(progress['chapter']).to eq(1)

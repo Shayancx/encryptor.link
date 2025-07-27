@@ -77,16 +77,16 @@ RSpec.describe EbookReader::Reader, "comprehensive" do
       expect(error_doc.chapter_count).to eq(1)
 
       chapter = error_doc.get_chapter(0)
-      expect(chapter[:lines]).to include("Test error")
-      expect(chapter[:lines]).to include("Press 'q' to return to the menu")
+      expect(chapter.lines).to include("Test error")
+      expect(chapter.lines).to include("Press 'q' to return to the menu")
     end
   end
 
   describe 'bookmark handling' do
     it 'handles bookmark deletion when selected index becomes invalid' do
       reader.instance_variable_set(:@bookmarks, [
-                                     { 'chapter' => 0, 'line_offset' => 0, 'text' => 'B1' },
-                                     { 'chapter' => 0, 'line_offset' => 5, 'text' => 'B2' }
+                                     EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 0, text_snippet: 'B1', created_at: Time.now),
+                                     EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 5, text_snippet: 'B2', created_at: Time.now)
                                    ])
       reader.instance_variable_set(:@bookmark_selected, 1)
 

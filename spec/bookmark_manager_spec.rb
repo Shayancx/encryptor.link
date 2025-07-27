@@ -16,9 +16,10 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
       described_class.add(book_path, 0, 10, "Sample text")
       bookmarks = described_class.get(book_path)
       expect(bookmarks.size).to eq(1)
-      expect(bookmarks.first['chapter']).to eq(0)
-      expect(bookmarks.first['line_offset']).to eq(10)
-      expect(bookmarks.first['text']).to eq("Sample text")
+      bm = bookmarks.first
+      expect(bm.chapter_index).to eq(0)
+      expect(bm.line_offset).to eq(10)
+      expect(bm.text_snippet).to eq("Sample text")
     end
 
     it "sorts bookmarks by chapter and line offset" do
@@ -27,9 +28,9 @@ RSpec.describe EbookReader::BookmarkManager, fake_fs: true do
       described_class.add(book_path, 0, 30, "Text 0")
 
       bookmarks = described_class.get(book_path)
-      expect(bookmarks[0]['chapter']).to eq(0)
-      expect(bookmarks[1]['line_offset']).to eq(10)
-      expect(bookmarks[2]['line_offset']).to eq(20)
+      expect(bookmarks[0].chapter_index).to eq(0)
+      expect(bookmarks[1].line_offset).to eq(10)
+      expect(bookmarks[2].line_offset).to eq(20)
     end
   end
 

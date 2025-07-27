@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe EbookReader::Concerns::BookmarksUI do
-  let(:doc) { double('doc', get_chapter: { title: 'Ch1' }) }
+  let(:doc) { double('doc', get_chapter: double('chapter', title: 'Ch1')) }
   let(:dummy_class) do
     Class.new do
       include EbookReader::Concerns::BookmarksUI
@@ -20,8 +20,8 @@ RSpec.describe EbookReader::Concerns::BookmarksUI do
 
   let(:bookmarks) do
     [
-      { 'chapter' => 0, 'line_offset' => 10, 'text' => 'First' },
-      { 'chapter' => 1, 'line_offset' => 20, 'text' => 'Second' }
+      EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 10, text_snippet: 'First', created_at: Time.now),
+      EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 20, text_snippet: 'Second', created_at: Time.now)
     ]
   end
 

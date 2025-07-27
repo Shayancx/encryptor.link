@@ -9,8 +9,8 @@ RSpec.describe EbookReader::Reader, "navigation" do
     instance_double(EbookReader::EPUBDocument,
                     title: "Test Book",
                     chapters: [
-                      { title: "Ch1", lines: Array.new(100) { |i| "Line #{i + 1}" } },
-                      { title: "Ch2", lines: ["Chapter 2, Line 1"] }
+                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(100) { |i| "Line #{i + 1}" }, metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: ["Chapter 2, Line 1"], metadata: nil)
                     ],
                     chapter_count: 2)
   end
@@ -73,7 +73,7 @@ RSpec.describe EbookReader::Reader, "navigation" do
     it 'goes to the end of a chapter' do
       reader.send(:handle_navigation_input, 'G')
       chapter = doc.get_chapter(0)
-      wrapped_lines = reader.send(:wrap_lines, chapter[:lines], 72)
+      wrapped_lines = reader.send(:wrap_lines, chapter.lines, 72)
       content_height = reader.send(:adjust_for_line_spacing, 22)
       max_page = wrapped_lines.size - content_height
       expect(reader.instance_variable_get(:@single_page)).to eq(max_page)

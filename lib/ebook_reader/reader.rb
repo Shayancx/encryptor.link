@@ -94,7 +94,7 @@ module EbookReader
       chapter = @doc.get_chapter(@current_chapter)
       return unless chapter
 
-      wrapped = wrap_lines(chapter[:lines] || [], col_width)
+      wrapped = wrap_lines(chapter.lines || [], col_width)
       max_page = [wrapped.size - content_height, 0].max
 
       if @config.view_mode == :split
@@ -128,7 +128,7 @@ module EbookReader
       chapter = @doc.get_chapter(@current_chapter)
       return unless chapter
 
-      wrapped = wrap_lines(chapter[:lines] || [], col_width)
+      wrapped = wrap_lines(chapter.lines || [], col_width)
       max_page = [wrapped.size - content_height, 0].max
 
       if @config.view_mode == :split
@@ -302,7 +302,7 @@ module EbookReader
 
     def calculate_page_map(col_width, actual_height)
       @page_map = @doc.chapters.map do |chapter|
-        wrapped = wrap_lines(chapter[:lines] || [], col_width)
+        wrapped = wrap_lines(chapter.lines || [], col_width)
         (wrapped.size.to_f / actual_height).ceil
       end
       @total_pages = @page_map.sum
@@ -350,7 +350,7 @@ module EbookReader
     def extract_bookmark_text(chapter, line_offset)
       height, width = Terminal.size
       col_width, = get_layout_metrics(width, height)
-      wrapped = wrap_lines(chapter[:lines] || [], col_width)
+      wrapped = wrap_lines(chapter.lines || [], col_width)
       text = wrapped[line_offset] || 'Bookmark'
       text.strip[0, 50]
     end
@@ -471,14 +471,14 @@ module EbookReader
 
       col_width, content_height = get_layout_metrics(width, height)
       content_height = adjust_for_line_spacing(content_height)
-      wrapped = wrap_lines(chapter[:lines] || [], col_width)
+      wrapped = wrap_lines(chapter.lines || [], col_width)
 
       draw_chapter_info(chapter, width)
       draw_split_columns(wrapped, col_width, content_height, height)
     end
 
     def draw_chapter_info(chapter, width)
-      chapter_info = "[#{@current_chapter + 1}] #{chapter[:title] || 'Unknown'}"
+      chapter_info = "[#{@current_chapter + 1}] #{chapter.title || 'Unknown'}"
       Terminal.write(2, 1, Terminal::ANSI::BLUE + chapter_info[0, width - 2] + Terminal::ANSI::RESET)
     end
 
@@ -501,7 +501,7 @@ module EbookReader
       col_width, content_height = get_layout_metrics(width, height)
       col_start = [(width - col_width) / 2, 1].max
       displayable_lines = adjust_for_line_spacing(content_height)
-      wrapped = wrap_lines(chapter[:lines] || [], col_width)
+      wrapped = wrap_lines(chapter.lines || [], col_width)
 
       lines_in_page = wrapped.slice(@single_page, displayable_lines) || []
       padding = (content_height - lines_in_page.size)
@@ -670,7 +670,7 @@ module EbookReader
     def draw_toc_items(range, chapters, list_start, width)
       range.each_with_index do |idx, row|
         chapter = chapters[idx]
-        line = "#{idx + 1}. #{chapter[:title] || 'Untitled'}"
+        line = "#{idx + 1}. #{chapter.title || 'Untitled'}"
 
         if idx == @toc_selected
           Terminal.write(list_start + row, 2, "#{Terminal::ANSI::BRIGHT_GREEN}▸ #{Terminal::ANSI::RESET}")
@@ -768,8 +768,8 @@ module EbookReader
       bookmark = @bookmarks[@bookmark_selected]
       return unless bookmark
 
-      @current_chapter = bookmark['chapter']
-      self.page_offsets = bookmark['line_offset']
+      @current_chapter = bookmark.chapter_index
+      self.page_offsets = bookmark.line_offset
       save_progress
       @mode = :read
     end
@@ -790,12 +790,12 @@ module EbookReader
 
     def position_at_chapter_end
       chapter = @doc.get_chapter(@current_chapter)
-      return unless chapter && chapter[:lines]
+      return unless chapter && chapter.lines
 
       height, width = Terminal.size
       col_width, content_height = get_layout_metrics(width, height)
       content_height = adjust_for_line_spacing(content_height)
-      wrapped = wrap_lines(chapter[:lines], col_width)
+      wrapped = wrap_lines(chapter.lines, col_width)
       max_page = [wrapped.size - content_height, 0].max
 
       if @config.view_mode == :split

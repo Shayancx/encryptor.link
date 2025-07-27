@@ -13,7 +13,7 @@ module EbookReader
         chapter = @doc.get_chapter(@current_chapter)
         return nil unless chapter
 
-        wrapped = wrap_lines(chapter[:lines] || [], col_width)
+        wrapped = wrap_lines(chapter.lines || [], col_width)
         max_page = [wrapped.size - content_height, 0].max
 
         [content_height, max_page, wrapped]
@@ -98,17 +98,17 @@ module EbookReader
         return nil unless chapter
 
         text_snippet = extract_bookmark_text(chapter, line_offset)
-        {
-          path: @path,
-          chapter: @current_chapter,
-          line_offset:,
-          text: text_snippet
-        }
+        Models::Bookmark.new(
+          chapter_index: @current_chapter,
+          line_offset: line_offset,
+          text_snippet: text_snippet,
+          created_at: Time.now
+        )
       end
 
       def jump_to_bookmark_position(bookmark)
-        @current_chapter = bookmark['chapter']
-        self.page_offsets = bookmark['line_offset']
+        @current_chapter = bookmark.chapter_index
+        self.page_offsets = bookmark.line_offset
         save_progress
         @mode = :read
       end

@@ -137,16 +137,16 @@ RSpec.describe EbookReader::ReaderRefactored do
 
   describe 'BookmarkHelpers' do
     it 'creates bookmark data' do
-      chapter = { lines: %w[one two three] }
+      chapter = EbookReader::Models::Chapter.new(number: '1', title: 'Ch', lines: %w[one two three], metadata: nil)
       allow(doc).to receive(:get_chapter).and_return(chapter)
       data = helper.create_bookmark_data
-      expect(data[:path]).to eq('/book.epub')
-      expect(data[:chapter]).to eq(0)
-      expect(data[:text]).to include('one')
+      expect(data).to be_a(EbookReader::Models::Bookmark)
+      expect(data.chapter_index).to eq(0)
+      expect(data.text_snippet).to include('one')
     end
 
     it 'jumps to bookmark position' do
-      bookmark = { 'chapter' => 1, 'line_offset' => 5 }
+      bookmark = EbookReader::Models::Bookmark.new(chapter_index: 1, line_offset: 5, text_snippet: 'x', created_at: Time.now)
       helper.jump_to_bookmark_position(bookmark)
       expect(helper.current_chapter).to eq(1)
       expect(helper.left_page).to eq(5)

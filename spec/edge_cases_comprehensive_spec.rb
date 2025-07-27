@@ -45,7 +45,7 @@ RSpec.describe "Edge Cases Comprehensive" do
 
   describe 'Memory management' do
     it 'handles large chapters efficiently' do
-      large_chapter = { title: "Large", lines: Array.new(10_000) { |i| "Line #{i}" * 10 } }
+      large_chapter = EbookReader::Models::Chapter.new(number: '1', title: 'Large', lines: Array.new(10_000) { |i| "Line #{i}" * 10 }, metadata: nil)
       doc = instance_double(EbookReader::EPUBDocument,
                             chapters: [large_chapter],
                             chapter_count: 1,

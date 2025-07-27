@@ -54,7 +54,7 @@ module EbookReader
 
       def draw_chapter_item(chapter, idx, row, width)
         number = idx + 1
-        title = chapter[:title] || 'Untitled'
+        title = chapter.title || 'Untitled'
         text = "#{number}. #{title}"
 
         if idx == @selected

@@ -12,8 +12,8 @@ RSpec.describe EbookReader::Reader, 'flow test fixed', fake_fs: true do
                     language: 'en',
                     chapter_count: 2,
                     chapters: [
-                      { title: 'Ch1', lines: Array.new(30) { |i| "line #{i}" } },
-                      { title: 'Ch2', lines: Array.new(30) { |i| "line #{i}" } }
+                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(30) { |i| "line #{i}" }, metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(30) { |i| "line #{i}" }, metadata: nil)
                     ])
   end
 
@@ -22,12 +22,7 @@ RSpec.describe EbookReader::Reader, 'flow test fixed', fake_fs: true do
     allow(doc).to receive(:get_chapter) { |i| doc.chapters[i] if i >= 0 && i < doc.chapters.size }
     allow(EbookReader::BookmarkManager).to receive(:get).and_return(
       [
-        {
-          'chapter' => 0,
-          'line_offset' => 5,
-          'text' => 'test bookmark',
-          'timestamp' => Time.now.iso8601
-        }
+        EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 5, text_snippet: 'test bookmark', created_at: Time.now)
       ]
     )
     allow(EbookReader::BookmarkManager).to receive(:add)

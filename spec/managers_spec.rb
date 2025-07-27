@@ -20,10 +20,11 @@ RSpec.describe "Managers", fake_fs: true do
   describe EbookReader::BookmarkManager do
     it 'builds a correct bookmark entry' do
       entry = described_class.build_entry(1, 10, "A sample text")
-      expect(entry['chapter']).to eq(1)
-      expect(entry['line_offset']).to eq(10)
-      expect(entry['text']).to eq("A sample text")
-      expect(entry['timestamp']).not_to be_nil
+      expect(entry).to be_a(EbookReader::Models::Bookmark)
+      expect(entry.chapter_index).to eq(1)
+      expect(entry.line_offset).to eq(10)
+      expect(entry.text_snippet).to eq("A sample text")
+      expect(entry.created_at).not_to be_nil
     end
   end
 

@@ -7,7 +7,7 @@ RSpec.describe EbookReader::ReaderModes do
   let(:config) { instance_double(EbookReader::Config, view_mode: :single) }
   let(:document) do
     instance_double(EbookReader::EPUBDocument,
-                    chapters: [{ title: 'Ch1', lines: ['Line 1'] }],
+                    chapters: [EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: ['Line 1'], metadata: nil)],
                     chapter_count: 1)
   end
 

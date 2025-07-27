@@ -15,6 +15,8 @@ require 'zip'
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'ebook_reader'
 require 'ebook_reader/constants'
+require 'ebook_reader/models/chapter'
+require 'ebook_reader/models/bookmark'
 require 'ebook_reader/terminal'
 require 'ebook_reader/config'
 require 'ebook_reader/epub_finder'

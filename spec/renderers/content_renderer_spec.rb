@@ -6,17 +6,13 @@ RSpec.describe EbookReader::Renderers::ContentRenderer do
   let(:config) { instance_double(EbookReader::Config, line_spacing: :normal, show_page_numbers: true) }
   let(:renderer) { described_class.new(config) }
   let(:chapter) do
-    {
-      number: "1",
-      title: "Test Chapter",
-      lines: ["Line 1", "Line 2", "Line 3"]
-    }
+    EbookReader::Models::Chapter.new(number: "1", title: "Test Chapter", lines: ["Line 1", "Line 2", "Line 3"], metadata: nil)
   end
 
   before do
     allow(EbookReader::Terminal).to receive(:write)
     allow(EbookReader::Terminal).to receive(:size).and_return([24, 80])
-    allow(renderer).to receive(:wrap_lines).and_return(chapter[:lines])
+    allow(renderer).to receive(:wrap_lines).and_return(chapter.lines)
   end
 
   describe '#draw_single_view' do

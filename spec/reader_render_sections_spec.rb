@@ -11,8 +11,8 @@ RSpec.describe EbookReader::Reader, 'render sections' do
                     language: 'en',
                     chapter_count: 2,
                     chapters: [
-                      { title: 'Ch1', lines: %w[a b c d e] },
-                      { title: 'Ch2', lines: %w[f g h i j] }
+                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: %w[a b c d e], metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: %w[f g h i j], metadata: nil)
                     ])
   end
 
@@ -38,7 +38,7 @@ RSpec.describe EbookReader::Reader, 'render sections' do
 
   it 'draws the bookmarks screen with bookmarks' do
     reader.instance_variable_set(:@bookmarks, [
-                                   { 'chapter' => 0, 'line_offset' => 0, 'text' => 'hi' }
+                                   EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: 0, text_snippet: 'hi', created_at: Time.now)
                                  ])
     reader.send(:draw_bookmarks_screen, 20, 80)
     expect(EbookReader::Terminal).to have_received(:write).at_least(5).times

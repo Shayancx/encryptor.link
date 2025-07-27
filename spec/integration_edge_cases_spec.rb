@@ -34,7 +34,7 @@ RSpec.describe "Integration Edge Cases" do
                             title: "Test",
                             language: "en",
                             chapter_count: 1,
-                            chapters: [{ title: "Ch1", lines: ["Line"] }])
+                            chapters: [EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: ['Line'], metadata: nil)])
       allow(EbookReader::EPUBDocument).to receive(:new).and_return(doc)
       allow(doc).to receive(:get_chapter).and_return(doc.chapters.first)
       allow(EbookReader::BookmarkManager).to receive(:get).and_return([])

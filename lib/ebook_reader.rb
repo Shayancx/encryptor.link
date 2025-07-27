@@ -25,6 +25,8 @@ require_relative 'ebook_reader/errors'
 # Constants and configuration
 require_relative 'ebook_reader/constants'
 require_relative 'ebook_reader/constants/ui_constants'
+require_relative 'ebook_reader/models/chapter'
+require_relative 'ebook_reader/models/bookmark'
 
 # Core components
 require_relative 'ebook_reader/version'

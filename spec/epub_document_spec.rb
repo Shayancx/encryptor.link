@@ -83,7 +83,7 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
 
     it "extracts chapters" do
       expect(document.chapter_count).to eq(1)
-      expect(document.chapters.first[:title]).to eq("Chapter 1")
+      expect(document.chapters.first.title).to eq("Chapter 1")
     end
 
     it "handles corrupted epub" do
@@ -92,16 +92,16 @@ RSpec.describe EbookReader::EPUBDocument, fake_fs: true do
 
       doc = described_class.new('/bad.epub')
       expect(doc.chapter_count).to eq(1)
-      expect(doc.chapters.first[:title]).to eq("Error Loading")
+      expect(doc.chapters.first.title).to eq("Error Loading")
     end
   end
 
   describe "#get_chapter" do
     it "returns chapter by index" do
       chapter = document.get_chapter(0)
-      expect(chapter).to be_a(Hash)
-      expect(chapter[:title]).to eq("Chapter 1")
-      expect(chapter[:lines]).to include("This is the content of chapter 1.")
+      expect(chapter).to be_a(EbookReader::Models::Chapter)
+      expect(chapter.title).to eq("Chapter 1")
+      expect(chapter.lines).to include("This is the content of chapter 1.")
     end
 
     it "returns nil for invalid index" do

@@ -50,7 +50,7 @@ module EbookReader
         chapter = @reader.doc.get_chapter(@reader.current_chapter)
         return unless chapter
 
-        wrapped = @reader.send(:wrap_lines, chapter[:lines] || [], col_width)
+        wrapped = @reader.send(:wrap_lines, chapter.lines || [], col_width)
         max_page = [wrapped.size - content_height, 0].max
 
         navigate_by_key(key, content_height, max_page)

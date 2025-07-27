@@ -19,8 +19,8 @@ RSpec.describe EbookReader::Reader do
                     language: 'en_US',
                     chapter_count: 2,
                     chapters: [
-                      { title: 'Ch1', lines: Array.new(50, 'line') },
-                      { title: 'Ch2', lines: Array.new(60, 'line') }
+                      EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(50, 'line'), metadata: nil),
+                      EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(60, 'line'), metadata: nil)
                     ])
   end
 
@@ -118,7 +118,7 @@ RSpec.describe EbookReader::Reader do
       expect(range).to eq(3...8)
 
       reader.instance_variable_set(:@bookmark_selected, 4)
-      reader.instance_variable_set(:@bookmarks, Array.new(10) { |i| { 'chapter' => 0, 'line_offset' => i, 'text' => 't' } })
+      reader.instance_variable_set(:@bookmarks, Array.new(10) { |i| EbookReader::Models::Bookmark.new(chapter_index: 0, line_offset: i, text_snippet: 't', created_at: Time.now) })
       range2 = reader.send(:calculate_bookmark_visible_range, 4)
       expect(range2).to eq(2...6)
     end

@@ -35,7 +35,7 @@ module EbookReader
         @dynamic_chapter_starts << total_lines
 
         # Wrap lines for current display width
-        wrapped = wrap_lines(chapter[:lines] || [], col_width)
+        wrapped = wrap_lines(chapter.lines || [], col_width)
         chapter_lines = wrapped.size
         chapter_pages = (chapter_lines.to_f / lines_per_page).ceil
 

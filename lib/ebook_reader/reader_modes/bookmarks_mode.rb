@@ -71,8 +71,8 @@ module EbookReader
 
       def draw_bookmark_item(bookmark, idx, row, width)
         doc = reader.send(:doc)
-        chapter = doc.get_chapter(bookmark['chapter'])
-        chapter_title = chapter&.[](:title) || "Chapter #{bookmark['chapter'] + 1}"
+        chapter = doc.get_chapter(bookmark.chapter_index)
+        chapter_title = chapter&.title || "Chapter #{bookmark.chapter_index + 1}"
 
         if idx == @selected
           draw_selected_bookmark(row, width, bookmark, chapter_title)
@@ -84,21 +84,21 @@ module EbookReader
       def draw_selected_bookmark(row, width, bookmark, chapter_title)
         terminal.write(row, 2, "#{Terminal::ANSI::BRIGHT_GREEN}▸ #{Terminal::ANSI::RESET}")
 
-        chapter_text = "Ch. #{bookmark['chapter'] + 1}: #{chapter_title[0, width - 20]}"
+        chapter_text = "Ch. #{bookmark.chapter_index + 1}: #{chapter_title[0, width - 20]}"
         terminal.write(row, 4,
                        "#{Terminal::ANSI::BRIGHT_WHITE}#{chapter_text}#{Terminal::ANSI::RESET}")
 
-        bookmark_text = bookmark['text'][0, width - 8]
+        bookmark_text = bookmark.text_snippet[0, width - 8]
         terminal.write(row + 1, 6,
                        "#{Terminal::ANSI::ITALIC}#{Terminal::ANSI::GRAY}#{bookmark_text}#{Terminal::ANSI::RESET}")
       end
 
       def draw_unselected_bookmark(row, width, bookmark, chapter_title)
-        chapter_text = "Ch. #{bookmark['chapter'] + 1}: #{chapter_title[0, width - 20]}"
+        chapter_text = "Ch. #{bookmark.chapter_index + 1}: #{chapter_title[0, width - 20]}"
         terminal.write(row, 4,
                        "#{Terminal::ANSI::WHITE}#{chapter_text}#{Terminal::ANSI::RESET}")
 
-        bookmark_text = bookmark['text'][0, width - 8]
+        bookmark_text = bookmark.text_snippet[0, width - 8]
         terminal.write(row + 1, 6,
                        "#{Terminal::ANSI::DIM}#{Terminal::ANSI::GRAY}#{bookmark_text}#{Terminal::ANSI::RESET}")
       end

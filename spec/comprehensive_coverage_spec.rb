@@ -12,8 +12,8 @@ RSpec.describe "Comprehensive Coverage Tests" do
                       language: "en",
                       chapter_count: 2,
                       chapters: [
-                        { title: "Ch1", lines: Array.new(100, "Line") },
-                        { title: "Ch2", lines: Array.new(50, "Line") }
+                        EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: Array.new(100, 'Line'), metadata: nil),
+                        EbookReader::Models::Chapter.new(number: '2', title: 'Ch2', lines: Array.new(50, 'Line'), metadata: nil)
                       ])
     end
     let(:reader) { described_class.new(epub_path, config) }
@@ -40,7 +40,9 @@ RSpec.describe "Comprehensive Coverage Tests" do
       end
 
       it 'handles empty chapter lines gracefully' do
-        allow(doc).to receive(:get_chapter).and_return({ title: "Empty", lines: [] })
+        allow(doc).to receive(:get_chapter).and_return(
+          EbookReader::Models::Chapter.new(number: '1', title: 'Empty', lines: [], metadata: nil)
+        )
         expect { reader.send(:draw_single_screen, 24, 80) }.not_to raise_error
       end
 
