@@ -38,6 +38,12 @@ module EbookReader
       # Total pages across all chapters
       attr_accessor :total_pages
 
+      # Current page index for dynamic pagination
+      attr_accessor :current_page_index
+
+      # Array storing page count per chapter when in dynamic mode
+      attr_accessor :pages_per_chapter
+
       # Last known terminal dimensions
       attr_accessor :last_width, :last_height
 
@@ -52,6 +58,8 @@ module EbookReader
         @left_page = 0
         @right_page = 0
         @single_page = 0
+        @current_page_index = 0
+        @pages_per_chapter = []
         @mode = :read
         @toc_selected = 0
         @bookmark_selected = 0
@@ -117,6 +125,14 @@ module EbookReader
         @current_chapter = snapshot['current_chapter'] || 0
         self.page_offset = snapshot['page_offset'] || 0
         @mode = (snapshot['mode'] || 'read').to_sym
+      end
+
+      # Determine if reader is using dynamic page mode
+      #
+      # @param config [Config] reader configuration
+      # @return [Boolean] true if dynamic mode
+      def dynamic_page_mode?(config)
+        config.page_numbering_mode == :dynamic
       end
     end
   end

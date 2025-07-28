@@ -7,7 +7,15 @@ module EbookReader
       Terminal.start_frame
       height, width = Terminal.size
 
-      update_page_map(width, height) if size_changed?(width, height)
+      if @config.page_numbering_mode == :dynamic && @page_manager
+        if size_changed?(width, height)
+          @page_manager.build_page_map(width, height)
+          @current_page_index = [@current_page_index, @page_manager.total_pages - 1].min
+          @current_page_index = [0, @current_page_index].max
+        end
+      else
+        update_page_map(width, height) if size_changed?(width, height)
+      end
 
       @renderer.render_header(@doc, width, @config.view_mode, @mode)
       draw_content(height, width)
@@ -49,7 +57,12 @@ module EbookReader
       return { current: 0, total: 0 } unless @config.show_page_numbers
 
       if @config.page_numbering_mode == :dynamic
-        calculate_dynamic_pages
+        return { current: 0, total: 0 } unless @page_manager
+
+        {
+          current: @current_page_index + 1,
+          total: @page_manager.total_pages
+        }
       else
         height, width = Terminal.size
         _, content_height = get_layout_metrics(width, height)
@@ -119,6 +132,47 @@ module EbookReader
     end
 
     def draw_single_screen(height, width)
+      if @config.page_numbering_mode == :dynamic
+        draw_single_screen_dynamic(height, width)
+      else
+        draw_single_screen_absolute(height, width)
+      end
+    end
+
+    private
+
+    def draw_single_screen_dynamic(height, width)
+      return unless @page_manager
+
+      page_data = @page_manager.get_page(@current_page_index)
+      return unless page_data
+
+      col_width, content_height = get_layout_metrics(width, height)
+      col_start = [(width - col_width) / 2, 1].max
+      lines_to_display = page_data[:lines]
+
+      actual_lines = if @config.line_spacing == :relaxed
+                       [lines_to_display.size * 2 - 1, 0].max
+                     else
+                       lines_to_display.size
+                     end
+
+      padding = [(content_height - actual_lines) / 2, 0].max
+      start_row = [3 + padding, 3].max
+
+      lines_to_display.each_with_index do |line, idx|
+        row = start_row + if @config.line_spacing == :relaxed
+                             idx * 2
+                           else
+                             idx
+                           end
+        break if row >= height - 2
+
+        draw_line(line, row, col_start, col_width)
+      end
+    end
+
+    def draw_single_screen_absolute(height, width)
       chapter = @doc.get_chapter(@current_chapter)
       return unless chapter
 

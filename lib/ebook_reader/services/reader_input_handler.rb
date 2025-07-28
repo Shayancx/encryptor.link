@@ -44,6 +44,42 @@ module EbookReader
       end
 
       def handle_navigation_input(key)
+        if @reader.config.page_numbering_mode == :dynamic
+          handle_navigation_input_dynamic(key)
+        else
+          handle_navigation_input_absolute(key)
+        end
+      end
+
+      def handle_navigation_input_dynamic(key)
+        case key
+        when 'j', 'k', "\e[B", "\eOB", "\e[A", "\eOA"
+          if ['j', "\e[B", "\eOB"].include?(key)
+            @reader.next_page
+          else
+            @reader.prev_page
+          end
+        when 'l', ' ', "\e[C", "\eOC"
+          @reader.next_page
+        when 'h', "\e[D", "\eOD"
+          @reader.prev_page
+        when 'n', 'N'
+          @reader.next_chapter
+        when 'p', 'P'
+          @reader.prev_chapter
+        when 'g'
+          @reader.instance_variable_set(:@current_page_index, 0)
+          @reader.send(:update_chapter_from_page_index)
+        when 'G'
+          pm = @reader.instance_variable_get(:@page_manager)
+          if pm
+            @reader.instance_variable_set(:@current_page_index, pm.total_pages - 1)
+            @reader.send(:update_chapter_from_page_index)
+          end
+        end
+      end
+
+      def handle_navigation_input_absolute(key)
         height, width = Terminal.size
         col_width, content_height = @reader.send(:get_layout_metrics, width, height)
         content_height = @reader.send(:adjust_for_line_spacing, content_height)
