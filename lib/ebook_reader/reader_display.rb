@@ -321,7 +321,7 @@ module EbookReader
     def draw_toc_items(range, chapters, list_start, width)
       range.each_with_index do |idx, row|
         chapter = chapters[idx]
-        line = "#{idx + 1}. #{chapter.title || 'Untitled'}"
+        line = chapter.title || 'Untitled'
 
         if idx == @toc_selected
           Terminal.write(list_start + row, 2, "#{Terminal::ANSI::BRIGHT_GREEN}▸ #{Terminal::ANSI::RESET}")
