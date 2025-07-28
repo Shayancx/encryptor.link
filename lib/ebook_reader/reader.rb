@@ -241,7 +241,13 @@ module EbookReader
       return unless chapter
 
       text_snippet = extract_bookmark_text(chapter, line_offset)
-      BookmarkManager.add(@path, @current_chapter, line_offset, text_snippet)
+      data = Models::BookmarkData.new(
+        path: @path,
+        chapter: @current_chapter,
+        line_offset: line_offset,
+        text: text_snippet
+      )
+      BookmarkManager.add(data)
       load_bookmarks
       set_message(Constants::Messages::BOOKMARK_ADDED)
     end

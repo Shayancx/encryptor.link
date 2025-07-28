@@ -4,12 +4,22 @@ require 'spec_helper'
 
 RSpec.describe EbookReader::Reader do
   let(:epub_path) { '/book.epub' }
-  let(:config) { instance_double(EbookReader::Config, view_mode: :split) }
+  let(:config) do
+    instance_double(EbookReader::Config, view_mode: :split,
+                    page_numbering_mode: :absolute,
+                    line_spacing: :normal,
+                    highlight_quotes: false,
+                    show_page_numbers: false)
+  end
+  let(:chapter_obj) do
+    EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: ['Line 1', 'Line 2'], metadata: nil)
+  end
   let(:doc) do
     instance_double(EbookReader::EPUBDocument,
                     title: 'Test Book',
-                    chapters: [{ title: 'Ch1', lines: ['Line 1', 'Line 2'] }],
-                    chapter_count: 1)
+                    chapters: [chapter_obj],
+                    chapter_count: 1,
+                    language: 'en')
   end
 
   let(:reader) { described_class.new(epub_path, config) }
@@ -41,12 +51,14 @@ RSpec.describe EbookReader::Reader do
     end
 
     it 'scrolls down on j key' do
+      allow(config).to receive(:view_mode).and_return(:single)
       initial = reader.instance_variable_get(:@single_page)
       reader.send(:handle_reading_input, 'j')
       expect(reader.instance_variable_get(:@single_page)).to be >= initial
     end
 
     it 'scrolls up on k key' do
+      allow(config).to receive(:view_mode).and_return(:single)
       reader.instance_variable_set(:@single_page, 5)
       reader.send(:handle_reading_input, 'k')
       expect(reader.instance_variable_get(:@single_page)).to eq(4)
@@ -77,9 +89,12 @@ RSpec.describe EbookReader::Reader do
     end
 
     it 'adds bookmark with current position' do
-      expect(EbookReader::BookmarkManager).to receive(:add).with(
-        epub_path, 0, 0, anything
-      )
+      expect(EbookReader::BookmarkManager).to receive(:add) do |data|
+        expect(data).to be_a(EbookReader::Models::BookmarkData)
+        expect(data.path).to eq(epub_path)
+        expect(data.chapter).to eq(0)
+        expect(data.line_offset).to eq(0)
+      end
       reader.send(:add_bookmark)
     end
   end
