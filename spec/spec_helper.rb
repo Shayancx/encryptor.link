@@ -70,6 +70,7 @@ RSpec.configure do |config|
     allow(EbookReader::Terminal).to receive(:end_frame)
     allow(EbookReader::Terminal).to receive(:size).and_return([24, 80])
     allow(EbookReader::Terminal).to receive(:read_key).and_return(nil)
+    allow(IO).to receive_message_chain(:console, :getch).and_return("\n")
   end
 
   # Mock $stdout for tests that print

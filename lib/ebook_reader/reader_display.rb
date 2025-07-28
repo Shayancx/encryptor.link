@@ -279,6 +279,7 @@ module EbookReader
         '  t         Show Table of Contents',
         '  b         Add a bookmark',
         '  B         Show bookmarks',
+        '  c         Copy current page',
         '',
         'Other Keys:',
         '  ?         Show/hide this help',
