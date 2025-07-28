@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EbookReader
   module Services
     class PageManager
@@ -32,7 +34,7 @@ module EbookReader
               total_pages_in_chapter: page_count,
               start_line: start_line,
               end_line: end_line,
-              lines: wrapped_lines[start_line..end_line] || []
+              lines: wrapped_lines[start_line..end_line] || [],
             }
           end
         end
@@ -42,7 +44,7 @@ module EbookReader
 
       def get_page(page_index)
         return nil if @pages_data.empty?
-        return @pages_data.first if page_index < 0
+        return @pages_data.first if page_index.negative?
         return @pages_data.last if page_index >= @pages_data.size
 
         @pages_data[page_index]
@@ -64,10 +66,10 @@ module EbookReader
 
       def calculate_layout_metrics(width, height)
         col_width = if @config.view_mode == :split
-                       [(width - 3) / 2, 20].max
-                     else
-                       (width * 0.9).to_i.clamp(30, 120)
-                     end
+                      [(width - 3) / 2, 20].max
+                    else
+                      (width * 0.9).to_i.clamp(30, 120)
+                    end
         content_height = [height - 4, 1].max
         [col_width, content_height]
       end

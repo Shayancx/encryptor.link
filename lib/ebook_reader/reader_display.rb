@@ -13,8 +13,8 @@ module EbookReader
           @current_page_index = [@current_page_index, @page_manager.total_pages - 1].min
           @current_page_index = [0, @current_page_index].max
         end
-      else
-        update_page_map(width, height) if size_changed?(width, height)
+      elsif size_changed?(width, height)
+        update_page_map(width, height)
       end
 
       @renderer.render_header(@doc, width, @config.view_mode, @mode)
@@ -61,7 +61,7 @@ module EbookReader
 
         {
           current: @current_page_index + 1,
-          total: @page_manager.total_pages
+          total: @page_manager.total_pages,
         }
       else
         height, width = Terminal.size
@@ -152,7 +152,7 @@ module EbookReader
       lines_to_display = page_data[:lines]
 
       actual_lines = if @config.line_spacing == :relaxed
-                       [lines_to_display.size * 2 - 1, 0].max
+                       [(lines_to_display.size * 2) - 1, 0].max
                      else
                        lines_to_display.size
                      end
@@ -162,10 +162,10 @@ module EbookReader
 
       lines_to_display.each_with_index do |line, idx|
         row = start_row + if @config.line_spacing == :relaxed
-                             idx * 2
-                           else
-                             idx
-                           end
+                            idx * 2
+                          else
+                            idx
+                          end
         break if row >= height - 2
 
         draw_line(line, row, col_start, col_width)
@@ -184,7 +184,7 @@ module EbookReader
       lines_in_page = wrapped.slice(@single_page, displayable_lines) || []
 
       actual_lines = if @config.line_spacing == :relaxed
-                       [lines_in_page.size * 2 - 1, 0].max
+                       [(lines_in_page.size * 2) - 1, 0].max
                      else
                        lines_in_page.size
                      end
@@ -389,15 +389,15 @@ module EbookReader
       end
     end
 
-  def draw_toc_footer(height)
-    Terminal.write(height - 1, 2,
-                   "#{Terminal::ANSI::DIM}↑↓ Navigate • Enter Jump • t/ESC Back#{Terminal::ANSI::RESET}")
-  end
+    def draw_toc_footer(height)
+      Terminal.write(height - 1, 2,
+                     "#{Terminal::ANSI::DIM}↑↓ Navigate • Enter Jump • t/ESC Back#{Terminal::ANSI::RESET}")
+    end
 
-  def draw_copy_indicator(height)
-    text = ' copy mode activated! '
-    Terminal.write(height, 1,
-                   "#{Terminal::ANSI::BG_BRIGHT_GREEN}#{Terminal::ANSI::BLACK}#{text}#{Terminal::ANSI::RESET}")
+    def draw_copy_indicator(height)
+      text = ' copy mode activated! '
+      Terminal.write(height, 1,
+                     "#{Terminal::ANSI::BG_BRIGHT_GREEN}#{Terminal::ANSI::BLACK}#{text}#{Terminal::ANSI::RESET}")
+    end
   end
-end
 end

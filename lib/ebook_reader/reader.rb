@@ -112,19 +112,19 @@ module EbookReader
     def next_page_dynamic
       return unless @page_manager
 
-      if @current_page_index < @page_manager.total_pages - 1
-        @current_page_index += 1
-        update_chapter_from_page_index
-      end
+      return unless @current_page_index < @page_manager.total_pages - 1
+
+      @current_page_index += 1
+      update_chapter_from_page_index
     end
 
     def prev_page_dynamic
       return unless @page_manager
 
-      if @current_page_index.positive?
-        @current_page_index -= 1
-        update_chapter_from_page_index
-      end
+      return unless @current_page_index.positive?
+
+      @current_page_index -= 1
+      update_chapter_from_page_index
     end
 
     def next_page_absolute
@@ -219,7 +219,7 @@ module EbookReader
 
     def prev_chapter
       if @config.page_numbering_mode == :dynamic
-        return unless @current_chapter > 0
+        return unless @current_chapter.positive?
 
         target_page_index = @page_manager.pages_data.find_index do |page|
           page[:chapter_index] == @current_chapter - 1
@@ -472,9 +472,7 @@ module EbookReader
 
       if @config.page_numbering_mode == :dynamic && @page_manager
         page_data = @page_manager.get_page(@current_page_index)
-        if page_data
-          ProgressManager.save(@path, page_data[:chapter_index], page_data[:start_line])
-        end
+        ProgressManager.save(@path, page_data[:chapter_index], page_data[:start_line]) if page_data
       else
         line_offset = @config.view_mode == :split ? @left_page : @single_page
         ProgressManager.save(@path, @current_chapter, line_offset)

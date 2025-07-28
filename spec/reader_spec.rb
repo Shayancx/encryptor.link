@@ -6,10 +6,10 @@ RSpec.describe EbookReader::Reader do
   let(:epub_path) { '/book.epub' }
   let(:config) do
     instance_double(EbookReader::Config, view_mode: :split,
-                    page_numbering_mode: :absolute,
-                    line_spacing: :normal,
-                    highlight_quotes: false,
-                    show_page_numbers: false)
+                                         page_numbering_mode: :absolute,
+                                         line_spacing: :normal,
+                                         highlight_quotes: false,
+                                         show_page_numbers: false)
   end
   let(:chapter_obj) do
     EbookReader::Models::Chapter.new(number: '1', title: 'Ch1', lines: ['Line 1', 'Line 2'], metadata: nil)

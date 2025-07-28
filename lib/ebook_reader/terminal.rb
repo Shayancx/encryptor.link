@@ -146,7 +146,7 @@ module EbookReader
           input = $stdin.read_nonblock(1)
           return input unless input == "\e"
 
-          loop do
+          2.times do
             input << $stdin.read_nonblock(1)
           rescue IO::WaitReadable
             break
@@ -163,7 +163,7 @@ module EbookReader
           key = read_key
           return key if key
 
-          IO.select([$stdin])
+          $stdin.wait_readable
         end
       end
 

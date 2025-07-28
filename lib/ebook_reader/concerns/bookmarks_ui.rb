@@ -5,6 +5,7 @@ module EbookReader
     # Rendering helpers for the bookmarks screen
     module BookmarksUI
       include Constants::UIConstants
+
       def draw_bookmarks_screen(height, width)
         draw_bookmarks_header(width)
 
