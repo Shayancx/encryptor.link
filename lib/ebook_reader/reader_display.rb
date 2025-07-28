@@ -135,7 +135,7 @@ module EbookReader
                      end
 
       padding = content_height - actual_lines
-      start_row = [2 + (padding / 2), 2].max
+      start_row = [3 + (padding / 2), 3].max
 
       params = Models::ColumnDrawingParams.new(
         position: Models::ColumnDrawingParams::Position.new(row: start_row, col: col_start),
