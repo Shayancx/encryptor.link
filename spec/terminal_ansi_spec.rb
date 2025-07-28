@@ -26,6 +26,7 @@ RSpec.describe EbookReader::Terminal::ANSI do
   describe 'background colors' do
     it 'defines background color codes' do
       expect(described_class::BG_DARK).to eq("\e[48;5;236m")
+      expect(described_class::BG_BRIGHT_GREEN).to eq("\e[102m")
     end
   end
 

@@ -13,6 +13,7 @@ module EbookReader
       draw_content(height, width)
       draw_footer(height, width)
       draw_message(height, width) if @message
+      draw_copy_indicator(height) if @copy_mode
 
       Terminal.end_frame
     end
@@ -334,9 +335,15 @@ module EbookReader
       end
     end
 
-    def draw_toc_footer(height)
-      Terminal.write(height - 1, 2,
-                     "#{Terminal::ANSI::DIM}↑↓ Navigate • Enter Jump • t/ESC Back#{Terminal::ANSI::RESET}")
-    end
+  def draw_toc_footer(height)
+    Terminal.write(height - 1, 2,
+                   "#{Terminal::ANSI::DIM}↑↓ Navigate • Enter Jump • t/ESC Back#{Terminal::ANSI::RESET}")
   end
+
+  def draw_copy_indicator(height)
+    text = ' copy mode activated! '
+    Terminal.write(height, 1,
+                   "#{Terminal::ANSI::BG_BRIGHT_GREEN}#{Terminal::ANSI::BLACK}#{text}#{Terminal::ANSI::RESET}")
+  end
+end
 end

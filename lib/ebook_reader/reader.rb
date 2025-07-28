@@ -212,14 +212,14 @@ module EbookReader
       @last_width = 0
     end
 
-    # Enter a temporary copy mode where the current page text is printed to the
-    # standard output so the user can highlight it with the mouse.
+    # Enter a temporary copy mode where the current page can be highlighted
+    # without leaving the reader interface.
     def enter_copy_mode
-      Terminal.cleanup
-      print_copy_text
-      IO.console.getch
+      @copy_mode = true
+      draw_screen
+      Terminal.read_key
     ensure
-      Terminal.setup
+      @copy_mode = false
       draw_screen
     end
 
@@ -272,6 +272,7 @@ module EbookReader
       @total_pages = 0
       @last_width = 0
       @last_height = 0
+      @copy_mode = false
     end
 
     def load_document
