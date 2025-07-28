@@ -127,7 +127,14 @@ module EbookReader
       wrapped = wrap_lines(chapter.lines || [], col_width)
 
       lines_in_page = wrapped.slice(@single_page, displayable_lines) || []
-      padding = (content_height - lines_in_page.size)
+
+      actual_lines = if @config.line_spacing == :relaxed
+                       [lines_in_page.size * 2 - 1, 0].max
+                     else
+                       lines_in_page.size
+                     end
+
+      padding = content_height - actual_lines
       start_row = [2 + (padding / 2), 2].max
 
       params = Models::ColumnDrawingParams.new(
