@@ -27,7 +27,9 @@ module EbookReader
     end
 
     def size_changed?(width, height)
-      width != @last_width || height != @last_height
+      changed = width != @last_width || height != @last_height
+      @wrap_cache.clear if changed && defined?(@wrap_cache)
+      changed
     end
 
     def draw_content(height, width)

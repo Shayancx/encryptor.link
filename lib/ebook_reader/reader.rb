@@ -58,6 +58,9 @@ module EbookReader
       @page_manager = Services::PageManager.new(@doc, @config) if @doc
       load_data
       @input_handler = Services::ReaderInputHandler.new(self)
+      @terminal_cache = { width: nil, height: nil, checked_at: nil }
+      @last_rendered_content = {}
+      @wrap_cache = {}
     end
 
     def run
@@ -366,12 +369,37 @@ module EbookReader
     end
 
     def main_loop
+      draw_screen
       while @running
-        draw_screen
-        key = Terminal.read_key
-        @input_handler.process_input(key) if key
-        sleep KEY_REPEAT_DELAY / 1000.0
+        key = Terminal.read_key_blocking
+        next unless key
+
+        keys = [key]
+        while (extra = Terminal.read_key)
+          keys << extra
+          break if keys.size > 10
+        end
+
+        old_state = capture_state
+        keys.each { |k| @input_handler.process_input(k) }
+        draw_screen if state_changed?(old_state)
       end
+    end
+
+    def capture_state
+      {
+        chapter: @current_chapter,
+        page: @config.view_mode == :split ? @left_page : @single_page,
+        mode: @mode,
+        message: @message,
+      }
+    end
+
+    def state_changed?(old_state)
+      old_state[:chapter] != @current_chapter ||
+        old_state[:page] != (@config.view_mode == :split ? @left_page : @single_page) ||
+        old_state[:mode] != @mode ||
+        old_state[:message] != @message
     end
 
     def handle_split_next_page(max_page, content_height)

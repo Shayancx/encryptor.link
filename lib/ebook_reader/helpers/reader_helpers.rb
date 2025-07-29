@@ -7,6 +7,10 @@ module EbookReader
       def wrap_lines(lines, width)
         return [] if lines.nil? || width < 10
 
+        @wrap_cache ||= {}
+        key = "#{lines.object_id}_#{width}"
+        return @wrap_cache[key] if @wrap_cache[key]
+
         wrapped = []
         lines.each do |line|
           next if line.nil?
@@ -17,7 +21,7 @@ module EbookReader
             wrap_line(line, width, wrapped)
           end
         end
-        wrapped
+        @wrap_cache[key] = wrapped
       end
 
       private

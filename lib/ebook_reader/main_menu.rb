@@ -52,15 +52,21 @@ module EbookReader
     private
 
     def main_loop
+      draw_screen
       loop do
-        process_scan_results
+        process_scan_results_if_available
+        key = Terminal.read_key_blocking
+        keys = [key]
+        while (extra = Terminal.read_key)
+          keys << extra
+          break if keys.size > 10
+        end
+        keys.each { |k| @input_handler.handle_input(k) }
         draw_screen
-        @input_handler.handle_input(Terminal.read_key)
-        sleep 0.02
       end
     end
 
-    def process_scan_results
+    def process_scan_results_if_available
       return unless (epubs = @scanner.process_results)
 
       @scanner.epubs = epubs

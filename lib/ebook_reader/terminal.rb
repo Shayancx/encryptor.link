@@ -67,6 +67,9 @@ module EbookReader
 
     @buffer = []
     @console = nil
+    @size_cache = { width: nil, height: nil, checked_at: nil }
+    @batch_mode = false
+    @batch_buffer = nil
 
     class << self
       # Get current terminal dimensions.
@@ -78,10 +81,20 @@ module EbookReader
       # @example
       #   height, width = Terminal.size
       #   puts "Terminal is #{width}x#{height}"
+      SIZE_CACHE_INTERVAL = 0.5
+
       def size
-        IO.console.winsize || default_dimensions
-      rescue StandardError
-        default_dimensions
+        now = Time.now
+        if @size_cache[:checked_at].nil? ||
+           now - @size_cache[:checked_at] > SIZE_CACHE_INTERVAL
+          begin
+            h, w = IO.console.winsize
+          rescue StandardError
+            h, w = default_dimensions
+          end
+          @size_cache = { width: w, height: h, checked_at: now }
+        end
+        [@size_cache[:height], @size_cache[:width]]
       end
 
       def default_dimensions
@@ -99,7 +112,23 @@ module EbookReader
       end
 
       def write(row, col, text)
-        @buffer << (ANSI.move(row, col) + text.to_s)
+        content = ANSI.move(row, col) + text.to_s
+        if @batch_mode
+          @batch_buffer << content
+        else
+          @buffer << content
+        end
+      end
+
+      def batch_write
+        @batch_mode = true
+        @batch_buffer = []
+        yield
+        print @batch_buffer.join
+        $stdout.flush
+      ensure
+        @batch_mode = false
+        @batch_buffer = nil
       end
 
       def start_frame
