@@ -387,17 +387,29 @@ module EbookReader
     end
 
     def capture_state
+      page_value = if @config.page_numbering_mode == :dynamic
+                     @current_page_index
+                   else
+                     @config.view_mode == :split ? @left_page : @single_page
+                   end
+
       {
         chapter: @current_chapter,
-        page: @config.view_mode == :split ? @left_page : @single_page,
+        page: page_value,
         mode: @mode,
         message: @message,
       }
     end
 
     def state_changed?(old_state)
+      new_page = if @config.page_numbering_mode == :dynamic
+                    @current_page_index
+                  else
+                    @config.view_mode == :split ? @left_page : @single_page
+                  end
+
       old_state[:chapter] != @current_chapter ||
-        old_state[:page] != (@config.view_mode == :split ? @left_page : @single_page) ||
+        old_state[:page] != new_page ||
         old_state[:mode] != @mode ||
         old_state[:message] != @message
     end
