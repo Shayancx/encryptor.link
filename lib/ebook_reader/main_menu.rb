@@ -407,10 +407,10 @@ module EbookReader
 
       path = input.chomp.strip
       if (path.start_with?("'") && path.end_with?("'")) ||
-         (path.start_with?('"') && path.end_with?('"'))
+         (path.start_with?("\"") && path.end_with?("\""))
         path = path[1..-2]
       end
-      path = path.delete('"')
+      path = path.delete("\"")
       File.expand_path(path)
     end
 
